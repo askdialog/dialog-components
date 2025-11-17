@@ -5,7 +5,7 @@ import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 import nxPlugin from '@nx/eslint-plugin';
 
-export default typescriptEslint.config(
+export default [
   {
     ignores: [
       '**/node_modules/**',
@@ -16,12 +16,10 @@ export default typescriptEslint.config(
       '*.d.ts',
     ],
   },
+  eslint.configs.recommended,
+  ...typescriptEslint.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-    extends: [
-      eslint.configs.recommended,
-      ...typescriptEslint.configs.recommended,
-    ],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -59,4 +57,4 @@ export default typescriptEslint.config(
   },
   eslintPluginPrettier,
   eslintConfigPrettier,
-);
+];

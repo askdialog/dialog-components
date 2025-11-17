@@ -5,18 +5,16 @@ import eslintPluginPrettier from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 
-export default typescriptEslint.config(
+export default [
   {
     ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.d.ts', 'bundle/**', 'eslint.config.js'],
   },
+  eslint.configs.recommended,
+  ...typescriptEslint.configs.recommended,
+  ...typescriptEslint.configs.strict,
   {
     files: ['**/*.ts', '**/*.js'],
     ignores: ['eslint.config.js'],
-    extends: [
-      eslint.configs.recommended,
-      ...typescriptEslint.configs.recommended,
-      ...typescriptEslint.configs.strict,
-    ],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -146,4 +144,4 @@ export default typescriptEslint.config(
   },
   eslintPluginPrettier,
   eslintConfigPrettier,
-);
+];

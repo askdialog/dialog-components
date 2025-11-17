@@ -23,19 +23,19 @@
     "publish:vue": "pnpm --filter @askdialog/dialog-vue publish"
   },
   "devDependencies": {
-    "@eslint/js": "^9.17.0",
-    "@nx/eslint": "^20.3.0",
-    "@nx/eslint-plugin": "^20.3.0",
-    "@nx/js": "^20.3.0",
-    "@nx/vite": "^20.3.0",
-    "eslint": "^9.17.0",
-    "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-prettier": "^5.2.1",
-    "globals": "^16.0.0",
-    "nx": "^20.3.0",
-    "prettier": "^3.4.2",
+    "@eslint/js": "^9.39.1",
+    "@nx/eslint": "^20.8.2",
+    "@nx/eslint-plugin": "^20.8.2",
+    "@nx/js": "^20.8.2",
+    "@nx/vite": "^20.8.2",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.5.0",
+    "nx": "^20.8.2",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.18.1"
+    "typescript-eslint": "^8.46.4"
   },
   "packageManager": "pnpm@10.0.0",
   "engines": {
