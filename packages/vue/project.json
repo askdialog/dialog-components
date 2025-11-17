@@ -42,5 +42,6 @@
       }
     }
   },
-  "tags": ["type:library", "scope:vue"]
+  "tags": ["type:library", "scope:vue"],
+  "implicitDependencies": ["@askdialog/dialog-sdk"]
 }
