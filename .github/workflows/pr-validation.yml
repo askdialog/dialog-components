@@ -1,0 +1,57 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+  push:
+    branches:
+      - main
+      - staging
+
+# Cancel in-progress runs for the same workflow + branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for Nx affected commands
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        uses: nrwl/nx-set-shas@v4
+
+      - name: Lint affected projects
+        run: pnpm nx affected -t lint --parallel=3
+
+      - name: Type check SDK
+        run: pnpm nx run @askdialog/dialog-sdk:test-type
+        continue-on-error: false
+
+      - name: Type check Vue
+        run: cd packages/vue && pnpm vue-tsc -b --noEmit
+        continue-on-error: false
+
+      - name: Build affected projects
+        run: pnpm nx affected -t build --parallel=3
