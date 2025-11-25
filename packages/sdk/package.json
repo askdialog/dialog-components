@@ -18,7 +18,6 @@
     "build": "pnpm run build:prod",
     "build:dev": "pnpm run clean && pnpm run set-config development && tsc",
     "build:prod": "pnpm run clean && pnpm run set-config production && tsc",
-    "publish": "pnpm publish",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test-type": "tsc --noEmit",
