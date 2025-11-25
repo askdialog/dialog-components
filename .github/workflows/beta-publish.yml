@@ -71,7 +71,7 @@ jobs:
 
       - name: Publish to npm (beta tag)
         if: steps.changesets.outputs.has_changesets == 'true'
-        run: pnpm changeset publish --tag beta
+        run: pnpm changeset publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
