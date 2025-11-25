@@ -4,8 +4,8 @@ import {
   CommonPayload,
   DIALOG_ASSISTANT_EVENT,
   GenericAssistantEventPayload,
-} from './types/assistantEvent';
-import { DIALOG_CUSTOM_EVENT, DialogEvent } from './types/events';
+} from "./types/assistantEvent";
+import { DIALOG_CUSTOM_EVENT, DialogEvent } from "./types/events";
 
 export class EventsHandler {
   private _locale: string;
@@ -17,8 +17,8 @@ export class EventsHandler {
   }
 
   public emitExternalEvent(
-    type: DialogEvent['type'],
-    payload?: DialogEvent['payload'],
+    type: DialogEvent["type"],
+    payload?: DialogEvent["payload"],
   ): void {
     const event = new CustomEvent(DIALOG_CUSTOM_EVENT, {
       detail: { type, payload },
@@ -28,7 +28,7 @@ export class EventsHandler {
   }
 
   public emitAssistantEvent(
-    type: AssistantEvent['type'],
+    type: AssistantEvent["type"],
     payload?: GenericAssistantEventPayload,
   ): void {
     const event = new CustomEvent(DIALOG_ASSISTANT_EVENT, {

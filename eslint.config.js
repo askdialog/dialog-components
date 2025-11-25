@@ -55,6 +55,12 @@ export default [
       ],
     },
   },
-  eslintPluginPrettier,
+  {
+    ...eslintPluginPrettier,
+    rules: {
+      ...eslintPluginPrettier.rules,
+      'prettier/prettier': ['error', {}, { usePrettierrc: false }],
+    },
+  },
   eslintConfigPrettier,
 ];

@@ -1,28 +1,28 @@
 /* eslint-disable max-lines */
-import { uuidv7 } from 'uuidv7';
-import packageJson from '../package.json';
-import { defaultTheme } from './constants/theme';
-import { DialogConstructor } from './types/constructor';
-import { Theme } from './types/theme';
+import { uuidv7 } from "uuidv7";
+import packageJson from "../package.json";
+import { defaultTheme } from "./constants/theme";
+import { DialogConstructor } from "./types/constructor";
+import { Theme } from "./types/theme";
 import {
   DetailedLocaleInfo,
   getDetailedLocaleInfo,
-} from './utils/localization';
-import { ANONYMOUS_CUSTOMER_ID, CUSTOMER_ID } from './constants/user';
-import { Suggestion } from './types/suggestion';
+} from "./utils/localization";
+import { ANONYMOUS_CUSTOMER_ID, CUSTOMER_ID } from "./constants/user";
+import { Suggestion } from "./types/suggestion";
 import {
   DialogEvents,
   GenericQuestionPayload,
   OpenAssistantPayload,
   ProductQuestionPayload,
-} from './types/events';
-import { SimplifiedProduct } from './types/product';
-import { EventsHandler } from './EventsHandler';
-import { Tracking } from './Tracking';
-import { TrackingEvents } from './types/trackings';
-import { loadSuggestions } from './services/suggestions';
-import { config } from './config';
-import { AssistantEvent } from './types/assistantEvent';
+} from "./types/events";
+import { SimplifiedProduct } from "./types/product";
+import { EventsHandler } from "./EventsHandler";
+import { Tracking } from "./Tracking";
+import { TrackingEvents } from "./types/trackings";
+import { loadSuggestions } from "./services/suggestions";
+import { config } from "./config";
+import { AssistantEvent } from "./types/assistantEvent";
 export class Dialog {
   public static readonly VERSION = packageJson.version;
 
@@ -30,8 +30,8 @@ export class Dialog {
   private _locale: string;
 
   private _callbacks: {
-    addToCart: DialogConstructor['callbacks']['addToCart'];
-    getProduct: DialogConstructor['callbacks']['getProduct'];
+    addToCart: DialogConstructor["callbacks"]["addToCart"];
+    getProduct: DialogConstructor["callbacks"]["getProduct"];
   };
   private _theme: Theme;
   private _userId: string;
@@ -196,13 +196,13 @@ export class Dialog {
     const localeInfo = getDetailedLocaleInfo(this._locale);
 
     if (localeInfo === null) {
-      console.error('Missing locale information');
+      console.error("Missing locale information");
 
       return;
     }
 
-    const div = document.createElement('div');
-    div.id = 'dialog-shopify-ai';
+    const div = document.createElement("div");
+    div.id = "dialog-shopify-ai";
     div.dataset.shopIsoCode = this._locale;
     div.dataset.apiKey = this._apiKey;
     div.dataset.userId = this._userId;
@@ -211,11 +211,11 @@ export class Dialog {
     document.body.appendChild(div);
 
     setTimeout(() => {
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
+      const script = document.createElement("script");
+      script.type = "text/javascript";
       script.defer = true;
       script.async = true;
-      script.type = 'module';
+      script.type = "module";
       script.src = config.assistantUrl;
       document.head.insertBefore(script, document.head.firstChild);
     }, 50);

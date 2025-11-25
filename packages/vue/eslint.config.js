@@ -1,20 +1,20 @@
-import eslint from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import eslintPluginPrettier from 'eslint-plugin-prettier/recommended';
-import eslintPluginVue from 'eslint-plugin-vue';
-import globals from 'globals';
-import typescriptEslint from 'typescript-eslint';
+import eslint from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
+import eslintPluginVue from "eslint-plugin-vue";
+import globals from "globals";
+import typescriptEslint from "typescript-eslint";
 
 export default [
-  { ignores: ['*.d.ts', '**/coverage', '**/dist'] },
+  { ignores: ["*.d.ts", "**/coverage", "**/dist"] },
   eslint.configs.recommended,
   ...typescriptEslint.configs.recommended,
-  ...eslintPluginVue.configs['flat/recommended'],
+  ...eslintPluginVue.configs["flat/recommended"],
   {
-    files: ['**/*.{ts,vue}'],
+    files: ["**/*.{ts,vue}"],
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
+      ecmaVersion: "latest",
+      sourceType: "module",
       globals: globals.browser,
       parserOptions: {
         parser: typescriptEslint.parser,
@@ -22,6 +22,12 @@ export default [
     },
     rules: {},
   },
-  eslintPluginPrettier,
+  {
+    ...eslintPluginPrettier,
+    rules: {
+      ...eslintPluginPrettier.rules,
+      "prettier/prettier": ["error", {}, { usePrettierrc: false }],
+    },
+  },
   eslintConfigPrettier,
 ];

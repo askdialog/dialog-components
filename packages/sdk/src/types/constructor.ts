@@ -1,5 +1,5 @@
-import { SimplifiedProduct } from './product';
-import { Theme } from './theme';
+import { SimplifiedProduct } from "./product";
+import { Theme } from "./theme";
 
 export interface DialogConstructor {
   apiKey: string;

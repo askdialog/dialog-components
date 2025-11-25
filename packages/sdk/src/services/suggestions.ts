@@ -1,12 +1,12 @@
-import { Suggestion } from '../types/suggestion';
-import { getBaseApiUrl } from './base';
+import { Suggestion } from "../types/suggestion";
+import { getBaseApiUrl } from "./base";
 
 export const loadSuggestions = async (
   apiKey: string,
   locale: string,
   productId: string,
 ): Promise<Suggestion> => {
-  const pagePath = window.location.pathname.split('?')[0];
+  const pagePath = window.location.pathname.split("?")[0];
 
   const baseApiUrl = getBaseApiUrl();
   const response = await fetch(

@@ -16,12 +16,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Dialog, Suggestion } from '@askdialog/dialog-sdk';
-import AiStarsIcon from '../../icons/AiStarsIcon.vue';
+import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
+import AiStarsIcon from "../../icons/AiStarsIcon.vue";
 
 const props = defineProps<{
   client: Dialog;
-  questions: Suggestion['questions'];
+  questions: Suggestion["questions"];
   productId: string;
   productTitle: string;
   selectedVariantId?: string;

@@ -1,20 +1,30 @@
-import { globalIgnores } from 'eslint/config';
+import eslintConfigPrettier from "eslint-config-prettier";
+import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
+import { globalIgnores } from "eslint/config";
 import {
   defineConfigWithVueTs,
   vueTsConfigs,
-} from '@vue/eslint-config-typescript';
-import pluginVue from 'eslint-plugin-vue';
-import skipFormatting from '@vue/eslint-config-prettier/skip-formatting';
+} from "@vue/eslint-config-typescript";
+import pluginVue from "eslint-plugin-vue";
 
 export default defineConfigWithVueTs(
   {
-    name: 'app/files-to-lint',
-    files: ['**/*.{ts,mts,tsx,vue}'],
+    name: "app/files-to-lint",
+    files: ["**/*.{ts,mts,tsx,vue}"],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(["**/dist/**", "**/dist-ssr/**", "**/coverage/**"]),
 
-  pluginVue.configs['flat/essential'],
+  pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
-  skipFormatting,
+
+  // Replace skipFormatting with prettier plugin
+  {
+    ...eslintPluginPrettier,
+    rules: {
+      ...eslintPluginPrettier.rules,
+      "prettier/prettier": ["error", {}, { usePrettierrc: false }],
+    },
+  },
+  eslintConfigPrettier,
 );

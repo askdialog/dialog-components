@@ -15,13 +15,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Dialog, Suggestion } from '@askdialog/dialog-sdk';
-import DialogBlockSuggestions from './DialogBlockSuggestions.vue';
-import DialogBlockSuggestionsSkeleton from './DialogBlockSuggestionsSkeleton.vue';
+import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
+import DialogBlockSuggestions from "./DialogBlockSuggestions.vue";
+import DialogBlockSuggestionsSkeleton from "./DialogBlockSuggestionsSkeleton.vue";
 
 const props = defineProps<{
   client: Dialog;
-  questions: Suggestion['questions'] | undefined;
+  questions: Suggestion["questions"] | undefined;
   isLoading: boolean;
   productId: string;
   productTitle: string;
