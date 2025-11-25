@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Dialog, type SimplifiedProduct } from '@askdialog/dialog-sdk';
-import DialogInput from './components/DialogProductBlock/DialogInput.vue';
-import DialogProductBlock from './components/DialogProductBlock/DialogProductBlock.vue';
+import { DialogInput, DialogProductBlock } from '@askdialog/dialog-vue';
+import '@askdialog/dialog-vue/style.css';
+
 const client = new Dialog({
-  apiKey: 'NjQ2MjQ5MGUtMzE3NS00MmE5LTgyZjgtYWNjNWE1MWE5Zjdh',
+  apiKey: import.meta.env.VITE_DIALOG_API_KEY || '',
   locale: 'en',
   callbacks: {
     addToCart: () => {

@@ -1,0 +1,65 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.js"
+    ],
+    "sharedGlobals": []
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
+      "cache": true,
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "build:dev": {
+      "dependsOn": ["^build:dev"],
+      "cache": true,
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "build:prod": {
+      "dependsOn": ["^build:prod"],
+      "cache": true,
+      "outputs": ["{projectRoot}/dist"]
+    },
+    "lint": {
+      "inputs": ["default"],
+      "cache": true
+    },
+    "test": {
+      "inputs": ["default", "^production"],
+      "cache": true
+    },
+    "clean": {
+      "cache": false
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false
+    }
+  },
+  "affected": {
+    "defaultBase": "staging"
+  },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": [
+          "build",
+          "build:dev",
+          "build:prod",
+          "lint",
+          "test"
+        ],
+        "parallel": 3
+      }
+    }
+  }
+}

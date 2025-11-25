@@ -1,27 +1,60 @@
 import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import eslintPluginVue from 'eslint-plugin-vue';
+import eslintPluginPrettier from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
+import nxPlugin from '@nx/eslint-plugin';
 
-export default typescriptEslint.config(
-  { ignores: ['*.d.ts', '**/coverage', '**/dist'] },
+export default [
   {
-    extends: [
-      eslint.configs.recommended,
-      ...typescriptEslint.configs.recommended,
-      ...eslintPluginVue.configs['flat/recommended'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.nx/**',
+      '**/coverage/**',
+      '*.d.ts',
     ],
-    files: ['**/*.{ts,vue}'],
+  },
+  eslint.configs.recommended,
+  ...typescriptEslint.configs.recommended,
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      globals: globals.browser,
-      parserOptions: {
-        parser: typescriptEslint.parser,
+      globals: {
+        ...globals.node,
+        ...globals.es2022,
       },
     },
-    rules: {},
+    plugins: {
+      '@nx': nxPlugin,
+    },
+    rules: {
+      '@nx/enforce-module-boundaries': [
+        'error',
+        {
+          enforceBuildableLibDependency: true,
+          allow: [],
+          depConstraints: [
+            {
+              sourceTag: 'scope:vue',
+              onlyDependOnLibsWithTags: ['scope:sdk', 'scope:vue'],
+            },
+            {
+              sourceTag: 'scope:react',
+              onlyDependOnLibsWithTags: ['scope:sdk', 'scope:react'],
+            },
+            {
+              sourceTag: 'scope:sdk',
+              onlyDependOnLibsWithTags: ['scope:sdk'],
+            },
+          ],
+        },
+      ],
+    },
   },
+  eslintPluginPrettier,
   eslintConfigPrettier,
-);
+];

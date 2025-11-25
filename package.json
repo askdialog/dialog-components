@@ -1,63 +1,50 @@
 {
-  "name": "@askdialog/dialog-vue",
-  "private": false,
-  "version": "1.0.23",
+  "name": "@askdialog/dialog-components",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "main": "./dist/dialog-vue.umd.js",
-  "module": "./dist/dialog-vue.js",
-  "types": "./dist/main.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/main.d.ts",
-      "require": "./dist/dialog-vue.umd.js",
-      "import": "./dist/dialog-vue.js",
-      "default": "./dist/dialog-vue.js"
-    },
-    "./style.css": "./dist/dialog-vue.css"
-  },
-  "files": [
-    "dist"
-  ],
+  "description": "Dialog UI Components Monorepo",
   "scripts": {
-    "dev": "vite",
-    "clean": "rm -rf dist",
-    "build": "pnpm run clean && vue-tsc -b && vite build",
-    "link": "pnpm run build && pnpm link --global",
-    "preview": "vite preview",
-    "test-linter": "ESLINT_USE_FLAT_CONFIG=true eslint --ext .ts,.vue . --fix"
-  },
-  "dependencies": {
-    "@askdialog/dialog-sdk": "^1.0.25",
-    "vue": "^3.5.13"
+    "build": "nx run-many -t build",
+    "build:sdk": "nx build @askdialog/dialog-sdk",
+    "build:vue": "nx build @askdialog/dialog-vue",
+    "build:affected": "nx affected -t build",
+    "dev": "nx dev @askdialog/vue-example",
+    "dev:vue-example": "nx dev @askdialog/vue-example",
+    "lint": "nx run-many -t lint",
+    "lint:affected": "nx affected -t lint",
+    "lint:fix": "nx run-many -t lint -- --fix",
+    "format": "nx run-many -t lint -- --fix",
+    "format:check": "nx run-many -t lint",
+    "test": "nx run-many -t test",
+    "clean": "nx run-many -t clean",
+    "graph": "nx graph",
+    "publish:sdk": "pnpm --filter @askdialog/dialog-sdk publish",
+    "publish:vue": "pnpm --filter @askdialog/dialog-vue publish",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "pnpm build && changeset publish",
+    "changeset:status": "changeset status"
   },
   "devDependencies": {
-    "@eslint/js": "^9.24.0",
-    "@rollup/plugin-replace": "^6.0.2",
-    "@types/node": "^22.14.0",
-    "@typescript-eslint/eslint-plugin": "^8.29.1",
-    "@typescript-eslint/parser": "^8.29.1",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/tsconfig": "^0.7.0",
-    "eslint": "^9.24.0",
-    "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-vue": "^10.0.0",
-    "globals": "^16.0.0",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.29.1",
-    "vite": "^6.2.0",
-    "vite-plugin-dts": "^4.5.3",
-    "vite-plugin-eslint": "^1.8.1",
-    "vue-tsc": "^2.2.4"
+    "@changesets/cli": "^2.29.7",
+    "@eslint/js": "^9.39.1",
+    "@nx/eslint": "^20.8.2",
+    "@nx/eslint-plugin": "^20.8.2",
+    "@nx/js": "^20.8.2",
+    "@nx/vite": "^20.8.2",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.5.0",
+    "nx": "^20.8.2",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4"
   },
-  "author": "Dialog",
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [
-    "dialog",
-    "dialog-vue",
-    "dialog-sdk",
-    "vue components"
-  ],
-  "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf"
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  }
 }

@@ -1,0 +1,12 @@
+{
+  "name": "@askdialog/dialog-sdk",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/sdk/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "outputs": ["{projectRoot}/dist"]
+    }
+  },
+  "tags": ["type:library", "scope:sdk"]
+}

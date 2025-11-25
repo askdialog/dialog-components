@@ -1,0 +1,67 @@
+{
+  "name": "@askdialog/dialog-sdk",
+  "version": "1.0.26-beta.1",
+  "private": false,
+  "description": "Dialog SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "set-config": "chmod +x scripts/set-config.sh && ./scripts/set-config.sh",
+    "build": "pnpm run build:prod",
+    "build:dev": "pnpm run clean && pnpm run set-config development && tsc",
+    "build:prod": "pnpm run clean && pnpm run set-config production && tsc",
+    "publish": "pnpm publish",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test-type": "tsc --noEmit",
+    "link": "pnpm link --global",
+    "unlink": "pnpm unlink",
+    "watch": "tsc --watch",
+    "build:bundle:iife": "pnpm run build:prod && mkdir -p bundle && esbuild src/index.ts --bundle --platform=browser --format=iife --global-name=DialogSDK --minify --outfile=bundle/dialog-sdk.$npm_package_version.min.js",
+    "deploy:s3": "aws s3 cp bundle/dialog-sdk.$npm_package_version.min.js s3://dialog-sdk/",
+    "deploy:cloudfront": "aws cloudfront create-invalidation --distribution-id E3NRPUUF94K3P6 --no-cli-pager --paths \"/dialog-sdk.$npm_package_version.min.js\"",
+    "deploy:cdn": "pnpm run build:prod && pnpm run build:bundle:iife && pnpm run deploy:s3 && pnpm run deploy:cloudfront",
+    "deploy:cdn:publish": "pnpm run build:prod && pnpm run build:bundle:iife && pnpm run deploy:s3 && pnpm run deploy:cloudfront && pnpm publish"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "dialog",
+    "ai",
+    "assistant",
+    "ecommerce",
+    "sdk",
+    "typescript"
+  ],
+  "author": "Dialog",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "esbuild": "^0.25.12",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "posthog-js": "^1.293.0",
+    "uuidv7": "^1.0.2"
+  }
+}

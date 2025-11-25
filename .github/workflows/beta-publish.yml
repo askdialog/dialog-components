@@ -1,0 +1,83 @@
+name: Beta Publish
+
+on:
+  push:
+    branches:
+      - staging
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish-beta:
+    name: Publish Beta to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for changesets
+        id: changesets
+        run: |
+          CHANGESETS=$(find .changeset -name "*.md" ! -name "README.md" 2>/dev/null | wc -l | tr -d ' ')
+          echo "count=$CHANGESETS" >> $GITHUB_OUTPUT
+          if [ "$CHANGESETS" -gt 0 ]; then
+            echo "has_changesets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changesets=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Enter prerelease mode
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: |
+          if [ ! -f .changeset/pre.json ]; then
+            pnpm changeset pre enter beta
+          fi
+
+      - name: Version packages
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: pnpm changeset version
+
+      - name: Build packages
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: pnpm build
+
+      - name: Publish to npm (beta tag)
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: pnpm changeset publish --tag beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Commit and push changes
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: |
+          git add .
+          git commit -m "ci: version packages for beta release [skip ci]" || exit 0
+          git push origin staging --follow-tags
