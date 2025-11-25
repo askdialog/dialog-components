@@ -80,4 +80,4 @@ jobs:
         run: |
           git add .
           git commit -m "ci: version packages for beta release [skip ci]" || exit 0
-          git push origin staging
+          git push origin staging --follow-tags
