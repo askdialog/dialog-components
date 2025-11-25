@@ -20,9 +20,14 @@
     "clean": "nx run-many -t clean",
     "graph": "nx graph",
     "publish:sdk": "pnpm --filter @askdialog/dialog-sdk publish",
-    "publish:vue": "pnpm --filter @askdialog/dialog-vue publish"
+    "publish:vue": "pnpm --filter @askdialog/dialog-vue publish",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "pnpm build && changeset publish",
+    "changeset:status": "changeset status"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.7",
     "@eslint/js": "^9.39.1",
     "@nx/eslint": "^20.8.2",
     "@nx/eslint-plugin": "^20.8.2",
