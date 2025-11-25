@@ -13,13 +13,6 @@
         "cwd": "packages/vue"
       }
     },
-    "dev": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run dev",
-        "cwd": "packages/vue"
-      }
-    },
     "lint": {
       "executor": "nx:run-commands",
       "options": {
@@ -31,13 +24,6 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "pnpm run clean",
-        "cwd": "packages/vue"
-      }
-    },
-    "preview": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run preview",
         "cwd": "packages/vue"
       }
     }

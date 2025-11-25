@@ -19,12 +19,10 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
     "clean": "rm -rf dist",
     "build": "pnpm run clean && vue-tsc -b && vite build",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@askdialog/dialog-sdk": "workspace:*",
