@@ -45,7 +45,7 @@
     }
   },
   "affected": {
-    "defaultBase": "main"
+    "defaultBase": "staging"
   },
   "tasksRunnerOptions": {
     "default": {
