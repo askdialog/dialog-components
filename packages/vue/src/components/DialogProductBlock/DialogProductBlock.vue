@@ -23,12 +23,12 @@
 </template>
 
 <script setup lang="ts">
-import { Dialog, type Suggestion } from '@askdialog/dialog-sdk';
-import DialogBlockHeader from './DialogBlockHeader.vue';
-import DialogBlockSuggestionsContainer from './DialogBlockSuggestionsContainer.vue';
-import DialogInput from './DialogInput.vue';
-import ThemeProvider from './ThemeProvider.vue';
-import { computed, onMounted, ref } from 'vue';
+import { Dialog, type Suggestion } from "@askdialog/dialog-sdk";
+import DialogBlockHeader from "./DialogBlockHeader.vue";
+import DialogBlockSuggestionsContainer from "./DialogBlockSuggestionsContainer.vue";
+import DialogInput from "./DialogInput.vue";
+import ThemeProvider from "./ThemeProvider.vue";
+import { computed, onMounted, ref } from "vue";
 
 interface Props {
   client: Dialog;
@@ -61,7 +61,7 @@ const handleFetchingSuggestions = async () => {
     suggestionData.value = suggestion;
     isFetchingSuggestions.value = false;
   } catch (error) {
-    console.error('error', error);
+    console.error("error", error);
   }
 };
 

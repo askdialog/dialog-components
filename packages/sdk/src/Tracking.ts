@@ -1,10 +1,10 @@
-import posthog, { PostHog } from 'posthog-js';
-import { TrackingEvents } from './types/trackings';
-import { config } from './config';
+import posthog, { PostHog } from "posthog-js";
+import { TrackingEvents } from "./types/trackings";
+import { config } from "./config";
 export class Tracking {
   private _posthog: PostHog;
   private readonly _token = config.posthogApiKey;
-  private readonly _apiHost = 'https://eu.i.posthog.com';
+  private readonly _apiHost = "https://eu.i.posthog.com";
   private readonly _apiKey: string;
 
   constructor(apiKey: string) {

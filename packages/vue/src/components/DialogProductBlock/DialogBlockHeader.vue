@@ -1,8 +1,8 @@
 <template>
   <div class="dialog-block-header-container">
-    <div class="dialog-block-title">{{ props.title ?? 'Your expert' }}</div>
+    <div class="dialog-block-title">{{ props.title ?? "Your expert" }}</div>
     <div class="dialog-block-description">
-      {{ props.description ?? 'A question about this product?' }}
+      {{ props.description ?? "A question about this product?" }}
     </div>
   </div>
 </template>

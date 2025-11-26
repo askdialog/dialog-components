@@ -3,8 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import { type Theme } from '@askdialog/dialog-sdk';
-import { onMounted, watch } from 'vue';
+import { type Theme } from "@askdialog/dialog-sdk";
+import { onMounted, watch } from "vue";
 
 const props = defineProps<{
   theme: Theme;
@@ -12,18 +12,18 @@ const props = defineProps<{
 
 const body = document.body;
 const camelCaseToKebabCase = (label: string) => {
-  return label.replace(/([A-Z])/g, '-$1').toLowerCase();
+  return label.replace(/([A-Z])/g, "-$1").toLowerCase();
 };
 
 const applyTheme = (theme: Theme) => {
   if (!theme) return;
 
-  Object.keys(theme).forEach(key => {
+  Object.keys(theme).forEach((key) => {
     const themeKey = key as keyof Theme;
     const kebabCaseKey = camelCaseToKebabCase(key);
     if (theme[themeKey] !== undefined) {
-      if (typeof theme[themeKey] === 'object') {
-        Object.keys(theme[themeKey]).forEach(childKey => {
+      if (typeof theme[themeKey] === "object") {
+        Object.keys(theme[themeKey]).forEach((childKey) => {
           const themeChildKey = childKey as keyof Theme[typeof themeKey];
           if (themeChildKey !== undefined) {
             const kebabCaseChildKey = camelCaseToKebabCase(childKey);
@@ -39,8 +39,8 @@ const applyTheme = (theme: Theme) => {
         return;
       }
 
-      if (themeKey === 'ctaBorderType') {
-        const borderRadius = theme[themeKey] === 'rounded' ? '24px' : '0';
+      if (themeKey === "ctaBorderType") {
+        const borderRadius = theme[themeKey] === "rounded" ? "24px" : "0";
         body.style.setProperty(`--dialog-theme-${kebabCaseKey}`, borderRadius);
         return;
       }
@@ -61,7 +61,7 @@ onMounted(() => {
 
 watch(
   () => props.theme,
-  newTheme => {
+  (newTheme) => {
     if (newTheme) {
       applyTheme(newTheme);
     }

@@ -21,9 +21,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Dialog } from '@askdialog/dialog-sdk';
-import ArrowIcon from '../../icons/ArrowIcon.vue';
-import { ref } from 'vue';
+import type { Dialog } from "@askdialog/dialog-sdk";
+import ArrowIcon from "../../icons/ArrowIcon.vue";
+import { ref } from "vue";
 
 interface Props {
   client: Dialog;
@@ -35,7 +35,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const inputRef = ref<HTMLInputElement>();
-const inputValue = ref('');
+const inputValue = ref("");
 
 const focusInput = () => {
   inputRef.value?.focus();
@@ -54,7 +54,7 @@ const handleSubmitQuestion = () => {
     question: question,
     fromQuestionSuggestion: true,
   });
-  inputValue.value = '';
+  inputValue.value = "";
 };
 </script>
 

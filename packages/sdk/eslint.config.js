@@ -142,6 +142,12 @@ export default [
       'no-shadow': 'off', // Replaced by @typescript-eslint/no-shadow
     },
   },
-  eslintPluginPrettier,
+  {
+    ...eslintPluginPrettier,
+    rules: {
+      ...eslintPluginPrettier.rules,
+      'prettier/prettier': ['error', {}, { usePrettierrc: false }],
+    },
+  },
   eslintConfigPrettier,
 ];

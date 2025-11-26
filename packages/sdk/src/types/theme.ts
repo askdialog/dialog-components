@@ -2,7 +2,7 @@ export interface Theme {
   backgroundColor?: string;
   primaryColor?: string;
   ctaTextColor?: string;
-  ctaBorderType?: 'straight' | 'rounded';
+  ctaBorderType?: "straight" | "rounded";
   capitalizeCtas?: boolean;
   fontFamily?: string;
   highlightProductName?: boolean;
