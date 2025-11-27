@@ -1,0 +1,45 @@
+{
+  "name": "@askdialog/dialog-react",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "main": "./dist/dialog-react.umd.js",
+  "module": "./dist/dialog-react.js",
+  "types": "./dist/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "require": "./dist/dialog-react.umd.js",
+      "import": "./dist/dialog-react.js",
+      "default": "./dist/dialog-react.js"
+    },
+    "./style.css": "./dist/dialog-react.css"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && vite build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "peerDependencies": {
+    "@askdialog/dialog-sdk": "1.0.26-beta.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@askdialog/dialog-sdk": "workspace:*",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
+  },
+  "author": "Dialog",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "dialog",
+    "dialog-react",
+    "dialog-sdk",
+    "react components"
+  ]
+}

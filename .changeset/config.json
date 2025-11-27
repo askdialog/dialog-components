@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@askdialog/vue-example"]
+  "ignore": ["@askdialog/vue-example", "@askdialog/react-example"]
 }

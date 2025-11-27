@@ -64,6 +64,8 @@ jobs:
             PACKAGE_DIR="packages/sdk"
           elif [[ "$PACKAGE_PATH" == "@askdialog/dialog-vue" ]]; then
             PACKAGE_DIR="packages/vue"
+          elif [[ "$PACKAGE_PATH" == "@askdialog/dialog-react" ]]; then
+            PACKAGE_DIR="packages/react"
           fi
 
           CHANGELOG_FILE="$PACKAGE_DIR/CHANGELOG.md"

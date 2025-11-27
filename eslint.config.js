@@ -14,6 +14,8 @@ export default [
       '**/.nx/**',
       '**/coverage/**',
       '*.d.ts',
+      '**/vite.config.*.timestamp*',
+      '**/vitest.config.*.timestamp*',
     ],
   },
   eslint.configs.recommended,

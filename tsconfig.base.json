@@ -17,6 +17,7 @@
     "paths": {
       "@askdialog/dialog-sdk": ["packages/sdk/src/index.ts"],
       "@askdialog/dialog-vue": ["packages/vue/src/main.ts"],
+      "@askdialog/dialog-react": ["packages/react/src/main.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
