@@ -1,5 +1,11 @@
 # @askdialog/dialog-react
 
+## 0.1.1-beta.0
+
+### Patch Changes
+
+- c4f83c7: Initial release of Dialog official React Component lib
+
 ## 0.1.0
 
 ### Minor Changes

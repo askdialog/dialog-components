@@ -1,6 +1,6 @@
 {
   "name": "@askdialog/dialog-react",
-  "version": "0.1.0",
+  "version": "0.1.1-beta.0",
   "private": false,
   "type": "module",
   "main": "./dist/dialog-react.umd.js",
@@ -15,7 +15,9 @@
     },
     "./style.css": "./dist/dialog-react.css"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "clean": "rm -rf dist",
     "build": "pnpm run clean && vite build",
