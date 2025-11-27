@@ -24,29 +24,16 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
-  "dependencies": {
-    "@askdialog/dialog-sdk": "workspace:*",
-    "vue": "^3.5.13"
-  },
   "peerDependencies": {
+    "@askdialog/dialog-sdk": "1.0.26-beta.2",
     "vue": "^3.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.17.0",
+    "@askdialog/dialog-sdk": "workspace:*",
     "@rollup/plugin-replace": "^6.0.2",
-    "@types/node": "^22.14.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
-    "eslint": "^9.17.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-vue": "^10.0.0",
-    "globals": "^16.0.0",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.18.1",
-    "vite": "^6.2.0",
-    "vite-plugin-dts": "^4.5.3",
     "vite-plugin-eslint": "^1.8.1",
     "vue-tsc": "^2.2.4"
   },
