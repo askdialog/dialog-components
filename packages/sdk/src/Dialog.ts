@@ -133,9 +133,11 @@ export class Dialog {
     quantity,
     currency,
     variantId,
+    price,
   }: {
     productId: string;
     quantity: number;
+    price?: string;
     currency?: string;
     variantId?: string;
   }): Promise<void> {
@@ -144,8 +146,15 @@ export class Dialog {
       variantId,
       quantity,
       currency,
+      price,
     });
-    this.registerAddToCartEvent({ productId, variantId, quantity, currency });
+    this.registerAddToCartEvent({
+      productId,
+      variantId,
+      quantity,
+      currency,
+      price,
+    });
 
     return;
   }
@@ -155,9 +164,11 @@ export class Dialog {
     quantity,
     currency,
     variantId,
+    price,
   }: {
     productId: string;
     quantity: number;
+    price?: string;
     currency?: string;
     variantId?: string;
   }): void {
@@ -166,6 +177,7 @@ export class Dialog {
       product_id: productId,
       variant_id: variantId,
       quantity,
+      price,
       locale: this._locale,
       currency,
     });
@@ -176,9 +188,11 @@ export class Dialog {
     quantity,
     currency,
     variantId,
+    price,
   }: {
     productId: string;
     quantity: number;
+    price: string;
     currency?: string;
     variantId?: string;
   }): void {
@@ -189,6 +203,7 @@ export class Dialog {
       quantity,
       locale: this._locale,
       currency,
+      price,
     });
   }
 
