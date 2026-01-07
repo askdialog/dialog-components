@@ -8,11 +8,13 @@ export interface DialogConstructor {
     addToCart: ({
       productId,
       quantity,
+      price,
       variantId,
       currency,
     }: {
       productId: string;
       quantity: number;
+      price?: string;
       variantId?: string;
       currency?: string;
     }) => Promise<void>;

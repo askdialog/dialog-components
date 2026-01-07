@@ -58,11 +58,13 @@ const client = new Dialog({
     quantity,
     currency,
     variantId,
+    price,
   }: {
     productId: string;
     quantity: number;
     currency?: string;
     variantId?: string;
+    price?: string;
   }) => Promise<void>, // required
     getProduct: async (
         productId: string,
@@ -256,13 +258,14 @@ client.registerAddToCartEvent({
     productId: 'ProductIdentifier', // {string} - Required
     quantity: 1, // {number} - Required
     currency: 'EUR', // {string} - Optional
-    variantId: 'VariantIdentifier' // {string} - Optional
-    
+    variantId: 'VariantIdentifier', // {string} - Optional
+    price: '12.00' // {string} - Optional
 });
 
 client.registerSubmitCheckoutEvent({
     productId: 'ProductIdentifier', // {string} - Required
     quantity: 1, // {number} - Required
+    price: '12.00', // {string} - Required
     currency: 'EUR', // {string} - Optional
     variantId: 'VariantIdentifier' // {string} - Optional
 });
