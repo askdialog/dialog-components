@@ -1,0 +1,14 @@
+{
+  "name": "@askdialog/dialog-vue",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/vue/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["{projectRoot}/dist"]
+    }
+  },
+  "tags": ["type:library", "scope:vue"],
+  "implicitDependencies": ["@askdialog/dialog-sdk"]
+}

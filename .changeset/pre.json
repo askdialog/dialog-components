@@ -1,0 +1,16 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@askdialog/dialog-sdk": "1.0.26-beta.1",
+    "@askdialog/dialog-vue": "1.0.24-beta.1",
+    "@askdialog/vue-example": "0.0.0",
+    "@askdialog/dialog-react": "0.1.0",
+    "@askdialog/react-example": "0.0.0"
+  },
+  "changesets": [
+    "soft-kings-wash",
+    "strong-goats-allow",
+    "thick-doodles-share"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@askdialog/react-example",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/react-example/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "pnpm run dev",
+        "cwd": "packages/react-example"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "dependsOn": ["^build"],
+      "options": {
+        "command": "pnpm run build",
+        "cwd": "packages/react-example"
+      }
+    },
+    "preview": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "command": "pnpm run preview",
+        "cwd": "packages/react-example"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run lint",
+        "cwd": "packages/react-example"
+      }
+    }
+  },
+  "tags": ["type:app", "scope:react"],
+  "implicitDependencies": ["@askdialog/dialog-react", "@askdialog/dialog-sdk"]
+}

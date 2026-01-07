@@ -1,0 +1,50 @@
+{
+  "name": "@askdialog/dialog-vue",
+  "private": false,
+  "version": "2.0.0-beta.3",
+  "type": "module",
+  "main": "./dist/dialog-vue.umd.js",
+  "module": "./dist/dialog-vue.js",
+  "types": "./dist/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "require": "./dist/dialog-vue.umd.js",
+      "import": "./dist/dialog-vue.js",
+      "default": "./dist/dialog-vue.js"
+    },
+    "./style.css": "./dist/dialog-vue.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && vue-tsc -b && vite build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "peerDependencies": {
+    "@askdialog/dialog-sdk": "1.1.0-beta.3",
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@askdialog/dialog-sdk": "workspace:*",
+    "@rollup/plugin-replace": "^6.0.2",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "vite-plugin-eslint": "^1.8.1",
+    "vue-tsc": "^2.2.4"
+  },
+  "author": "Dialog",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "dialog",
+    "dialog-vue",
+    "dialog-sdk",
+    "vue components"
+  ]
+}
