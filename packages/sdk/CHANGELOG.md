@@ -1,5 +1,11 @@
 # @askdialog/dialog-sdk
 
+## 1.1.0-beta.3
+
+### Minor Changes
+
+- 354db6b: Add price field in the tracking (Add-to-cart & Checkout)
+
 ## 1.0.26-beta.2
 
 ### Patch Changes
