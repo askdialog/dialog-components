@@ -1,5 +1,14 @@
 # @askdialog/dialog-vue
 
+## 2.0.0
+
+### Patch Changes
+
+- 9200579: Setup changeset and monorepo
+- Updated dependencies [354db6b]
+- Updated dependencies [9200579]
+  - @askdialog/dialog-sdk@1.1.0
+
 ## 2.0.0-beta.3
 
 ### Patch Changes
