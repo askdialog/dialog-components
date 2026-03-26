@@ -88,6 +88,13 @@ export class Dialog {
     return newUserId;
   }
 
+  /**
+   * Fetches suggested questions for a given product.
+   *
+   * Note: The API returns 3 questions, but the Dialog dashboard only allows
+   * configuring 2. Integrators should display only the first 2 questions
+   * (e.g. `suggestions.questions.slice(0, 2)`).
+   */
   public async getSuggestions(productId: string): Promise<Suggestion> {
     return loadSuggestions(this._apiKey, this._locale, productId);
   }

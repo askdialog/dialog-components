@@ -4,7 +4,7 @@
       <DialogBlockHeader :title="assistantName" :description="description" />
       <DialogBlockSuggestionsContainer
         :client="props.client"
-        :questions="suggestionData?.questions"
+        :questions="suggestionData?.questions?.slice(0, 2)"
         :is-loading="isFetchingSuggestions"
         :product-id="props.productId"
         :product-title="props.productTitle"

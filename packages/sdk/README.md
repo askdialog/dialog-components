@@ -130,6 +130,12 @@ Example of expected result when locale: 'en'
 
 You can use this query to make your own integration and trigger `sendProductMessage` or `sendGenericMessage` on user click.
 
+> **Important:** `getSuggestions` returns 3 questions from the API, but the Dialog dashboard only allows configuring 2. You should display only the first 2 questions:
+> ```typescript
+> const suggestions = await client.getSuggestions(productId);
+> const displayedQuestions = suggestions.questions.slice(0, 2);
+> ```
+
 ```typescript
 const suggestions = await client.getSuggestions(productId);
 

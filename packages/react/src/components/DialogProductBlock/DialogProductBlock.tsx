@@ -60,7 +60,7 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
         <DialogBlockHeader title={assistantName} description={description} />
         <DialogBlockSuggestionsContainer
           client={client}
-          questions={suggestionData?.questions}
+          questions={suggestionData?.questions?.slice(0, 2)}
           isLoading={isFetchingSuggestions}
           productId={productId}
           productTitle={productTitle}
