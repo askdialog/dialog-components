@@ -157,21 +157,89 @@ Example of expected result:
 
 - Handler for fetch product
 
+The `getProduct` callback is called by the assistant to display product information. You must return an object matching the `SimplifiedProduct` interface.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `productId` | `string` | Yes | The product identifier |
+| `variantId` | `string` | No | The selected variant identifier |
+
+**Return type: `SimplifiedProduct`**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Product identifier |
+| `title` | `string` | Yes | Product name |
+| `handle` | `string` | Yes | URL-friendly product slug |
+| `totalInventory` | `number` | Yes | Total available stock across all variants |
+| `variants` | `SimplifiedProductVariant[]` | Yes | List of product variants (see below) |
+| `descriptionHtml` | `string` | No | Product description in HTML |
+| `url` | `string` | No | Product page URL |
+| `featuredImage` | `{ url?: string } \| null` | No | Main product image |
+| `options` | `SimplifiedProductOption[]` | No | Product options (size, color, etc.) |
+
+**Variant: `SimplifiedProductVariant`**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Variant identifier |
+| `price` | `string` | Yes | Variant price (e.g. `"29.99"`) |
+| `currencyCode` | `string` | Yes | ISO 4217 currency code (e.g. `"EUR"`, `"USD"`) |
+| `displayName` | `string` | No | Variant display name |
+| `inventoryQuantity` | `number` | No | Available stock for this variant |
+| `compareAtPrice` | `string \| null` | No | Original price before discount |
+| `url` | `string` | No | Variant-specific page URL |
+| `selectedOptions` | `{ name: string; value: string }[]` | No | Option values for this variant (e.g. `[{ name: "Size", value: "M" }]`) |
+| `image` | `{ url?: string } \| null` | No | Variant-specific image |
+
+**Option: `SimplifiedProductOption`** *(optional)*
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Option identifier |
+| `name` | `string` | Yes | Option name (e.g. `"Size"`, `"Color"`) |
+| `position` | `number` | Yes | Display order |
+| `values` | `string[]` | Yes | Available values (e.g. `["S", "M", "L"]`) |
+
+**Example:**
+
 ```typescript
 const client = new Dialog({
     ...,
     callbacks: {
-        getProduct: (
+        getProduct: async (
             productId: string,
-            variantId?: string): Promise<SimplifiedProduct> => {
-                // Call your api to retrieve product information
-                const response = await fetch('....');
-                const data = await response.json();
-                // Need to match SimplifiedProduct type
-                return {
-                    ...
-                };
-        }
+            variantId?: string,
+        ): Promise<SimplifiedProduct> => {
+            const response = await fetch(`https://your-api.com/products/${productId}`);
+            const data = await response.json();
+
+            return {
+                id: data.id,
+                title: data.name,
+                handle: data.slug,
+                totalInventory: data.stock,
+                featuredImage: { url: data.imageUrl },
+                variants: data.variants.map((v: any) => ({
+                    id: v.id,
+                    price: v.price.toString(),
+                    currencyCode: 'EUR',
+                    displayName: v.name,
+                    inventoryQuantity: v.stock,
+                    compareAtPrice: v.originalPrice?.toString() ?? null,
+                    selectedOptions: v.options,
+                    image: v.imageUrl ? { url: v.imageUrl } : null,
+                })),
+                options: data.options?.map((o: any) => ({
+                    id: o.id,
+                    name: o.name,
+                    position: o.position,
+                    values: o.values,
+                })),
+            };
+        },
     },
 });
 ```
