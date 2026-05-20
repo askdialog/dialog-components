@@ -28,30 +28,41 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
   );
 
   const assistantName = useMemo(
-    () => suggestionData?.assistantName,
-    [suggestionData],
+    () => (isFetchingSuggestions ? "" : suggestionData?.assistantName),
+    [suggestionData, isFetchingSuggestions],
   );
   const description = useMemo(
-    () => suggestionData?.description,
-    [suggestionData],
+    () => (isFetchingSuggestions ? "" : suggestionData?.description),
+    [suggestionData, isFetchingSuggestions],
   );
   const inputPlaceholder = useMemo(
-    () => suggestionData?.inputPlaceholder,
-    [suggestionData],
+    () => (isFetchingSuggestions ? "" : suggestionData?.inputPlaceholder),
+    [suggestionData, isFetchingSuggestions],
   );
 
   useEffect(() => {
+    let isActive = true;
     const handleFetchingSuggestions = async (): Promise<void> => {
+      setIsFetchingSuggestions(true);
+      setSuggestionData(undefined);
       try {
         const suggestion = await client.getSuggestions(productId);
-        setSuggestionData(suggestion);
-        setIsFetchingSuggestions(false);
+        if (isActive) {
+          setSuggestionData(suggestion);
+        }
       } catch (error) {
         console.error("error", error);
+      } finally {
+        if (isActive) {
+          setIsFetchingSuggestions(false);
+        }
       }
     };
 
     handleFetchingSuggestions();
+    return () => {
+      isActive = false;
+    };
   }, [client, productId]);
 
   return (
