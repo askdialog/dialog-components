@@ -28,7 +28,7 @@ import DialogBlockHeader from "./DialogBlockHeader.vue";
 import DialogBlockSuggestionsContainer from "./DialogBlockSuggestionsContainer.vue";
 import DialogInput from "./DialogInput.vue";
 import ThemeProvider from "./ThemeProvider.vue";
-import { computed, onMounted, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 interface Props {
   client: Dialog;
@@ -44,30 +44,45 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const isFetchingSuggestions = ref(true);
 const suggestionData = ref<Suggestion | undefined>(undefined);
+const fetchSequence = ref(0);
 
 const assistantName = computed(() => {
-  return suggestionData.value?.assistantName;
+  return isFetchingSuggestions.value ? "" : suggestionData.value?.assistantName;
 });
 const description = computed(() => {
-  return suggestionData.value?.description;
+  return isFetchingSuggestions.value ? "" : suggestionData.value?.description;
 });
 const inputPlaceholder = computed(() => {
-  return suggestionData.value?.inputPlaceholder;
+  return isFetchingSuggestions.value
+    ? ""
+    : suggestionData.value?.inputPlaceholder;
 });
 
 const handleFetchingSuggestions = async () => {
+  const sequence = ++fetchSequence.value;
+  isFetchingSuggestions.value = true;
+  suggestionData.value = undefined;
   try {
     const suggestion = await props.client.getSuggestions(props.productId);
-    suggestionData.value = suggestion;
-    isFetchingSuggestions.value = false;
+    if (sequence === fetchSequence.value) {
+      suggestionData.value = suggestion;
+    }
   } catch (error) {
     console.error("error", error);
+  } finally {
+    if (sequence === fetchSequence.value) {
+      isFetchingSuggestions.value = false;
+    }
   }
 };
 
-onMounted(async () => {
-  await handleFetchingSuggestions();
-});
+watch(
+  () => [props.client, props.productId] as const,
+  () => {
+    void handleFetchingSuggestions();
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>
