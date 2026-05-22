@@ -10,6 +10,7 @@
   },
   "changesets": [
     "docs-getproduct-readme",
-    "fix-ops-589-locale-flash"
+    "fix-ops-589-locale-flash",
+    "sdk-emit-tracking-events"
   ]
 }
