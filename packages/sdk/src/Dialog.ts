@@ -18,8 +18,6 @@ import {
 } from "./types/events";
 import { SimplifiedProduct } from "./types/product";
 import { EventsHandler } from "./EventsHandler";
-import { Tracking } from "./Tracking";
-import { TrackingEvents } from "./types/trackings";
 import { loadSuggestions } from "./services/suggestions";
 import { config } from "./config";
 import { AssistantEvent } from "./types/assistantEvent";
@@ -36,7 +34,6 @@ export class Dialog {
   private _theme: Theme;
   private _userId: string;
   private _eventsHandler: EventsHandler;
-  private _tracking: Tracking;
 
   constructor({ apiKey, locale, callbacks, theme, userId }: DialogConstructor) {
     this._apiKey = apiKey;
@@ -45,7 +42,6 @@ export class Dialog {
     this._theme = { ...defaultTheme, ...theme };
     this._userId = this._createOrRetrieveUserId(userId);
     this._eventsHandler = new EventsHandler(locale, userId);
-    this._tracking = new Tracking(apiKey);
     window.dialog = {
       instance: this,
       version: Dialog.VERSION,
@@ -175,15 +171,6 @@ export class Dialog {
     currency?: string;
     variantId?: string;
   }): void {
-    this._tracking.track(TrackingEvents.USER_ADDED_TO_CART, {
-      user_id: this._userId,
-      product_id: productId,
-      variant_id: variantId,
-      quantity,
-      price,
-      locale: this._locale,
-      currency,
-    });
     this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_ADD_TO_CART, {
       userId: this._userId,
       productId,
@@ -207,15 +194,6 @@ export class Dialog {
     currency?: string;
     variantId?: string;
   }): void {
-    this._tracking.track(TrackingEvents.USER_SUBMITTED_CHECKOUT, {
-      user_id: this._userId,
-      product_id: productId,
-      variant_id: variantId,
-      quantity,
-      locale: this._locale,
-      currency,
-      price,
-    });
     this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_SUBMIT_CHECKOUT, {
       userId: this._userId,
       productId,
