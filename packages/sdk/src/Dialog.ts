@@ -65,6 +65,9 @@ export class Dialog {
   public get locale(): string {
     return this._locale;
   }
+  public get eventsHandler(): EventsHandler {
+    return this._eventsHandler;
+  }
 
   public getLocalizationInformations(): DetailedLocaleInfo | null {
     return getDetailedLocaleInfo(this._locale);
@@ -181,6 +184,14 @@ export class Dialog {
       locale: this._locale,
       currency,
     });
+    this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_ADD_TO_CART, {
+      userId: this._userId,
+      productId,
+      variantId,
+      quantity,
+      price,
+      currency,
+    });
   }
 
   public registerSubmitCheckoutEvent({
@@ -204,6 +215,14 @@ export class Dialog {
       locale: this._locale,
       currency,
       price,
+    });
+    this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_SUBMIT_CHECKOUT, {
+      userId: this._userId,
+      productId,
+      variantId,
+      quantity,
+      price,
+      currency,
     });
   }
 

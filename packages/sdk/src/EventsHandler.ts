@@ -5,11 +5,26 @@ import {
   DIALOG_ASSISTANT_EVENT,
   GenericAssistantEventPayload,
 } from "./types/assistantEvent";
-import { DIALOG_CUSTOM_EVENT, DialogEvent } from "./types/events";
+import { DIALOG_CUSTOM_EVENT, DialogEvent, DialogEvents } from "./types/events";
+
+interface BufferedEvent {
+  type: DialogEvent["type"];
+  payload?: DialogEvent["payload"];
+}
+
+// Tracking events can fire (e.g. add-to-cart on page load) before the host app
+// has mounted its listener. We buffer those until a consumer signals readiness,
+// then flush, so none are dispatched into the void.
+const BUFFERED_EVENT_TYPES: ReadonlySet<DialogEvent["type"]> = new Set([
+  DialogEvents.TRACK_ADD_TO_CART,
+  DialogEvents.TRACK_SUBMIT_CHECKOUT,
+]);
 
 export class EventsHandler {
   private _locale: string;
   private _userId?: string;
+  private _consumerReady = false;
+  private _bufferedEvents: BufferedEvent[] = [];
 
   constructor(locale: string, userId?: string) {
     this._locale = locale;
@@ -17,6 +32,35 @@ export class EventsHandler {
   }
 
   public emitExternalEvent(
+    type: DialogEvent["type"],
+    payload?: DialogEvent["payload"],
+  ): void {
+    if (!this._consumerReady && BUFFERED_EVENT_TYPES.has(type)) {
+      this._bufferedEvents.push({ type, payload });
+
+      return;
+    }
+
+    this._dispatchExternalEvent(type, payload);
+  }
+
+  // Signalled by the host app once its tracking listener is attached. Flushing
+  // here (not on emit) guarantees buffered events reach an existing listener.
+  public notifyConsumerReady(): void {
+    this._consumerReady = true;
+
+    const buffered = this._bufferedEvents;
+    this._bufferedEvents = [];
+    buffered.forEach(({ type, payload }) =>
+      this._dispatchExternalEvent(type, payload),
+    );
+  }
+
+  public notifyConsumerGone(): void {
+    this._consumerReady = false;
+  }
+
+  private _dispatchExternalEvent(
     type: DialogEvent["type"],
     payload?: DialogEvent["payload"],
   ): void {
