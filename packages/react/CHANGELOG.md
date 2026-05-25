@@ -1,5 +1,12 @@
 # @askdialog/dialog-react
 
+## 2.0.0
+
+### Patch Changes
+
+- Updated dependencies [8b8c1a9]
+  - @askdialog/dialog-sdk@1.2.0
+
 ## 2.0.0-beta.1
 
 ### Patch Changes
