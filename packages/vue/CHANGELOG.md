@@ -1,5 +1,12 @@
 # @askdialog/dialog-vue
 
+## 3.0.0-beta.2
+
+### Patch Changes
+
+- Updated dependencies [ba085c0]
+  - @askdialog/dialog-sdk@2.0.0-beta.1
+
 ## 3.0.0-beta.1
 
 ### Patch Changes
