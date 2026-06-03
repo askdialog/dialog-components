@@ -48,6 +48,9 @@ jobs:
       - name: Build affected projects
         run: pnpm nx affected -t build --parallel=3
 
+      - name: Verify SDK peer dependencies
+        run: pnpm verify:peers
+
   changeset-check:
     name: Changeset Verification
     runs-on: ubuntu-latest
