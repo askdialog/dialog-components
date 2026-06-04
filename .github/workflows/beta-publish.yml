@@ -16,14 +16,13 @@ jobs:
     timeout-minutes: 20
 
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -38,32 +37,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Check for changesets
         id: changesets
         run: |
           CHANGESETS=$(find .changeset -name "*.md" ! -name "README.md" 2>/dev/null | wc -l | tr -d ' ')
-          echo "count=$CHANGESETS" >> $GITHUB_OUTPUT
           if [ "$CHANGESETS" -gt 0 ]; then
             echo "has_changesets=true" >> $GITHUB_OUTPUT
           else
             echo "has_changesets=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Enter prerelease mode
+      # Snapshot release: bumps versions to e.g. 0.0.0-beta-20260526123045
+      # in-memory only — does NOT modify committed files, does NOT consume
+      # changesets. Nothing is pushed back to staging, so staging stays in
+      # sync with main and merging staging -> main is conflict-free.
+      - name: Version packages (snapshot)
         if: steps.changesets.outputs.has_changesets == 'true'
-        run: |
-          if [ ! -f .changeset/pre.json ]; then
-            pnpm changeset pre enter beta
-          fi
-
-      - name: Version packages
-        if: steps.changesets.outputs.has_changesets == 'true'
-        run: pnpm changeset version
+        run: pnpm changeset version --snapshot beta
 
       - name: Build packages
         if: steps.changesets.outputs.has_changesets == 'true'
@@ -73,15 +63,8 @@ jobs:
         if: steps.changesets.outputs.has_changesets == 'true'
         run: pnpm verify:peers
 
-      - name: Publish to npm (beta tag)
+      - name: Publish snapshot to npm (beta tag)
         if: steps.changesets.outputs.has_changesets == 'true'
-        run: pnpm changeset publish
+        run: pnpm changeset publish --tag beta --no-git-tag
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Commit and push changes
-        if: steps.changesets.outputs.has_changesets == 'true'
-        run: |
-          git add .
-          git commit -m "ci: version packages for beta release [skip ci]" || exit 0
-          git push origin staging --follow-tags
