@@ -59,6 +59,10 @@ jobs:
         if: steps.changesets.outputs.has_changesets == 'true'
         run: pnpm build
 
+      - name: Verify SDK peer dependencies
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: pnpm verify:peers
+
       - name: Publish snapshot to npm (beta tag)
         if: steps.changesets.outputs.has_changesets == 'true'
         run: pnpm changeset publish --tag beta --no-git-tag
