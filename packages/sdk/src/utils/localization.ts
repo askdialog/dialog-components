@@ -14,7 +14,7 @@ export const getDetailedLocaleInfo = (
     const countryCode = localeObj.region ?? localeObj.maximize().region;
 
     const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
-    const languageName = languageNames.of(language);
+    const languageName = languageNames.of(localeObj.baseName);
 
     if (languageName === undefined || countryCode === undefined) {
       return null;
