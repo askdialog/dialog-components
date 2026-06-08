@@ -1,5 +1,11 @@
 # @askdialog/dialog-react
 
+## 2.0.1
+
+### Patch Changes
+
+- fix: republish with the correct `@askdialog/dialog-sdk` peer dependency (OPS-650). The `2.0.0` `latest` artifact shipped a stale `@askdialog/dialog-sdk@1.2.0` peer; this release ships the correct `2.0.x` peer metadata.
+
 ## 2.0.0
 
 ### Patch Changes
