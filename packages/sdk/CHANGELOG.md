@@ -1,5 +1,11 @@
 # @askdialog/dialog-sdk
 
+## 2.0.1
+
+### Patch Changes
+
+- fix(localization): derive language name from full locale so region variants are preserved. `getDetailedLocaleInfo` now names the language from `localeObj.baseName` (e.g. `en-GB` → "British English") instead of the bare language subtag.
+
 ## 2.0.0
 
 ### Major Changes
