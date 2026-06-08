@@ -74,6 +74,9 @@ jobs:
       - name: Commit and push changes
         if: steps.changesets.outputs.has_changesets == 'true'
         run: |
+          # `changeset version` already commits the bump (config commit: true),
+          # so this commit is usually a no-op — `|| true` must not short-circuit
+          # the push, otherwise main never receives the version bump (OPS-650 drift).
           git add .
-          git commit -m "ci: version packages for release [skip ci]" || exit 0
-          git push origin main --follow-tags
+          git commit -m "ci: version packages for release [skip ci]" || true
+          git push origin HEAD:main --follow-tags
