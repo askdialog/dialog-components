@@ -330,12 +330,25 @@ client.registerAddToCartEvent({
     price: '12.00' // {string} - Optional
 });
 
+// Checkout is order-level: call ONCE per completed order with the order total.
+// `orderValue` is what the "Revenue generated" dashboard reads.
+// Do NOT call this per line item — without an order total, revenue resolves to 0.
 client.registerSubmitCheckoutEvent({
-    productId: 'ProductIdentifier', // {string} - Required
-    quantity: 1, // {number} - Required
-    price: '12.00', // {string} - Required
+    orderValue: 59.98, // {number} - Required - the order total
     currency: 'EUR', // {string} - Optional
-    variantId: 'VariantIdentifier' // {string} - Optional
+    transactionId: 'OrderIdentifier', // {string} - Optional - order id, used to de-duplicate reloads
+    items: [ // {array} - Optional - line items, for product-level attribution only
+        { productId: 'ProductIdentifier', quantity: 1, price: 29.99, variantId: 'VariantIdentifier' },
+    ],
+});
+
+// Deprecated per-line signature — still accepted for backward compatibility,
+// but carries no order total so revenue cannot be computed. Prefer the call above.
+client.registerSubmitCheckoutEvent({
+    productId: 'ProductIdentifier',
+    quantity: 1,
+    price: '12.00',
+    currency: 'EUR',
 });
 ```
 
