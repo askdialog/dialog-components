@@ -26,6 +26,7 @@ export class Dialog {
 
   private _apiKey: string;
   private _locale: string;
+  private _countryCode?: string;
 
   private _callbacks: {
     addToCart: DialogConstructor["callbacks"]["addToCart"];
@@ -35,9 +36,17 @@ export class Dialog {
   private _userId: string;
   private _eventsHandler: EventsHandler;
 
-  constructor({ apiKey, locale, callbacks, theme, userId }: DialogConstructor) {
+  constructor({
+    apiKey,
+    locale,
+    countryCode,
+    callbacks,
+    theme,
+    userId,
+  }: DialogConstructor) {
     this._apiKey = apiKey;
     this._locale = locale;
+    this._countryCode = countryCode;
     this._callbacks = callbacks;
     this._theme = { ...defaultTheme, ...theme };
     this._userId = this._createOrRetrieveUserId(userId);
@@ -66,7 +75,7 @@ export class Dialog {
   }
 
   public getLocalizationInformations(): DetailedLocaleInfo | null {
-    return getDetailedLocaleInfo(this._locale);
+    return getDetailedLocaleInfo(this._locale, this._countryCode);
   }
 
   private _createOrRetrieveUserId(userId?: string): string {
@@ -205,7 +214,7 @@ export class Dialog {
   }
 
   private _loadAssistant(): void {
-    const localeInfo = getDetailedLocaleInfo(this._locale);
+    const localeInfo = getDetailedLocaleInfo(this._locale, this._countryCode);
 
     if (localeInfo === null) {
       console.error("Missing locale information");
@@ -215,7 +224,7 @@ export class Dialog {
 
     const div = document.createElement("div");
     div.id = "dialog-shopify-ai";
-    div.dataset.shopIsoCode = this._locale;
+    div.dataset.shopIsoCode = localeInfo.languageCode;
     div.dataset.apiKey = this._apiKey;
     div.dataset.userId = this._userId;
     div.dataset.countryCode = localeInfo.countryCode;
