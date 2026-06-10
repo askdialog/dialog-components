@@ -52,6 +52,7 @@ import { Dialog } from '@dialog/dialog-sdk';
 const client = new Dialog({
   apiKey: 'YOUR_API_KEY', // required
   locale: 'TARGETED_LOCALE', // required
+  countryCode: 'FR', // optional, ISO 3166 alpha-2
   callbacks: {
     addToCart: async ({
     productId,
@@ -76,6 +77,13 @@ const client = new Dialog({
 
 The apiKey is required to authenticate with our API and interact with our assistant.
 The locale specifies the language you want to use.
+
+The optional `countryCode` (ISO 3166 alpha-2, e.g. `'FR'`, `'US'`) sets the region used to format prices (separators, symbol placement) and the language variant. It does not change the currency itself, which comes from each product. The effective region is resolved in this order:
+
+1. the `countryCode` parameter, when provided;
+2. the region embedded in `locale` (e.g. `'en-US'` → `US`);
+3. the region guessed from the language (e.g. `'fr'` → `FR`).
+
 The addToCart function is triggered when a user clicks the AddToCart button.
 The getProduct function is used to display product information in the assistant.
 
