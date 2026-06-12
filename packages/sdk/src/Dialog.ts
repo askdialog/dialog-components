@@ -13,8 +13,10 @@ import { Suggestion } from "./types/suggestion";
 import {
   DialogEvents,
   GenericQuestionPayload,
+  LegacyCheckoutParams,
   OpenAssistantPayload,
   ProductQuestionPayload,
+  SubmitCheckoutParams,
 } from "./types/events";
 import { SimplifiedProduct } from "./types/product";
 import { EventsHandler } from "./EventsHandler";
@@ -190,26 +192,38 @@ export class Dialog {
     });
   }
 
-  public registerSubmitCheckoutEvent({
-    productId,
-    quantity,
-    currency,
-    variantId,
-    price,
-  }: {
-    productId: string;
-    quantity: number;
-    price: string;
-    currency?: string;
-    variantId?: string;
-  }): void {
+  // Order-level: call ONCE per completed order with the order total.
+  // `orderValue` is what the dashboard's "Revenue generated" reads — do not
+  // call this per line item (that has no total and revenue resolves to 0).
+  //
+  // The legacy per-line signature (`{ productId, quantity, price }`) is still
+  // accepted for backward compatibility so existing installs keep working
+  // after an upgrade, but it is deprecated: it carries no order total.
+  public registerSubmitCheckoutEvent(
+    params: SubmitCheckoutParams | LegacyCheckoutParams,
+  ): void {
+    if ("orderValue" in params) {
+      this._eventsHandler.emitExternalEvent(
+        DialogEvents.TRACK_SUBMIT_CHECKOUT,
+        {
+          userId: this._userId,
+          orderValue: params.orderValue,
+          currency: params.currency,
+          transactionId: params.transactionId,
+          items: params.items,
+        },
+      );
+
+      return;
+    }
+
     this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_SUBMIT_CHECKOUT, {
       userId: this._userId,
-      productId,
-      variantId,
-      quantity,
-      price,
-      currency,
+      productId: params.productId,
+      variantId: params.variantId,
+      quantity: params.quantity,
+      price: params.price,
+      currency: params.currency,
     });
   }
 
