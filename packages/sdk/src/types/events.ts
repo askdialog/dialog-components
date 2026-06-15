@@ -43,6 +43,8 @@ export interface DiagnosticPayload {
 // event through its own PostHog instance instead of the SDK instantiating a
 // second one. Field names are part of the cross-repo contract consumed by the
 // host's tracking bridge — keep them in sync.
+//
+// Add-to-cart stays product-level: one event per added line.
 export interface TrackEventPayload {
   userId?: string;
   productId: string;
@@ -52,12 +54,57 @@ export interface TrackEventPayload {
   currency?: string;
 }
 
+// A single line of a completed order. Optional, for product-level attribution
+// only — revenue is computed from the order-level `orderValue`, never summed
+// from these lines.
+export interface CheckoutLineItem {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  price?: number;
+}
+
+// Checkout is order-level: ONE event per completed order, carrying the order
+// total. This is what the dashboard's "Revenue generated" reads. Do NOT emit
+// one event per line item — that has no order total and revenue resolves to 0.
+// Field names are part of the cross-repo contract consumed by the host's
+// tracking bridge — keep them in sync.
+export interface SubmitCheckoutEventPayload {
+  userId?: string;
+  orderValue: number;
+  currency?: string;
+  transactionId?: string;
+  items?: CheckoutLineItem[];
+}
+
+// Public arguments for registerSubmitCheckoutEvent — order-level (preferred).
+export interface SubmitCheckoutParams {
+  orderValue: number;
+  currency?: string;
+  transactionId?: string;
+  items?: CheckoutLineItem[];
+}
+
+/**
+ * @deprecated Per-line checkout has no order total, so "Revenue generated"
+ * resolves to 0. Pass the order total via {@link SubmitCheckoutParams} instead,
+ * once per completed order.
+ */
+export interface LegacyCheckoutParams {
+  productId: string;
+  quantity: number;
+  price?: string;
+  currency?: string;
+  variantId?: string;
+}
+
 export type DialogEventPayload =
   | ProductQuestionPayload
   | GenericQuestionPayload
   | DiagnosticPayload
   | OpenAssistantPayload
-  | TrackEventPayload;
+  | TrackEventPayload
+  | SubmitCheckoutEventPayload;
 
 export interface DialogEvent<T = DialogEventPayload> {
   type: DialogEvents;
