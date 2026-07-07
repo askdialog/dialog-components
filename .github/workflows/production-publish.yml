@@ -17,6 +17,7 @@ jobs:
 
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -53,9 +54,26 @@ jobs:
             echo "has_changesets=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Capture SDK version before bump
+        if: steps.changesets.outputs.has_changesets == 'true'
+        id: sdk_before
+        run: echo "version=$(node -p "require('./packages/sdk/package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Version packages
         if: steps.changesets.outputs.has_changesets == 'true'
         run: pnpm changeset version
+
+      - name: Detect SDK version bump
+        if: steps.changesets.outputs.has_changesets == 'true'
+        id: sdk
+        run: |
+          VERSION=$(node -p "require('./packages/sdk/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if [ "$VERSION" != "${{ steps.sdk_before.outputs.version }}" ]; then
+            echo "bumped=true" >> $GITHUB_OUTPUT
+          else
+            echo "bumped=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build packages
         if: steps.changesets.outputs.has_changesets == 'true'
@@ -80,3 +98,35 @@ jobs:
           git add .
           git commit -m "ci: version packages for release [skip ci]" || true
           git push origin HEAD:main --follow-tags
+
+      # CDN deploy runs AFTER the push so a CDN failure can never leave npm/git
+      # out of sync (OPS-650 drift) — a red run here means "re-deploy the CDN",
+      # not "the release is broken".
+      - name: Configure AWS credentials (prod)
+        if: steps.sdk.outputs.bumped == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::893358932428:role/deploy-role
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          role-skip-session-tagging: true
+          aws-region: eu-west-1
+
+      - name: Deploy SDK bundle to CDN
+        if: steps.sdk.outputs.bumped == 'true'
+        run: pnpm --filter @askdialog/dialog-sdk deploy:cdn
+
+      - name: Verify CDN deploy
+        if: steps.sdk.outputs.bumped == 'true'
+        run: |
+          URL="https://d2m6yt8rnm4dos.cloudfront.net/dialog-sdk.${{ steps.sdk.outputs.version }}.min.js"
+          for i in $(seq 1 10); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' "$URL")
+            if [ "$CODE" = "200" ]; then
+              echo "CDN OK: $URL"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $CODE — retrying in 15s"
+            sleep 15
+          done
+          echo "CDN verification failed for $URL"
+          exit 1
