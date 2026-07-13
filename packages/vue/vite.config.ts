@@ -4,11 +4,15 @@ import vue from "@vitejs/plugin-vue";
 import eslint from "vite-plugin-eslint";
 import { resolve } from "path";
 import dts from "vite-plugin-dts";
+import packageJson from "./package.json";
 
 export default defineConfig({
   define: {
     __VUE_OPTIONS_API__: true,
     __VUE_PROD_DEVTOOLS__: false,
+    // Baked into the bundle so window.dialog.audit can expose which wrapper
+    // version is installed (DEC-2368)
+    __DIALOG_VUE_VERSION__: JSON.stringify(packageJson.version),
   },
   plugins: [
     vue(),

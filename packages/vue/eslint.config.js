@@ -15,7 +15,11 @@ export default [
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        // Injected at build time by the `define` in vite.config.ts
+        __DIALOG_VUE_VERSION__: "readonly",
+      },
       parserOptions: {
         parser: typescriptEslint.parser,
       },

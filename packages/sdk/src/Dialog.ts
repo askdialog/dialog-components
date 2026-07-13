@@ -23,6 +23,7 @@ import { EventsHandler } from "./EventsHandler";
 import { loadSuggestions } from "./services/suggestions";
 import { config } from "./config";
 import { AssistantEvent } from "./types/assistantEvent";
+import { exposeSdkOnWindowDialog } from "./windowAudit";
 export class Dialog {
   public static readonly VERSION = packageJson.version;
 
@@ -53,10 +54,7 @@ export class Dialog {
     this._theme = { ...defaultTheme, ...theme };
     this._userId = this._createOrRetrieveUserId(userId);
     this._eventsHandler = new EventsHandler(locale, userId);
-    window.dialog = {
-      instance: this,
-      version: Dialog.VERSION,
-    };
+    exposeSdkOnWindowDialog(this, Dialog.VERSION);
     this._loadAssistant();
   }
 
