@@ -18,16 +18,16 @@ const getAudit = (): DialogAudit | undefined =>
 
 const fakeInstance = { apiKey: "test" } as unknown as Dialog;
 
+beforeEach(() => {
+  globalWithWindow.window = {};
+});
+
+afterEach(() => {
+  delete globalWithWindow.window;
+  vi.clearAllMocks();
+});
+
 describe("exposeSdkOnWindowDialog", () => {
-  beforeEach(() => {
-    globalWithWindow.window = {};
-  });
-
-  afterEach(() => {
-    delete globalWithWindow.window;
-    vi.clearAllMocks();
-  });
-
   it("exposes instance and version when window.dialog is absent", () => {
     exposeSdkOnWindowDialog(fakeInstance, "2.1.0");
 
@@ -89,15 +89,6 @@ describe("exposeSdkOnWindowDialog", () => {
 });
 
 describe("registerDialogInstallation", () => {
-  beforeEach(() => {
-    globalWithWindow.window = {};
-  });
-
-  afterEach(() => {
-    delete globalWithWindow.window;
-    vi.clearAllMocks();
-  });
-
   it("only fills missing fields on re-registration of the same method", () => {
     registerDialogInstallation({ method: "react", version: "2.0.2" });
     registerDialogInstallation({ method: "react", version: "9.9.9" });
@@ -105,18 +96,22 @@ describe("registerDialogInstallation", () => {
     expect(getAudit()?.methods).toHaveLength(1);
     expect(getAudit()?.methods[0]?.version).toBe("2.0.2");
   });
+
+  it("fills missing nested build fields without erasing existing ones", () => {
+    registerDialogInstallation({ method: "gtm", build: { commit: "abc1234" } });
+    registerDialogInstallation({
+      method: "gtm",
+      build: { commit: "fff9999", version: "1.2.3" },
+    });
+
+    expect(getAudit()?.methods[0]?.build).toEqual({
+      commit: "abc1234",
+      version: "1.2.3",
+    });
+  });
 });
 
 describe("addAuditCapability", () => {
-  beforeEach(() => {
-    globalWithWindow.window = {};
-  });
-
-  afterEach(() => {
-    delete globalWithWindow.window;
-    vi.clearAllMocks();
-  });
-
   it("adds capabilities without duplicates", () => {
     addAuditCapability("pdp-block");
     addAuditCapability("pdp-block");

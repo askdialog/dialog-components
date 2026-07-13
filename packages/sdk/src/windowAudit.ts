@@ -84,6 +84,22 @@ const refreshCoexistenceWarning = (audit: DialogAudit): void => {
   }
 };
 
+// First write wins per nested field: an existing partial build (e.g. commit
+// only) never blocks a later registration from filling the missing fields.
+const mergeBuildFields = (
+  existing: DialogAuditMethodEntry["build"],
+  entry: DialogAuditMethodEntry["build"],
+): DialogAuditMethodEntry["build"] => {
+  if (entry === undefined) {
+    return existing;
+  }
+
+  return {
+    version: existing?.version ?? entry.version,
+    commit: existing?.commit ?? entry.commit,
+  };
+};
+
 export const registerDialogInstallation = (
   entry: DialogInstallationEntryInput,
 ): void => {
@@ -103,7 +119,7 @@ export const registerDialogInstallation = (
   // First write wins per field: a later registration only fills gaps and
   // never erases what another script recorded.
   existing.version = existing.version ?? entry.version;
-  existing.build = existing.build ?? entry.build;
+  existing.build = mergeBuildFields(existing.build, entry.build);
   existing.source = existing.source ?? entry.source;
 };
 
