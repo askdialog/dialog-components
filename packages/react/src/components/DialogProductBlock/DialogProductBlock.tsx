@@ -1,5 +1,9 @@
 import { type FC, useEffect, useState, useMemo } from "react";
-import { type Suggestion } from "@askdialog/dialog-sdk";
+import {
+  addAuditCapability,
+  registerDialogInstallation,
+  type Suggestion,
+} from "@askdialog/dialog-sdk";
 import type { Dialog } from "@askdialog/dialog-sdk";
 import { DialogBlockHeader } from "./DialogBlockHeader";
 import { DialogBlockSuggestionsContainer } from "./DialogBlockSuggestionsContainer";
@@ -26,6 +30,17 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
   const [suggestionData, setSuggestionData] = useState<Suggestion | undefined>(
     undefined,
   );
+
+  useEffect(() => {
+    registerDialogInstallation({
+      method: "react",
+      version:
+        typeof __DIALOG_REACT_VERSION__ === "undefined"
+          ? undefined
+          : __DIALOG_REACT_VERSION__,
+    });
+    addAuditCapability("pdp-block");
+  }, []);
 
   const assistantName = useMemo(
     () => (isFetchingSuggestions ? "" : suggestionData?.assistantName),

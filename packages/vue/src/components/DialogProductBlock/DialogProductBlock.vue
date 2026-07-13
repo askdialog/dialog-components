@@ -23,12 +23,17 @@
 </template>
 
 <script setup lang="ts">
-import { Dialog, type Suggestion } from "@askdialog/dialog-sdk";
+import {
+  addAuditCapability,
+  Dialog,
+  registerDialogInstallation,
+  type Suggestion,
+} from "@askdialog/dialog-sdk";
 import DialogBlockHeader from "./DialogBlockHeader.vue";
 import DialogBlockSuggestionsContainer from "./DialogBlockSuggestionsContainer.vue";
 import DialogInput from "./DialogInput.vue";
 import ThemeProvider from "./ThemeProvider.vue";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 interface Props {
   client: Dialog;
@@ -41,6 +46,17 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   enableInput: true,
   selectedVariantId: undefined,
+});
+
+onMounted(() => {
+  registerDialogInstallation({
+    method: "vue",
+    version:
+      typeof __DIALOG_VUE_VERSION__ === "undefined"
+        ? undefined
+        : __DIALOG_VUE_VERSION__,
+  });
+  addAuditCapability("pdp-block");
 });
 const isFetchingSuggestions = ref(true);
 const suggestionData = ref<Suggestion | undefined>(undefined);

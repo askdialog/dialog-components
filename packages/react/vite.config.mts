@@ -2,8 +2,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
 import { resolve } from "path";
+import packageJson from "./package.json";
 
 export default defineConfig({
+  define: {
+    // Baked into the bundle so window.dialog.audit can expose which wrapper
+    // version is installed (DEC-2368)
+    __DIALOG_REACT_VERSION__: JSON.stringify(packageJson.version),
+  },
   plugins: [
     react(),
     dts({
