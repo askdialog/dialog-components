@@ -17,10 +17,21 @@ export interface CommonPayload {
   url: string;
 }
 
+// The enriched optional fields are populated on `userAddedToCart`: full data
+// of the product actually added (which can be a Dialog suggestion) plus the
+// PDP-context product under `page*` so integrations can tell them apart.
 export interface GenericAssistantEventPayload {
   userId?: string;
   productId?: string;
   variantId?: string;
+  quantity?: number;
+  price?: string;
+  currency?: string;
+  productTitle?: string;
+  variantTitle?: string;
+  productUrl?: string;
+  pageProductId?: string;
+  pageVariantId?: string;
 }
 
 export type AssistantEventPayload = GenericAssistantEventPayload;
