@@ -1,3 +1,4 @@
+import { AddToCartInput } from "./events";
 import { SimplifiedProduct } from "./product";
 import { Theme } from "./theme";
 
@@ -11,19 +12,7 @@ export interface DialogConstructor {
    */
   countryCode?: string;
   callbacks: {
-    addToCart: ({
-      productId,
-      quantity,
-      price,
-      variantId,
-      currency,
-    }: {
-      productId: string;
-      quantity: number;
-      price?: string;
-      variantId?: string;
-      currency?: string;
-    }) => Promise<void>;
+    addToCart: (input: AddToCartInput) => Promise<void>;
     getProduct: (
       productId: string,
       variantId?: string,

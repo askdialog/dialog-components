@@ -11,6 +11,7 @@ import {
 import { ANONYMOUS_CUSTOMER_ID, CUSTOMER_ID } from "./constants/user";
 import { Suggestion } from "./types/suggestion";
 import {
+  AddToCartInput,
   DialogEvents,
   GenericQuestionPayload,
   LegacyCheckoutParams,
@@ -136,57 +137,20 @@ export class Dialog {
     return this._callbacks.getProduct(productId, variantId);
   }
 
-  public async addToCart({
-    productId,
-    quantity,
-    currency,
-    variantId,
-    price,
-  }: {
-    productId: string;
-    quantity: number;
-    price?: string;
-    currency?: string;
-    variantId?: string;
-  }): Promise<void> {
-    await this._callbacks.addToCart({
-      productId,
-      variantId,
-      quantity,
-      currency,
-      price,
-    });
-    this.registerAddToCartEvent({
-      productId,
-      variantId,
-      quantity,
-      currency,
-      price,
-    });
+  // The full input (including the optional enriched product fields) is
+  // forwarded to the merchant callback and to the tracking event, so
+  // integrations can consume the added-product data wherever they hook in.
+  public async addToCart(input: AddToCartInput): Promise<void> {
+    await this._callbacks.addToCart(input);
+    this.registerAddToCartEvent(input);
 
     return;
   }
 
-  public registerAddToCartEvent({
-    productId,
-    quantity,
-    currency,
-    variantId,
-    price,
-  }: {
-    productId: string;
-    quantity: number;
-    price?: string;
-    currency?: string;
-    variantId?: string;
-  }): void {
+  public registerAddToCartEvent(input: AddToCartInput): void {
     this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_ADD_TO_CART, {
       userId: this._userId,
-      productId,
-      variantId,
-      quantity,
-      price,
-      currency,
+      ...input,
     });
   }
 
