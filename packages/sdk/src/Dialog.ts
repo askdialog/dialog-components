@@ -2,7 +2,7 @@
 import { uuidv7 } from "uuidv7";
 import packageJson from "../package.json";
 import { defaultTheme } from "./constants/theme";
-import { DialogConstructor } from "./types/constructor";
+import { DialogCallbacks, DialogConstructor } from "./types/constructor";
 import { Theme } from "./types/theme";
 import {
   DetailedLocaleInfo,
@@ -32,10 +32,7 @@ export class Dialog {
   private _locale: string;
   private _countryCode?: string;
 
-  private _callbacks: {
-    addToCart: DialogConstructor["callbacks"]["addToCart"];
-    getProduct: DialogConstructor["callbacks"]["getProduct"];
-  };
+  private _callbacks?: DialogCallbacks;
   private _theme: Theme;
   private _userId: string;
   private _eventsHandler: EventsHandler;
@@ -134,17 +131,32 @@ export class Dialog {
     productId: string,
     variantId?: string,
   ): Promise<SimplifiedProduct> {
-    return this._callbacks.getProduct(productId, variantId);
+    return this._getCallbacksOrThrow("getProduct").getProduct(
+      productId,
+      variantId,
+    );
   }
 
   // The full input (including the optional enriched product fields) is
   // forwarded to the merchant callback and to the tracking event, so
   // integrations can consume the added-product data wherever they hook in.
   public async addToCart(input: AddToCartInput): Promise<void> {
-    await this._callbacks.addToCart(input);
+    await this._getCallbacksOrThrow("addToCart").addToCart(input);
     this.registerAddToCartEvent(input);
 
     return;
+  }
+
+  // Callbacks are optional at construction; the two commerce methods assert
+  // theirs at call time with an integration-facing configuration error.
+  private _getCallbacksOrThrow(name: keyof DialogCallbacks): DialogCallbacks {
+    if (this._callbacks?.[name] === undefined) {
+      throw new Error(
+        `Dialog: \`callbacks.${name}\` was not provided to the constructor; ${name}() is unavailable on this instance.`,
+      );
+    }
+
+    return this._callbacks;
   }
 
   public registerAddToCartEvent(input: AddToCartInput): void {
