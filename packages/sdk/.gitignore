@@ -2,3 +2,6 @@
 dist
 node_modules
 bundle/*
+coverage
+src/config/config.local.ts
+smoke/dialog-sdk.dev.js
