@@ -22,6 +22,8 @@ import {
 import { SimplifiedProduct } from "./types/product";
 import { EventsHandler } from "./EventsHandler";
 import { loadSuggestions } from "./services/suggestions";
+import { searchProducts } from "./services/search";
+import { SearchOptions, SearchRequest, SearchResponse } from "./types/search";
 import { config } from "./config";
 import { AssistantEvent } from "./types/assistantEvent";
 import { exposeSdkOnWindowDialog } from "./windowAudit";
@@ -96,6 +98,20 @@ export class Dialog {
 
   public async getSuggestions(productId: string): Promise<Suggestion> {
     return loadSuggestions(this._apiKey, this._locale, productId);
+  }
+
+  /**
+   * Typed product search through the Nest public endpoint. Stateless: one
+   * request per call, cancellation belongs to the caller via
+   * `options.signal` (previous searches are never cancelled automatically).
+   * Rejects with `DialogSearchError` on a non-2xx answer, and with the
+   * native AbortError / network error otherwise.
+   */
+  public search(
+    request: SearchRequest,
+    options?: SearchOptions,
+  ): Promise<SearchResponse> {
+    return searchProducts(this._apiKey, request, options);
   }
 
   // TODO: Not yet implemented on assistant
