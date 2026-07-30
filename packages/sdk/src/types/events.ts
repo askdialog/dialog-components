@@ -1,3 +1,8 @@
+import {
+  SelectSearchResultEventPayload,
+  ViewSearchResultsEventPayload,
+} from "./searchAnalytics";
+
 export const DIALOG_CUSTOM_EVENT = "enableDialogAssistantEvent";
 
 export enum DialogEvents {
@@ -7,6 +12,8 @@ export enum DialogEvents {
   SEND_GENERIC_QUESTION = "GENERIC_QUESTION",
   TRACK_ADD_TO_CART = "TRACK_ADD_TO_CART",
   TRACK_SUBMIT_CHECKOUT = "TRACK_SUBMIT_CHECKOUT",
+  TRACK_VIEW_SEARCH_RESULTS = "TRACK_VIEW_SEARCH_RESULTS",
+  TRACK_SELECT_SEARCH_RESULT = "TRACK_SELECT_SEARCH_RESULT",
 }
 export interface GenericQuestionPayload {
   question: string;
@@ -129,7 +136,9 @@ export type DialogEventPayload =
   | DiagnosticPayload
   | OpenAssistantPayload
   | TrackEventPayload
-  | SubmitCheckoutEventPayload;
+  | SubmitCheckoutEventPayload
+  | ViewSearchResultsEventPayload
+  | SelectSearchResultEventPayload;
 
 export interface DialogEvent<T = DialogEventPayload> {
   type: DialogEvents;

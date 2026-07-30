@@ -20,6 +20,10 @@ import {
   SubmitCheckoutParams,
 } from "./types/events";
 import { SimplifiedProduct } from "./types/product";
+import {
+  SelectSearchResultParams,
+  ViewSearchResultsParams,
+} from "./types/searchAnalytics";
 import { EventsHandler } from "./EventsHandler";
 import { loadSuggestions } from "./services/suggestions";
 import { searchProducts } from "./services/search";
@@ -218,6 +222,35 @@ export class Dialog {
       price: params.price,
       currency: params.currency,
     });
+  }
+
+  /**
+   * Emit a batch of viewport impressions. The batching/dedup semantics live
+   * in `createSearchImpressionTracker` — wire its `emit` here, or call
+   * directly with `items: []` for a rendered no-results state.
+   */
+  public trackViewSearchResults(params: ViewSearchResultsParams): void {
+    this._eventsHandler.emitExternalEvent(
+      DialogEvents.TRACK_VIEW_SEARCH_RESULTS,
+      {
+        userId: this._userId,
+        ...params,
+      },
+    );
+  }
+
+  /**
+   * Emit on a result click — including auxclick / cmd+click, not only before
+   * a same-tab navigation. Force the clicked item's impression first.
+   */
+  public trackSelectSearchResult(params: SelectSearchResultParams): void {
+    this._eventsHandler.emitExternalEvent(
+      DialogEvents.TRACK_SELECT_SEARCH_RESULT,
+      {
+        userId: this._userId,
+        ...params,
+      },
+    );
   }
 
   private _loadAssistant(): void {
