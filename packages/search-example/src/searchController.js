@@ -24,6 +24,10 @@ const INITIAL_STATE = {
   page: 0,
   response: undefined,
   error: undefined,
+  // What caused the last run: "query" (new submission, even of the same text)
+  // or "page" (pagination of the current results). Analytics keys off this to
+  // rotate/keep the query_id without guessing from the query text.
+  trigger: undefined,
 };
 
 /**
@@ -63,7 +67,7 @@ export function createSearchController({
     }
   }
 
-  async function run(query, page) {
+  async function run(query, page, trigger) {
     cancelInFlight();
     abortController = new AbortController();
     const id = ++requestId;
@@ -76,7 +80,7 @@ export function createSearchController({
       request.queryId = previous.queryId;
     }
 
-    setState({ status: SearchStatus.LOADING, query, page });
+    setState({ status: SearchStatus.LOADING, query, page, trigger });
     try {
       const response = await search(request, {
         signal: abortController.signal,
@@ -110,7 +114,7 @@ export function createSearchController({
       pendingQuery = query;
       debounceTimer = setTimeout(() => {
         pendingQuery = undefined;
-        void run(query, 0);
+        void run(query, 0, "query");
       }, debounceMs);
     },
 
@@ -121,13 +125,13 @@ export function createSearchController({
         // new query supersedes pagination — flush it now instead of debouncing.
         const query = pendingQuery;
         pendingQuery = undefined;
-        void run(query, 0);
+        void run(query, 0, "query");
         return;
       }
       if (state.query === "") {
         return; // Pagination requires a committed non-empty query.
       }
-      void run(state.query, page);
+      void run(state.query, page, "page");
     },
 
     getState() {

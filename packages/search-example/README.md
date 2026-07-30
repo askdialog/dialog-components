@@ -18,6 +18,25 @@ pnpm dev          # http://localhost:5175, SDK resolved from ../sdk sources
 `pnpm dev:test-dist` resolves `@askdialog/dialog-sdk` from its built `dist/`
 instead of the sources.
 
+## Analytics
+
+The demo is the reference wiring for the search analytics events (DEC-2448),
+snake_case end to end:
+
+- `view_search_results` — viewport impressions via the SDK's
+  `createSearchImpressionTracker` (≥50% visible for ≥500ms, deduplicated by
+  `(query_id, product_id)`, batched). A rendered no-results state is the same
+  event with `items: []` and `total_hits: 0`.
+- `select_search_result` — result clicks, including `auxclick`/cmd+click; a
+  click forces the item's impression first.
+
+`query_id` stays stable across pagination but rotates on every new submission —
+even of the same text (the controller's `trigger` tells the two apart).
+`page` is 1-based, positions are absolute.
+No raw query text is emitted — only `query_length`. To observe the raw SDK
+events locally, listen for the `enableDialogAssistantEvent` CustomEvent on
+`window`.
+
 ## API key
 
 The key is never committed. Either:
