@@ -2,7 +2,9 @@
 // the values, then activate it with `pnpm set-config local` (restore with
 // `pnpm set-config production`).
 export const config = {
-  baseApiUrl: "https://abkjr5ukvi.execute-api.eu-west-1.amazonaws.com",
+  // Per-developer dev gateway — copy YOURS from frontend/app/.env VITE_API_URL in
+  // dialog-ecom (the value below is one developer's, not a shared one).
+  baseApiUrl: "https://REPLACE-ME.execute-api.eu-west-1.amazonaws.com",
   // Local Nest monolith — serves POST /public/search. Match your monolith port
   // (per-developer; see backend/monolith/.env PORT in dialog-ecom).
   monolithApiUrl: "http://localhost:3001",
