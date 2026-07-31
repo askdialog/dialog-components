@@ -55,5 +55,10 @@ pnpm --dir ../sdk set-config local         # per-developer config.local.ts (giti
 pnpm --dir ../sdk set-config production    # restore the committed default
 ```
 
+Bootstrap your `config.local.ts` from the committed template
+`../sdk/src/config/config.local.example.ts`.
+
 `POST /public/search` requires an ECS runtime (or the local monolith + python
 stack) — the dev Lambda answers 503 `STOREFRONT_SEARCH_UNAVAILABLE` by design.
+The full local E2E recipe (SDK → monolith → python → OpenSearch) lives in the
+`dialog-ecom` repo: `backend/monolith/docs/howtos/test-storefront-search-locally.md`.
