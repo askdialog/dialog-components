@@ -3,4 +3,5 @@ export * from "./product";
 export * from "./suggestion";
 export * from "./theme";
 export * from "./constructor";
+export * from "./search";
 export * from "./assistantEvent";

@@ -21,7 +21,10 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
+    "test-coverage": "vitest run --coverage",
+    "test-linter": "eslint .",
     "test-type": "tsc --noEmit",
+    "smoke": "chmod +x scripts/smoke.sh && ./scripts/smoke.sh",
     "link": "pnpm link --global",
     "unlink": "pnpm unlink",
     "watch": "tsc --watch",
@@ -45,6 +48,7 @@
   "author": "Dialog",
   "license": "MIT",
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.0.0",
     "esbuild": "^0.25.12",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
