@@ -1,5 +1,23 @@
 # @askdialog/dialog-sdk
 
+## 2.4.0
+
+### Minor Changes
+
+- 98f000d: feat(sdk): expose enriched added-product data in add-to-cart surfaces (DEC-2336)
+
+  `Dialog.addToCart` / `registerAddToCartEvent` now accept optional enriched fields describing the product actually added to cart — `productTitle`, `variantTitle`, `productUrl` — plus the PDP-context product under `pageProductId` / `pageVariantId`. The full input is forwarded to the merchant `callbacks.addToCart` and to the `TRACK_ADD_TO_CART` event, and the `userAddedToCart` assistant event payload type declares the same fields.
+
+  This lets merchant analytics integrations (e.g. GA forwarding) track a Dialog-suggested product added from another product's PDP without resolving product data from the page context (which describes the visited PDP product, not the added one).
+
+  All new fields are optional: existing integrations and older assistant versions keep working unchanged.
+
+- 79f86f9: feat(sdk): add typed `dialog.search()` and make commerce callbacks optional (DEC-2447)
+
+  New `dialog.search(request, options?)` method: a typed product search through the Nest public endpoint (`POST /public/search`). Stateless one-POST-per-call — no debounce, cache or retry; the caller owns cancellation through `options.signal`. Returns the Algolia-shaped envelope (`queryId`, `hits[].product` cards with title/image/priceRange/inStock, pagination) and throws a `DialogSearchError` carrying `status` and `code` on failure. New exports: `DialogSearchError` and the `SearchRequest`/`SearchResponse`/`SearchOptions` types.
+
+  Commerce callbacks (`addToCart`, …) are now optional at construction, so search-only integrations can do `new Dialog({ apiKey, locale })` without wiring cart handlers; commerce entry points throw a descriptive error if invoked without them.
+
 ## 2.3.0
 
 ### Minor Changes
