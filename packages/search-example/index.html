@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dialog Storefront Search Example</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-header">
+        <h1>Storefront search</h1>
+        <p class="page-subtitle">
+          Raw JavaScript demo of <code>dialog.search()</code> — debounce,
+          cancellation, stale-response protection, state and pagination are
+          owned by this page.
+        </p>
+      </header>
+
+      <section id="api-key-section" class="api-key" hidden>
+        <label for="api-key-input">Dialog API key</label>
+        <input
+          id="api-key-input"
+          type="password"
+          autocomplete="off"
+          placeholder="Paste a non-committed API key"
+        />
+        <p class="api-key-hint">
+          Or set <code>VITE_DIALOG_API_KEY</code> in a gitignored
+          <code>.env.local</code>. The key is only kept in memory.
+        </p>
+      </section>
+
+      <section class="search">
+        <label for="search-input" class="visually-hidden">Search products</label>
+        <input
+          id="search-input"
+          class="search-input"
+          type="search"
+          placeholder="Search products…"
+          autocomplete="off"
+          disabled
+        />
+      </section>
+
+      <section id="status" class="status" role="status"></section>
+
+      <ul id="results" class="results"></ul>
+
+      <nav id="pagination" class="pagination" hidden>
+        <button id="prev-page" type="button">← Previous</button>
+        <span id="page-indicator"></span>
+        <button id="next-page" type="button">Next →</button>
+      </nav>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
