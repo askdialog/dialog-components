@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>dialog.search() smoke</title>
+    <style>
+      body { font-family: monospace; max-width: 720px; margin: 2rem auto; }
+      label { display: block; margin-top: 0.5rem; }
+      input { width: 100%; }
+      pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+    </style>
+  </head>
+  <body>
+    <h1>dialog.search() smoke</h1>
+    <p>
+      Staging API key is read at click time and never persisted. The bundle is
+      the development flavor (staging Nest), built by <code>pnpm smoke</code>.
+    </p>
+    <label>API key (staging) <input id="apiKey" type="password" /></label>
+    <label>Query <input id="query" value="shampoo" /></label>
+    <label>Page <input id="page" type="number" value="0" /></label>
+    <label>Hits per page <input id="hitsPerPage" type="number" value="5" /></label>
+    <button id="run">Search</button>
+    <pre id="out">—</pre>
+    <script src="./dialog-sdk.dev.js"></script>
+    <script>
+      let dialog;
+      const out = document.getElementById("out");
+      document.getElementById("run").addEventListener("click", async () => {
+        const apiKey = document.getElementById("apiKey").value;
+        // Search-only construction: no commerce callbacks.
+        dialog = dialog ?? new DialogSDK.Dialog({ apiKey, locale: "fr" });
+        out.textContent = "…";
+        try {
+          const response = await dialog.search({
+            query: document.getElementById("query").value,
+            page: Number(document.getElementById("page").value),
+            hitsPerPage: Number(document.getElementById("hitsPerPage").value),
+          });
+          out.textContent = JSON.stringify(response, null, 2);
+        } catch (error) {
+          out.textContent = `${error.name} status=${error.status} code=${error.code}\n${error.message}`;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,5 +1,14 @@
+import { AddToCartInput } from "./events";
 import { SimplifiedProduct } from "./product";
 import { Theme } from "./theme";
+
+export interface DialogCallbacks {
+  addToCart: (input: AddToCartInput) => Promise<void>;
+  getProduct: (
+    productId: string,
+    variantId?: string,
+  ) => Promise<SimplifiedProduct>;
+}
 
 export interface DialogConstructor {
   apiKey: string;
@@ -10,25 +19,12 @@ export interface DialogConstructor {
    * Omit it to keep deriving the country from the locale (backward compatible).
    */
   countryCode?: string;
-  callbacks: {
-    addToCart: ({
-      productId,
-      quantity,
-      price,
-      variantId,
-      currency,
-    }: {
-      productId: string;
-      quantity: number;
-      price?: string;
-      variantId?: string;
-      currency?: string;
-    }) => Promise<void>;
-    getProduct: (
-      productId: string,
-      variantId?: string,
-    ) => Promise<SimplifiedProduct>;
-  };
+  /**
+   * Commerce callbacks. Optional: a search-only integration can omit them —
+   * the assistant runtime still loads, and only `getProduct()` / `addToCart()`
+   * throw a configuration error when their callback is absent.
+   */
+  callbacks?: DialogCallbacks;
   theme?: Partial<Theme>;
   userId?: string;
 }

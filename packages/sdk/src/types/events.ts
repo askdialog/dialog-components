@@ -39,13 +39,38 @@ export interface DiagnosticPayload {
   url: string;
 }
 
+// Optional enriched data describing the product actually added to cart.
+// It lets merchant analytics integrations (e.g. GA forwarding) track the
+// added product without resolving it from the page context — required when
+// the added product is a Dialog suggestion and differs from the visited PDP.
+// The `page*` fields describe the PDP the widget is embedded on, so the two
+// products can be told apart.
+export interface AddToCartProductDetails {
+  productTitle?: string;
+  variantTitle?: string;
+  productUrl?: string;
+  pageProductId?: string;
+  pageVariantId?: string;
+}
+
+// Input shared by Dialog.addToCart, registerAddToCartEvent and the merchant
+// `callbacks.addToCart`. All enriched fields are optional so existing
+// integrations keep working unchanged.
+export interface AddToCartInput extends AddToCartProductDetails {
+  productId: string;
+  quantity: number;
+  price?: string;
+  currency?: string;
+  variantId?: string;
+}
+
 // Forwarded to the host app (e.g. shopify-assistant) so it can capture the
 // event through its own PostHog instance instead of the SDK instantiating a
 // second one. Field names are part of the cross-repo contract consumed by the
 // host's tracking bridge — keep them in sync.
 //
 // Add-to-cart stays product-level: one event per added line.
-export interface TrackEventPayload {
+export interface TrackEventPayload extends AddToCartProductDetails {
   userId?: string;
   productId: string;
   variantId?: string;

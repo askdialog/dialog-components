@@ -21,11 +21,11 @@ Before using the Dialog SDK, you need:
 ### Installation
 
 ```bash
-npm install @dialog/dialog-sdk
+npm install @askdialog/dialog-sdk
 # or
-pnpm add @dialog/dialog-sdk
+pnpm add @askdialog/dialog-sdk
 # or
-yarn add @dialog/dialog-sdk
+yarn add @askdialog/dialog-sdk
 ```
 
 You can also use our CDN link if you’re not using a package manager.
@@ -47,7 +47,7 @@ const client = new window.DialogSDK.Dialog({
 ### Instantiate the client
 
 ```typescript
-import { Dialog } from '@dialog/dialog-sdk';
+import { Dialog } from '@askdialog/dialog-sdk';
 
 const client = new Dialog({
   apiKey: 'YOUR_API_KEY', // required
@@ -87,7 +87,9 @@ The optional `countryCode` (ISO 3166 alpha-2, e.g. `'FR'`, `'US'`) sets the regi
 The addToCart function is triggered when a user clicks the AddToCart button.
 The getProduct function is used to display product information in the assistant.
 
-When the client is instantiated, it will automatically insert into the DOM the Dialog Assistant script, so you can interact with the assistant using `sendProductMessage` or `sendGenericMessage`.
+`callbacks` is **optional**: a search-only integration can construct the client with just `apiKey` and `locale`. Only `getProduct()` and `addToCart()` require their callback — they throw an explicit configuration error when it is absent; every other feature works without callbacks.
+
+When the client is instantiated, it will automatically insert into the DOM the Dialog Assistant script, so you can interact with the assistant using `sendProductMessage` or `sendGenericMessage`. This assistant runtime always loads — it owns the shopper identity, consent handling and analytics bridge — while the heavy assistant UI stays lazy-loaded and is not fetched eagerly.
 
 ### Getters
 
@@ -162,6 +164,62 @@ Example of expected result:
 */
 ```
 
+
+- Search products
+
+`client.search()` performs a typed product search through Dialog's public API, with no framework and no commerce callbacks required.
+
+```typescript
+import { Dialog, DialogSearchError } from '@askdialog/dialog-sdk';
+import type { SearchResponse } from '@askdialog/dialog-sdk';
+
+const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr' });
+
+const response: SearchResponse = await client.search({
+  query: 'shampoo',
+  page: 0, // optional, zero-indexed (default 0)
+  hitsPerPage: 20, // optional, 1-100 (default 20)
+});
+// response.hits[n].product: { id, title?, url?, imageUrl?, priceRange?, inStock? }
+```
+
+With the IIFE bundle the results are plain runtime JSON (same shape, no types):
+
+```html
+<script src="https://d2m6yt8rnm4dos.cloudfront.net/dialog-sdk.X.Y.Z.min.js"></script>
+<script>
+  const client = new window.DialogSDK.Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr' });
+  client.search({ query: 'shampoo' }).then((response) => console.log(response.hits));
+</script>
+```
+
+A non-2xx answer rejects with `DialogSearchError` — stable `name`, HTTP `status`, optional machine-readable `code` (e.g. `SEARCH_INDEX_NOT_FOUND`) and `message`. Aborting rejects with the native `AbortError`, and network failures keep their native errors.
+
+The SDK is stateless: no debounce, no cache, no automatic cancellation of previous searches. For search-as-you-type, own those in the integration:
+
+```typescript
+let controller: AbortController | undefined;
+let latestRequestId = 0;
+let debounceTimer: number | undefined;
+
+const onInput = (query: string) => {
+  window.clearTimeout(debounceTimer);
+  debounceTimer = window.setTimeout(async () => {
+    controller?.abort(); // cancel the in-flight request
+    controller = new AbortController();
+    const requestId = ++latestRequestId;
+    try {
+      const response = await client.search({ query }, { signal: controller.signal });
+      if (requestId !== latestRequestId) return; // stale response, ignore
+      render(response.hits);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      if (error instanceof DialogSearchError) renderError(error.message);
+      else throw error;
+    }
+  }, 200);
+};
+```
 
 - Handler for fetch product
 
