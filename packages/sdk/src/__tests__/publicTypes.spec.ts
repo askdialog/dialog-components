@@ -36,6 +36,14 @@ describe("public API types", () => {
     expectTypeOf<Dialog["search"]>().parameters.toMatchTypeOf<
       [SearchRequest, (SearchOptions | undefined)?]
     >();
+
+    expectTypeOf<{ query: string }>().toMatchTypeOf<SearchRequest>();
+    expectTypeOf<{
+      query: string;
+      page: number;
+      queryId: string;
+    }>().toMatchTypeOf<SearchRequest>();
+    expectTypeOf<SearchResponse["queryId"]>().toEqualTypeOf<string>();
     expectTypeOf<
       Dialog["search"]
     >().returns.resolves.toEqualTypeOf<SearchResponse>();
