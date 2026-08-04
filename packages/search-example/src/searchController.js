@@ -68,12 +68,19 @@ export function createSearchController({
     abortController = new AbortController();
     const id = ++requestId;
 
+    // Query unchanged since the last response: resend its queryId; a new
+    // query gets a fresh engine-generated one.
+    const previous = state.response;
+    const request = { query, page, hitsPerPage };
+    if (previous !== undefined && previous.query === query) {
+      request.queryId = previous.queryId;
+    }
+
     setState({ status: SearchStatus.LOADING, query, page });
     try {
-      const response = await search(
-        { query, page, hitsPerPage },
-        { signal: abortController.signal },
-      );
+      const response = await search(request, {
+        signal: abortController.signal,
+      });
       if (id !== requestId) {
         return; // A newer request landed first: this response is stale.
       }

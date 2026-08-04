@@ -179,6 +179,7 @@ const response: SearchResponse = await client.search({
   query: 'shampoo',
   page: 0, // optional, zero-indexed (default 0)
   hitsPerPage: 20, // optional, 1-100 (default 20)
+  queryId: previousResponse?.queryId, // optional, resend while the query is unchanged
 });
 // response.hits[n].product: { id, title?, url?, imageUrl?, priceRange?, inStock? }
 ```

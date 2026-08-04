@@ -9,6 +9,8 @@ export interface SearchRequest {
   page?: number;
   /** Between 1 and 100. Defaults to 20 server-side. */
   hitsPerPage?: number;
+  /** Previous response's queryId while the query is unchanged; omit for a new query. */
+  queryId?: string;
 }
 
 export interface SearchOptions {
@@ -47,7 +49,7 @@ export interface SearchHit {
 }
 
 export interface SearchResponse {
-  /** Nest-generated id for search attribution analytics. */
+  /** Engine-generated id for search attribution analytics. */
   queryId: string;
   hits: SearchHit[];
   nbHits: number;
