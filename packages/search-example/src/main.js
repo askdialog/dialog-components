@@ -1,4 +1,8 @@
-import { Dialog, DialogSearchError } from "@askdialog/dialog-sdk";
+import {
+  createSearchImpressionTracker,
+  Dialog,
+  DialogSearchError,
+} from "@askdialog/dialog-sdk";
 
 import { createSearchController, SearchStatus } from "./searchController.js";
 
@@ -12,7 +16,34 @@ const prevButton = document.getElementById("prev-page");
 const nextButton = document.getElementById("next-page");
 const pageIndicator = document.getElementById("page-indicator");
 
+const SURFACE = "search_page";
+
+let dialog;
 let controller;
+let impressions;
+
+// `query_id` stays stable across pagination but rotates on every new
+// submission — even of the same text (the wire response regenerates one per
+// request; the controller's `trigger` says which case this is).
+let analyticsQueryId;
+
+function searchEnvelope(response, trigger) {
+  if (trigger === "query" || analyticsQueryId === undefined) {
+    analyticsQueryId = response.queryId;
+  }
+  return {
+    query_id: analyticsQueryId,
+    surface: SURFACE,
+    // Analytics pages are 1-based; the wire response is 0-based.
+    page: response.page + 1,
+    total_hits: response.nbHits,
+    query_length: [...response.query].length,
+  };
+}
+
+function resultPosition(response, index) {
+  return response.page * response.hitsPerPage + index + 1;
+}
 
 function formatPrice(priceRange) {
   if (priceRange === undefined) {
@@ -42,7 +73,7 @@ function safeProductHref(url) {
   }
 }
 
-function renderProductCard({ product }) {
+function renderProductCard({ product }, item, envelope) {
   const li = document.createElement("li");
   li.className = "card";
 
@@ -81,6 +112,27 @@ function renderProductCard({ product }) {
     link.className = "card-link";
     link.href = href;
     link.textContent = "View product";
+    // Also on auxclick: a middle-click / new-tab open is a selection too. The
+    // click forces the item's impression so CTR by position stays ≤ 100%; the
+    // host bridge owns the beacon transport that survives navigation.
+    const trackSelect = () => {
+      impressions.forceImpression(item);
+      dialog.trackSelectSearchResult({ ...envelope, items: [item] });
+    };
+    // Demo-only: seed URLs are fake, so same-tab navigation is suppressed to
+    // keep the console (and its logged events) alive. Real integrations must
+    // NOT preventDefault — the event is designed to survive navigation.
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      trackSelect();
+    });
+    // auxclick also fires on right-click, which only opens a context menu:
+    // only the middle button is a navigation.
+    link.addEventListener("auxclick", (event) => {
+      if (event.button === 1) {
+        trackSelect();
+      }
+    });
     li.appendChild(link);
   }
 
@@ -114,12 +166,30 @@ function render(state) {
       return;
     case SearchStatus.SUCCESS: {
       const { response } = state;
+      // Analytics keys off the accepted response actually being rendered: the
+      // controller already dropped stale/canceled responses, and impressions
+      // are viewport-driven (tracker) — a network answer alone never counts.
+      const envelope = searchEnvelope(response, state.trigger);
+      impressions.setContext(envelope);
       if (response.nbHits === 0) {
         statusEl.textContent = `No products match “${response.query}”.`;
+        // A rendered no-results state is the view event with zero items; the
+        // empty-state message shows above the fold, no viewport gating needed.
+        dialog.trackViewSearchResults({ ...envelope, items: [] });
         return;
       }
       statusEl.textContent = `${response.nbHits} product${response.nbHits > 1 ? "s" : ""} for “${response.query}” (${response.processingTimeMs} ms)`;
-      resultsEl.replaceChildren(...response.hits.map(renderProductCard));
+      resultsEl.replaceChildren(
+        ...response.hits.map((hit, index) => {
+          const item = {
+            product_id: hit.product.id,
+            position: resultPosition(response, index),
+          };
+          const card = renderProductCard(hit, item, envelope);
+          impressions.observe(card, item);
+          return card;
+        }),
+      );
 
       if (response.nbPages > 1) {
         paginationEl.hidden = false;
@@ -133,7 +203,10 @@ function render(state) {
 }
 
 function start(apiKey) {
-  const dialog = new Dialog({ apiKey, locale: "fr" });
+  dialog = new Dialog({ apiKey, locale: "fr" });
+  impressions = createSearchImpressionTracker({
+    emit: (params) => dialog.trackViewSearchResults(params),
+  });
   controller = createSearchController({
     search: (request, options) => dialog.search(request, options),
     onState: render,

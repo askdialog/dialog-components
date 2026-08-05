@@ -7,7 +7,7 @@ import typescriptEslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.d.ts', 'bundle/**', 'smoke/dialog-sdk.dev.js', 'eslint.config.js'],
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', '*.d.ts', 'bundle/**', 'smoke/dialog-sdk.dev.js', 'eslint.config.js', 'src/config/config.local.example.ts'],
   },
   eslint.configs.recommended,
   ...typescriptEslint.configs.recommended,
