@@ -41,6 +41,7 @@ describe("searchProducts", () => {
       query: "running shoes",
       page: 2,
       hitsPerPage: 50,
+      queryId: "0198c3f2-0000-7000-8000-000000000000",
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -55,10 +56,11 @@ describe("searchProducts", () => {
       query: "running shoes",
       page: 2,
       hitsPerPage: 50,
+      queryId: "0198c3f2-0000-7000-8000-000000000000",
     });
   });
 
-  it("omits pagination fields the caller did not provide", async () => {
+  it("omits pagination fields and queryId the caller did not provide", async () => {
     fetchMock.mockResolvedValue(jsonResponse(emptyResponse));
 
     await searchProducts(API_KEY, { query: "running shoes" });

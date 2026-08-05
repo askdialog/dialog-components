@@ -27,4 +27,12 @@ export interface DialogConstructor {
   callbacks?: DialogCallbacks;
   theme?: Partial<Theme>;
   userId?: string;
+  /**
+   * Adds `data-ot-ignore` on the injected assistant script so OneTrust
+   * auto-blocking does not neutralize it for visitors who declined cookies.
+   * The assistant gates analytics on consent internally, so loading it is
+   * safe — but exempting a script from the CMP is the merchant's compliance
+   * call, hence opt-in. No effect outside OneTrust auto-blocking setups.
+   */
+  ignoreOneTrustAutoBlock?: boolean;
 }

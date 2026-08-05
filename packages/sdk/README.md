@@ -91,6 +91,15 @@ The getProduct function is used to display product information in the assistant.
 
 When the client is instantiated, it will automatically insert into the DOM the Dialog Assistant script, so you can interact with the assistant using `sendProductMessage` or `sendGenericMessage`. This assistant runtime always loads — it owns the shopper identity, consent handling and analytics bridge — while the heavy assistant UI stays lazy-loaded and is not fetched eagerly.
 
+### OneTrust auto-blocking
+
+If your site uses OneTrust auto-blocking, it may neutralize the assistant script injected by the SDK (`type` rewritten to `text/plain`) for visitors who declined cookies — a `data-ot-ignore` on your own SDK `<script>` tag does not cover dynamically injected scripts. Two remedies, both merchant-side decisions:
+
+- categorize the assistant CDN domain as strictly necessary in your OneTrust console, or
+- pass the optional `ignoreOneTrustAutoBlock: true` constructor flag so the SDK adds `data-ot-ignore` on the script it injects.
+
+Either is compliance-safe with regard to analytics: the assistant gates all analytics on consent internally and sends nothing without an explicit opt-in (inspect `window.dialog.audit.consent`).
+
 ### Getters
 
 - apiKey
@@ -179,6 +188,7 @@ const response: SearchResponse = await client.search({
   query: 'shampoo',
   page: 0, // optional, zero-indexed (default 0)
   hitsPerPage: 20, // optional, 1-100 (default 20)
+  queryId: previousResponse?.queryId, // optional, resend while the query is unchanged
 });
 // response.hits[n].product: { id, title?, url?, imageUrl?, priceRange?, inStock? }
 ```

@@ -38,6 +38,7 @@ export class Dialog {
   private _theme: Theme;
   private _userId: string;
   private _eventsHandler: EventsHandler;
+  private _ignoreOneTrustAutoBlock: boolean;
 
   constructor({
     apiKey,
@@ -46,11 +47,13 @@ export class Dialog {
     callbacks,
     theme,
     userId,
+    ignoreOneTrustAutoBlock,
   }: DialogConstructor) {
     this._apiKey = apiKey;
     this._locale = locale;
     this._countryCode = countryCode;
     this._callbacks = callbacks;
+    this._ignoreOneTrustAutoBlock = ignoreOneTrustAutoBlock ?? false;
     this._theme = { ...defaultTheme, ...theme };
     this._userId = this._createOrRetrieveUserId(userId);
     this._eventsHandler = new EventsHandler(locale, userId);
@@ -242,6 +245,12 @@ export class Dialog {
       script.async = true;
       script.type = "module";
       script.src = config.assistantUrl;
+      if (this._ignoreOneTrustAutoBlock) {
+        // OneTrust auto-blocking also intercepts dynamically injected scripts
+        // (by domain), so the merchant's data-ot-ignore on their own SDK tag
+        // cannot cover this one — it has to be set here.
+        script.setAttribute("data-ot-ignore", "");
+      }
       document.head.insertBefore(script, document.head.firstChild);
     }, 50);
   }
