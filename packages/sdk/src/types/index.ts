@@ -5,4 +5,5 @@ export * from "./theme";
 export * from "./constructor";
 export * from "./search";
 export * from "./searchAnalytics";
+export * from "./searchController";
 export * from "./assistantEvent";
