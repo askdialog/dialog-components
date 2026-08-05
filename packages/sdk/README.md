@@ -205,31 +205,55 @@ With the IIFE bundle the results are plain runtime JSON (same shape, no types):
 
 A non-2xx answer rejects with `DialogSearchError` — stable `name`, HTTP `status`, optional machine-readable `code` (e.g. `SEARCH_INDEX_NOT_FOUND`) and `message`. Aborting rejects with the native `AbortError`, and network failures keep their native errors.
 
-The SDK is stateless: no debounce, no cache, no automatic cancellation of previous searches. For search-as-you-type, own those in the integration:
+`client.search()` itself is stateless: no debounce, no cache, no automatic cancellation of previous searches. For search-as-you-type, use the search controller below instead of hand-rolling those.
+
+- Search controller
+
+`createSearchController()` wraps the stateless transport with the stateful behavior every search UI needs — debounce (immediate on explicit submission), cancellation of the in-flight request, stale-response protection (a late response never replaces newer results, even if the transport ignores the abort), pagination that resets on a new query, `idle` / `loading` / `success` / `empty` / `error` states, retry, and the DEC-2448 attribution events (`view_search_results` viewport impressions, `select_search_result` clicks) with a consistent `query_id`. It has no framework or rendering dependency: raw JavaScript, React, Vue and Shopify integrations are rendering-and-routing adapters around it.
 
 ```typescript
-let controller: AbortController | undefined;
-let latestRequestId = 0;
-let debounceTimer: number | undefined;
+import { createSearchController, Dialog, SearchStatus } from '@askdialog/dialog-sdk';
 
-const onInput = (query: string) => {
-  window.clearTimeout(debounceTimer);
-  debounceTimer = window.setTimeout(async () => {
-    controller?.abort(); // cancel the in-flight request
-    controller = new AbortController();
-    const requestId = ++latestRequestId;
-    try {
-      const response = await client.search({ query }, { signal: controller.signal });
-      if (requestId !== latestRequestId) return; // stale response, ignore
-      render(response.hits);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      if (error instanceof DialogSearchError) renderError(error.message);
-      else throw error;
-    }
-  }, 200);
-};
+const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr' });
+
+const controller = createSearchController({
+  search: (request, options) => client.search(request, options),
+  analytics: {
+    surface: 'search_page', // where results are displayed
+    trackViewSearchResults: (params) => client.trackViewSearchResults(params),
+    trackSelectSearchResult: (params) => client.trackSelectSearchResult(params),
+  },
+  navigate: (url) => router.push(url), // optional platform routing adapter
+  debounceMs: 250, // optional (default 250)
+  hitsPerPage: 12, // optional (default 12)
+});
+
+const unsubscribe = controller.subscribe((state) => {
+  // state: { status, query, page, response?, error? }
+  if (state.status === SearchStatus.SUCCESS) {
+    renderCards(state.response.hits).forEach((element, index) => {
+      controller.observeResult(element, index); // viewport impression
+      element.onclick = () => controller.selectResult(index); // attribution, then `navigate`
+    });
+  }
+});
+
+input.oninput = () => controller.setQuery(input.value); // debounced
+form.onsubmit = () => controller.submit(input.value); // immediate
+nextButton.onclick = () => controller.setPage(controller.getState().page + 1);
+retryButton.onclick = () => controller.retry();
+// On teardown (SPA unmount): cancel in-flight work and detach observers.
+controller.dispose();
 ```
+
+The adapter contract for a framework binding (React, Vue, Shopify):
+
+- **Rendering** — subscribe to the controller (`subscribe`/`getState` fit React's `useSyncExternalStore` and a Vue `shallowRef` updated by the listener) and render the five states; never re-implement debounce, `AbortController` or race protection locally.
+- **Attribution** — call `observeResult(element, index)` for every rendered result and `selectResult(index)` on every result click (including middle-click/cmd+click). Do not `preventDefault` a same-tab navigation: attribution is recorded first and the events survive it.
+- **Routing** — platform navigation and URL synchronization (query params, history) stay in the adapter: pass `navigate` for router-driven platforms, or let plain `<a href>` links navigate natively.
+- **Lifecycle** — create one controller per search surface and `dispose()` it on unmount.
+
+The raw JavaScript reference adapter lives in [`packages/search-example`](../search-example).
 
 - Handler for fetch product
 
