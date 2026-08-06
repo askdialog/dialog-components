@@ -4,9 +4,11 @@ Raw JavaScript reference page for `dialog.search()` (DEC-2452): a framework-free
 storefront search demonstrating input, loading, errors, empty results, product
 cards and pagination.
 
-Debounce, cancellation, stale-response protection, state and pagination are
-deliberately owned by this demo (`src/searchController.js`) — that module is the
-extraction source for the reusable frontend search behavior (DEC-2459).
+Debounce, cancellation, stale-response protection, state, pagination and
+analytics attribution come from the SDK's `createSearchController()`
+(DEC-2459) — this page only renders the controller's state. It is the
+functional gate of the shared behavior: the reference wiring for the raw
+JavaScript, React, Vue and Shopify adapters.
 
 ## Run
 
@@ -20,22 +22,22 @@ instead of the sources.
 
 ## Analytics
 
-The demo is the reference wiring for the search analytics events (DEC-2448),
-snake_case end to end:
+The search analytics events (DEC-2448, snake_case end to end) are owned by the
+controller — the page only declares `analytics.surface` and forwards the two
+track methods of the `Dialog` instance:
 
-- `view_search_results` — viewport impressions via the SDK's
-  `createSearchImpressionTracker` (≥50% visible for ≥500ms, deduplicated by
-  `(query_id, product_id)`, batched). A rendered no-results state is the same
-  event with `items: []` and `total_hits: 0`.
-- `select_search_result` — result clicks, including `auxclick`/cmd+click; a
-  click forces the item's impression first.
+- `view_search_results` — viewport impressions (≥50% visible for ≥500ms,
+  deduplicated by `(query_id, product_id)`, batched) via
+  `controller.observeResult(card, index)` after rendering each card. A
+  rendered no-results state is emitted by the controller with `items: []`.
+- `select_search_result` — `controller.selectResult(index)` on result clicks,
+  including `auxclick`/cmd+click; the click forces the item's impression first.
 
-`query_id` stays stable across pagination but rotates on every new submission —
-even of the same text (the controller's `trigger` tells the two apart).
-`page` is 1-based, positions are absolute.
-No raw query text is emitted — only `query_length`. To observe the raw SDK
-events locally, listen for the `enableDialogAssistantEvent` CustomEvent on
-`window`.
+`query_id` stays stable while the query text is unchanged (pagination,
+resubmission) and rotates when it changes. `page` is 1-based, positions are
+absolute. No raw query text is emitted — only `query_length`. To observe the
+raw SDK events locally, listen for the `enableDialogAssistantEvent`
+CustomEvent on `window`.
 
 ## API key
 
