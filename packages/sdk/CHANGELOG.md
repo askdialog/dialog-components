@@ -1,5 +1,11 @@
 # @askdialog/dialog-sdk
 
+## 2.7.0
+
+### Minor Changes
+
+- 3bc99c2: Export the `searchProducts` transport so search-only integrations (Shopify theme-embed autocomplete) can call `POST /public/search` without instantiating `Dialog`, whose constructor loads the assistant runtime.
+
 ## 2.6.1
 
 ### Patch Changes
