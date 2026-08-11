@@ -86,6 +86,71 @@ Standalone input component for asking questions.
 />
 ```
 
+### Storefront search
+
+React binding of the SDK search controller (`createSearchController`): debounce, cancellation, stale-response protection, pagination and search attribution analytics all come from the SDK — these components only render and route.
+
+```tsx
+import { Dialog } from '@askdialog/dialog-sdk';
+import {
+  DialogSearchBar,
+  DialogSearchResults,
+  useDialogSearch,
+} from '@askdialog/dialog-react';
+import '@askdialog/dialog-react/style.css';
+
+const client = new Dialog({ apiKey: 'your-api-key', locale: 'en' });
+
+function SearchPage() {
+  const { controller, state } = useDialogSearch({ client });
+
+  return (
+    <>
+      <DialogSearchBar controller={controller} placeholder="Search products..." />
+      <DialogSearchResults controller={controller} state={state} />
+    </>
+  );
+}
+```
+
+#### useDialogSearch
+
+Creates one search controller per hook instance and disposes it on unmount.
+
+**Options:**
+- `client` (Dialog) - Dialog SDK client instance (required)
+- `surface` (SearchSurface, optional) - Where results are displayed, for analytics (default: `'search_page'`)
+- `navigate` ((url, hit) => void, optional) - Router adapter called after selection attribution (e.g. `(url) => router.push(url)`). Omit it to let the cards' plain `<a href>` links navigate natively.
+- `debounceMs` (number, optional) - Keystroke debounce (default: 250)
+- `hitsPerPage` (number, optional) - Results per page (default: 12)
+
+**Returns:** `{ controller, state }` — pass both to the components below. `state.status` is `idle` / `loading` / `success` / `empty` / `error`.
+
+#### DialogSearchBar
+
+Search input: typing runs a debounced search, submitting (Enter) searches immediately.
+
+**Props:**
+- `controller` (SearchController) - From `useDialogSearch` (required)
+- `placeholder` (string, optional) - Input placeholder text
+- `autoFocus` (boolean, optional) - Focus the input on mount
+
+#### DialogSearchResults
+
+Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. Renders the controller states; successful searches render a scrollable list of `DialogSearchProductCard` rows plus the pagination controls. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically.
+
+**Props:**
+- `controller` (SearchController) - From `useDialogSearch` (required)
+- `state` (SearchControllerState) - From `useDialogSearch` (required)
+
+#### DialogSearchPagination
+
+Previous/next controls with a page indicator; hidden while there is a single page. Rendered by `DialogSearchResults` — exported only for custom layouts.
+
+**Props:**
+- `controller` (SearchController) - From `useDialogSearch` (required)
+- `state` (SearchControllerState) - From `useDialogSearch` (required)
+
 ## Theming
 
 The components use CSS variables for theming. You can customize the theme through the Dialog SDK client:

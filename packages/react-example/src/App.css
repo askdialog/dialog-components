@@ -2,3 +2,9 @@
   height: 100vh;
   padding: 20px;
 }
+
+.search-demo {
+  width: 384px;
+  max-width: calc(100vw - 40px);
+  margin: 20px;
+}

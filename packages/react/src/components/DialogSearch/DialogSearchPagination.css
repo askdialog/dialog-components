@@ -1,0 +1,33 @@
+.dialog-search-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  color: #737373;
+}
+
+.dialog-search-pagination button {
+  margin: 0;
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 9999px;
+  background: #ffffff;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.dialog-search-pagination button:hover:not(:disabled) {
+  background-color: #fafafa;
+}
+
+.dialog-search-pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

@@ -1,0 +1,71 @@
+.dialog-search-card {
+  width: 100%;
+}
+
+.dialog-search-card-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.dialog-search-card-body:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.dialog-search-card-image {
+  position: relative;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f2f2f2;
+}
+
+.dialog-search-card-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.03);
+  pointer-events: none;
+}
+
+.dialog-search-card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dialog-search-card-info {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-search-card-title {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 20px;
+  color: #171717;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dialog-search-card-price {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  color: #737373;
+}
