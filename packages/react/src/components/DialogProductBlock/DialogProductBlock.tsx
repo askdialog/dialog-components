@@ -2,6 +2,7 @@ import { type FC, useEffect, useState, useMemo } from "react";
 import {
   addAuditCapability,
   registerDialogInstallation,
+  resolveTextDirection,
   type Suggestion,
 } from "@askdialog/dialog-sdk";
 import type { Dialog } from "@askdialog/dialog-sdk";
@@ -55,6 +56,12 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
     [suggestionData, isFetchingSuggestions],
   );
 
+  const direction = useMemo(
+    () =>
+      resolveTextDirection(client.getLocalizationInformations()?.languageCode),
+    [client],
+  );
+
   useEffect(() => {
     let isActive = true;
     const handleFetchingSuggestions = async (): Promise<void> => {
@@ -82,7 +89,11 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
 
   return (
     <ThemeProvider theme={client.theme}>
-      <div id="dialog-instant" className="dialog-block-container">
+      <div
+        id="dialog-instant"
+        className="dialog-block-container"
+        dir={direction}
+      >
         <DialogBlockHeader title={assistantName} description={description} />
         <DialogBlockSuggestionsContainer
           client={client}

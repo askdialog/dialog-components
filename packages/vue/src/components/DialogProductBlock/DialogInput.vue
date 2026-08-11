@@ -89,7 +89,7 @@ const handleSubmitQuestion = () => {
   width: 100%;
   font-size: 16px;
   background: transparent;
-  padding-right: 35px;
+  padding-inline-end: 35px;
 }
 
 .dialog-input-submit {
@@ -103,7 +103,7 @@ const handleSubmitQuestion = () => {
   position: absolute;
   cursor: pointer;
   top: calc(50% - 20px);
-  right: 4px;
+  inset-inline-end: 4px;
   border: unset;
 }
 .dialog-input-submit:disabled {
