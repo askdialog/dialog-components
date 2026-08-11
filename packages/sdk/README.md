@@ -100,6 +100,26 @@ If your site uses OneTrust auto-blocking, it may neutralize the assistant script
 
 Either is compliance-safe with regard to analytics: the assistant gates all analytics on consent internally and sends nothing without an explicit opt-in (inspect `window.dialog.audit.consent`).
 
+### Disabling add-to-cart
+
+Some sessions must hide purchasing actions — for example a B2B storefront that hides its own add-to-cart when a B2B customer is logged in. Pass the optional `disableAddToCart: true` constructor flag (type `boolean`, default `false`) to suppress Dialog add-to-cart for that widget instance/session:
+
+```ts
+new Dialog({
+  apiKey: 'YOUR_API_KEY',
+  locale: 'fr',
+  disableAddToCart: true, // hide the add-to-cart CTA for this session
+});
+```
+
+When set:
+
+- the assistant hides/disables the add-to-cart CTA on both product recommendation cards and conversational product cards;
+- `client.addToCart(...)` becomes a no-op — it never invokes your `callbacks.addToCart` and emits no `TRACK_ADD_TO_CART` event, so a stale UI cannot add to the cart or pollute analytics;
+- product links and recommendation browsing are unaffected.
+
+Omit the flag (or set it to `false`) to keep the default behavior — the add-to-cart CTA and analytics are unchanged.
+
 ### Getters
 
 - apiKey

@@ -43,6 +43,7 @@ export class Dialog {
   private _userId: string;
   private _eventsHandler: EventsHandler;
   private _ignoreOneTrustAutoBlock: boolean;
+  private _disableAddToCart: boolean;
 
   constructor({
     apiKey,
@@ -52,12 +53,14 @@ export class Dialog {
     theme,
     userId,
     ignoreOneTrustAutoBlock,
+    disableAddToCart,
   }: DialogConstructor) {
     this._apiKey = apiKey;
     this._locale = locale;
     this._countryCode = countryCode;
     this._callbacks = callbacks;
     this._ignoreOneTrustAutoBlock = ignoreOneTrustAutoBlock ?? false;
+    this._disableAddToCart = disableAddToCart ?? false;
     this._theme = { ...defaultTheme, ...theme };
     this._userId = this._createOrRetrieveUserId(userId);
     this._eventsHandler = new EventsHandler(locale, userId);
@@ -164,6 +167,16 @@ export class Dialog {
   // forwarded to the merchant callback and to the tracking event, so
   // integrations can consume the added-product data wherever they hook in.
   public async addToCart(input: AddToCartInput): Promise<void> {
+    // No-op when disabled, so a stale UI that still surfaced the CTA cannot
+    // add to the cart or emit analytics.
+    if (this._disableAddToCart) {
+      console.warn(
+        "Dialog: addToCart is disabled on this instance (disableAddToCart); ignoring the call.",
+      );
+
+      return;
+    }
+
     await this._getCallbacksOrThrow("addToCart").addToCart(input);
     this.registerAddToCartEvent(input);
 
@@ -269,6 +282,10 @@ export class Dialog {
     div.dataset.userId = this._userId;
     div.dataset.countryCode = localeInfo.countryCode;
     div.dataset.language = localeInfo.language;
+    if (this._disableAddToCart) {
+      // Read by the assistant runtime to hide the add-to-cart CTA.
+      div.dataset.disableAddToCart = "true";
+    }
     document.body.appendChild(div);
 
     setTimeout(() => {
