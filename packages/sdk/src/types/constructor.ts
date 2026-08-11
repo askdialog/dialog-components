@@ -35,4 +35,14 @@ export interface DialogConstructor {
    * call, hence opt-in. No effect outside OneTrust auto-blocking setups.
    */
   ignoreOneTrustAutoBlock?: boolean;
+  /**
+   * Disables Dialog add-to-cart for this widget instance/session. Defaults to
+   * `false`. When `true`, the SDK flags the injected assistant so it hides the
+   * add-to-cart CTA on product recommendation and conversational product cards,
+   * and `addToCart()` becomes a no-op that emits no tracking event — nothing is
+   * added to the cart even if a stale UI still calls it. Meant for sessions
+   * where the merchant hides purchasing actions (e.g. logged-in B2B shoppers).
+   * Product links and recommendation browsing are unaffected.
+   */
+  disableAddToCart?: boolean;
 }
