@@ -1,6 +1,7 @@
 import { Dialog, type SimplifiedProduct } from "@askdialog/dialog-sdk";
 import { DialogInput, DialogProductBlock } from "@askdialog/dialog-react";
 import "@askdialog/dialog-react/style.css";
+import { SearchDemo } from "./SearchDemo";
 import "./App.css";
 
 const client = new Dialog({
@@ -96,6 +97,8 @@ const client = new Dialog({
 function App() {
   return (
     <>
+      <SearchDemo client={client} />
+
       <div className="app-container">
         <DialogProductBlock
           client={client}
