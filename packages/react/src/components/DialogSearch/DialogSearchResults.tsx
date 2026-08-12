@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from "react";
+import type { CSSProperties, FC, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   DialogSearchError,
@@ -8,11 +8,16 @@ import {
 } from "@askdialog/dialog-sdk";
 import { DialogSearchPagination } from "./DialogSearchPagination";
 import { DialogSearchProductCard } from "./DialogSearchProductCard";
-import { useAnchorRect } from "./useAnchorRect";
+import { useAnchorRect, type AnchorRect } from "./useAnchorRect";
+import { useOutsideDismiss } from "./useOutsideDismiss";
 import "./DialogSearchResults.css";
 
 const PANEL_OFFSET_PX = 8;
 const VIEWPORT_MARGIN_PX = 16;
+// Below this available height the panel flips above the bar when there is
+// more room there — otherwise a bar near the viewport bottom leaves the
+// panel zero or negative height.
+const MIN_PANEL_SPACE_PX = 200;
 
 interface DialogSearchResultsProps {
   controller: SearchController;
@@ -25,6 +30,33 @@ const describeError = (error: unknown): string => {
   }
 
   return "Search failed: network error. Check your connection and try again.";
+};
+
+const isAnchorOnScreen = (rect: AnchorRect, viewportHeight: number): boolean =>
+  rect.bottom > 0 && rect.top < viewportHeight;
+
+const panelStyle = (
+  rect: AnchorRect,
+  viewportHeight: number,
+): CSSProperties => {
+  const spaceBelow =
+    viewportHeight - rect.bottom - PANEL_OFFSET_PX - VIEWPORT_MARGIN_PX;
+  const spaceAbove = rect.top - PANEL_OFFSET_PX - VIEWPORT_MARGIN_PX;
+  const base = { left: rect.left, width: rect.width };
+
+  if (spaceBelow < MIN_PANEL_SPACE_PX && spaceAbove > spaceBelow) {
+    return {
+      ...base,
+      bottom: viewportHeight - rect.top + PANEL_OFFSET_PX,
+      maxHeight: Math.max(spaceAbove, 0),
+    };
+  }
+
+  return {
+    ...base,
+    top: rect.bottom + PANEL_OFFSET_PX,
+    maxHeight: Math.max(spaceBelow, 0),
+  };
 };
 
 const panelContent = (
@@ -94,28 +126,26 @@ const panelContent = (
 
 // The panel is portaled to document.body in position: fixed so no ancestor
 // stacking context or overflow clipping can hide it; the in-flow anchor div
-// (rendered where the panel visually opens) provides its coordinates.
+// (rendered right after the bar) provides its coordinates.
 export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
   controller,
   state,
 }) => {
-  const isOpen = state.status !== SearchStatus.IDLE;
-  const { anchorRef, rect } = useAnchorRect(isOpen);
+  const hasResults = state.status !== SearchStatus.IDLE;
+  const { anchorRef, rect, viewportHeight } = useAnchorRect(hasResults);
+  const { isOpen, panelRef } = useOutsideDismiss(state, anchorRef);
 
   return (
     <>
       <div ref={anchorRef} />
       {isOpen &&
         rect !== undefined &&
+        isAnchorOnScreen(rect, viewportHeight) &&
         createPortal(
           <div
+            ref={panelRef}
             className="dialog-search-panel"
-            style={{
-              top: rect.top + PANEL_OFFSET_PX,
-              left: rect.left,
-              width: rect.width,
-              maxHeight: `calc(100vh - ${rect.top + PANEL_OFFSET_PX + VIEWPORT_MARGIN_PX}px)`,
-            }}
+            style={panelStyle(rect, viewportHeight)}
           >
             {panelContent(controller, state)}
           </div>,

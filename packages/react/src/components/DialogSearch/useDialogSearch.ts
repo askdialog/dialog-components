@@ -74,7 +74,12 @@ export const useDialogSearch = (
       getController().selectResult(index, options),
     subscribe: (listener) => getController().subscribe(listener),
     getState: () => getController().getState(),
-    dispose: () => getController().dispose(),
+    // Clear the ref so the next access creates a fresh controller instead of
+    // dispatching into the disposed one; never create a controller here.
+    dispose: () => {
+      controllerRef.current?.dispose();
+      controllerRef.current = undefined;
+    },
   };
 
   useEffect(() => {

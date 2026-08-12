@@ -137,7 +137,7 @@ Search input: typing runs a debounced search, submitting (Enter) searches immedi
 
 #### DialogSearchResults
 
-Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. Renders the controller states; successful searches render a scrollable list of `DialogSearchProductCard` rows plus the pagination controls. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically.
+Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. Renders the controller states; successful searches render a scrollable list of `DialogSearchProductCard` rows plus the pagination controls. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically. Clicking outside the panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
