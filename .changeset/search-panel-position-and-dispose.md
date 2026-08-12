@@ -8,3 +8,4 @@ Polish the DialogSearch storefront components (DEC-2455):
 - **Disposed controller.** The `useDialogSearch` facade's `dispose()` now clears its internal ref, so the next controller access creates a fresh instance instead of dispatching into the disposed one.
 - **Focus ring.** The search bar pill shows a visible focus indicator on `:focus-within`, replacing the input's suppressed native ring.
 - **Input name.** The search input carries a `name` attribute, silencing the DevTools form-field warning and making the field autofill-addressable.
+- **Outside-click dismiss.** Clicking outside the results panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept, like a native autocomplete.

@@ -9,6 +9,7 @@ import {
 import { DialogSearchPagination } from "./DialogSearchPagination";
 import { DialogSearchProductCard } from "./DialogSearchProductCard";
 import { useAnchorRect, type AnchorRect } from "./useAnchorRect";
+import { useOutsideDismiss } from "./useOutsideDismiss";
 import "./DialogSearchResults.css";
 
 const PANEL_OFFSET_PX = 8;
@@ -124,8 +125,9 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
   controller,
   state,
 }) => {
-  const isOpen = state.status !== SearchStatus.IDLE;
-  const { anchorRef, rect } = useAnchorRect(isOpen);
+  const hasResults = state.status !== SearchStatus.IDLE;
+  const { anchorRef, rect } = useAnchorRect(hasResults);
+  const { isOpen, panelRef } = useOutsideDismiss(state, anchorRef);
 
   return (
     <>
@@ -133,7 +135,11 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
       {isOpen &&
         rect !== undefined &&
         createPortal(
-          <div className="dialog-search-panel" style={panelStyle(rect)}>
+          <div
+            ref={panelRef}
+            className="dialog-search-panel"
+            style={panelStyle(rect)}
+          >
             {panelContent(controller, state)}
           </div>,
           document.body,
