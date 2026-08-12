@@ -11,6 +11,21 @@ export const isValidCountryCode = (
 ): countryCode is string =>
   countryCode !== undefined && /^[A-Za-z]{2}$/.test(countryCode);
 
+export type TextDirection = "ltr" | "rtl";
+
+// ISO-639 codes whose scripts read right-to-left. `iw` is the legacy code for
+// Hebrew that some storefronts still emit.
+const RTL_LANGUAGE_CODES = new Set(["ar", "he", "iw", "fa", "ur"]);
+
+// Accepts a bare ISO-639 code ("ar") or a full BCP-47 locale ("ar-SA"): only
+// the leading language subtag decides direction.
+export const isRtlLanguageCode = (code?: string): boolean =>
+  code !== undefined &&
+  RTL_LANGUAGE_CODES.has(code.trim().toLowerCase().slice(0, 2));
+
+export const resolveTextDirection = (code?: string): TextDirection =>
+  isRtlLanguageCode(code) ? "rtl" : "ltr";
+
 /**
  * Resolves the detailed locale information used by the assistant.
  *

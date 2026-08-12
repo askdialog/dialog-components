@@ -1,6 +1,6 @@
 <template>
   <ThemeProvider :theme="props.client.theme">
-    <div id="dialog-instant" class="dialog-block-container">
+    <div id="dialog-instant" class="dialog-block-container" :dir="direction">
       <DialogBlockHeader :title="assistantName" :description="description" />
       <DialogBlockSuggestionsContainer
         :client="props.client"
@@ -27,6 +27,7 @@ import {
   addAuditCapability,
   Dialog,
   registerDialogInstallation,
+  resolveTextDirection,
   type Suggestion,
 } from "@askdialog/dialog-sdk";
 import DialogBlockHeader from "./DialogBlockHeader.vue";
@@ -73,6 +74,12 @@ const inputPlaceholder = computed(() => {
     ? ""
     : suggestionData.value?.inputPlaceholder;
 });
+
+const direction = computed(() =>
+  resolveTextDirection(
+    props.client.getLocalizationInformations()?.languageCode,
+  ),
+);
 
 const handleFetchingSuggestions = async () => {
   const sequence = ++fetchSequence.value;

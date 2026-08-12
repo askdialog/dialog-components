@@ -8,6 +8,7 @@ import { AddToCartInput, DialogEvents } from "../types/events";
 // the prototype with just the fields addToCart/registerAddToCartEvent read.
 const buildDialog = (
   addToCartCallback: (input: AddToCartInput) => Promise<void>,
+  disableAddToCart = false,
 ): { dialog: Dialog; emitExternalEvent: ReturnType<typeof vi.fn> } => {
   const eventsHandler = new EventsHandler("fr", "user-1");
   const emitExternalEvent = vi.fn();
@@ -19,6 +20,7 @@ const buildDialog = (
     _callbacks: { addToCart: addToCartCallback, getProduct: vi.fn() },
     _eventsHandler: eventsHandler,
     _userId: "user-1",
+    _disableAddToCart: disableAddToCart,
   });
 
   return { dialog, emitExternalEvent };
@@ -79,5 +81,19 @@ describe("Dialog.addToCart", () => {
       DialogEvents.TRACK_ADD_TO_CART,
       { userId: "user-1", ...legacyInput },
     );
+  });
+
+  it("is a no-op when disableAddToCart is set: no callback, no event", async () => {
+    const addToCartCallback = vi.fn().mockResolvedValue(undefined);
+    const { dialog, emitExternalEvent } = buildDialog(addToCartCallback, true);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    await expect(dialog.addToCart(enrichedInput)).resolves.toBeUndefined();
+
+    expect(addToCartCallback).not.toHaveBeenCalled();
+    expect(emitExternalEvent).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledOnce();
+
+    warn.mockRestore();
   });
 });
