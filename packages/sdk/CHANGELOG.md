@@ -1,5 +1,31 @@
 # @askdialog/dialog-sdk
 
+## 2.8.0
+
+### Minor Changes
+
+- 1bff0fd: New optional constructor flag `disableAddToCart` (type `boolean`, default `false`). When set, the SDK flags the injected assistant (via `data-disable-add-to-cart` on the mounted `#dialog-shopify-ai` div) so it hides the add-to-cart CTA on both product recommendation and conversational product cards, and `addToCart()` becomes a no-op — it never invokes the merchant `callbacks.addToCart` and emits no `TRACK_ADD_TO_CART` event, so a stale UI cannot add to the cart or pollute analytics. Product links and recommendation browsing are unaffected.
+
+  Context: merchants with a B2B flow that hides purchasing actions for logged-in B2B shoppers (e.g. Tikamoon) needed a per-session way to disable Dialog add-to-cart. Default behavior is unchanged for existing clients: omit the flag (or set it to `false`) and the add-to-cart CTA and analytics behave exactly as before.
+
+  ```ts
+  new Dialog({
+    apiKey,
+    locale,
+    disableAddToCart: true, // hide add-to-cart for this widget instance/session
+  });
+  ```
+
+- 9e56f79: Add RTL support to the DialogProductBlock (PDP "Ask a question" widget). The block now resolves the text direction from the client locale (Arabic, Hebrew, Persian, Urdu) and sets `dir="rtl"` on its root, and its directional styles use logical properties (`text-align: start`, `padding-inline-end`, `inset-inline-end`) so the header, suggestion chips and input mirror correctly.
+
+  The direction helpers (`isRtlLanguageCode`, `resolveTextDirection`) live in the SDK alongside the other localization utilities and are shared by the React and Vue packages.
+
+### Patch Changes
+
+- 3715e6d: Fix two issues in the DialogSearch storefront components (DEC-2455):
+  - **Double navigation.** When `useDialogSearch` is given a `navigate` router adapter, selecting a result card ran both the adapter's client-side transition and the anchor's native navigation, causing a duplicate transition / full-page reload. `SearchController.selectResult` now takes an optional `{ navigate }` and returns `true` when the adapter handled navigation; the React card `preventDefault()`s in that case. Modified clicks (cmd/ctrl/shift/alt) and middle-clicks pass `{ navigate: false }` so they still open a new tab natively — attribution is recorded but the in-app adapter (which can't open a tab) is skipped. Without an adapter, `selectResult` returns `false` and native `<a href>` navigation proceeds unchanged.
+  - **Price formatting crash.** A malformed `currencyCode` in untrusted catalog data made `Intl.NumberFormat` throw during render, which could take down the whole search results panel instead of dropping one price. `formatSearchPrice` now degrades to an empty string (no price shown) on a formatting error.
+
 ## 2.7.0
 
 ### Minor Changes
