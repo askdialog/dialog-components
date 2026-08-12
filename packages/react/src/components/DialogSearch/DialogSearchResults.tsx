@@ -32,6 +32,9 @@ const describeError = (error: unknown): string => {
   return "Search failed: network error. Check your connection and try again.";
 };
 
+const isAnchorOnScreen = (rect: AnchorRect, viewportHeight: number): boolean =>
+  rect.bottom > 0 && rect.top < viewportHeight;
+
 const panelStyle = (
   rect: AnchorRect,
   viewportHeight: number,
@@ -137,6 +140,7 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
       <div ref={anchorRef} />
       {isOpen &&
         rect !== undefined &&
+        isAnchorOnScreen(rect, viewportHeight) &&
         createPortal(
           <div
             ref={panelRef}
