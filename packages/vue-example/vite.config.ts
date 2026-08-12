@@ -12,16 +12,23 @@ export default defineConfig({
   resolve: {
     alias:
       useDistForTesting || isProduction
-        ? {}
-        : {
+        ? []
+        : [
+            // Resolve CSS first (more specific pattern)
+            {
+              find: "@askdialog/dialog-vue/style.css",
+              replacement: resolve(__dirname, "../vue/dist/dialog-vue.css"),
+            },
             // Resolve to source for HMR during development
-            "@askdialog/dialog-vue": resolve(__dirname, "../vue/src/main.ts"),
-            "@askdialog/dialog-vue/style.css": resolve(
-              __dirname,
-              "../vue/dist/dialog-vue.css",
-            ),
-            "@askdialog/dialog-sdk": resolve(__dirname, "../sdk/src/index.ts"),
-          },
+            {
+              find: "@askdialog/dialog-vue",
+              replacement: resolve(__dirname, "../vue/src/main.ts"),
+            },
+            {
+              find: "@askdialog/dialog-sdk",
+              replacement: resolve(__dirname, "../sdk/src/index.ts"),
+            },
+          ],
   },
   server: {
     port: 5173,
