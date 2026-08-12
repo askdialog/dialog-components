@@ -210,6 +210,61 @@ describe("search controller attribution", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it("returns true when the navigate adapter handles the transition", async () => {
+    const controller = createController();
+    search.mockResolvedValue(response());
+
+    controller.submit("shoes");
+    await settle();
+
+    expect(controller.selectResult(0)).toBe(true);
+    expect(navigate).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns false when the selected hit has no URL", async () => {
+    const controller = createController();
+    search.mockResolvedValue(response());
+
+    controller.submit("shoes");
+    await settle();
+
+    expect(controller.selectResult(1)).toBe(false);
+  });
+
+  it("returns false before any response", () => {
+    expect(createController().selectResult(0)).toBe(false);
+  });
+
+  it("records attribution but skips the adapter when navigation is opted out", async () => {
+    const controller = createController();
+    search.mockResolvedValue(response());
+
+    controller.submit("shoes");
+    await settle();
+
+    expect(controller.selectResult(0, { navigate: false })).toBe(false);
+    expect(trackSelectSearchResult).toHaveBeenCalledTimes(1);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("returns false when no navigate adapter is configured", async () => {
+    const controller = createSearchController({
+      search,
+      analytics: {
+        surface: "search_page",
+        trackViewSearchResults,
+        trackSelectSearchResult,
+      },
+    });
+    search.mockResolvedValue(response());
+
+    controller.submit("shoes");
+    await settle();
+
+    expect(controller.selectResult(0)).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it("disconnects the impression tracker on dispose", async () => {
     const controller = createController();
     search.mockResolvedValue(response());

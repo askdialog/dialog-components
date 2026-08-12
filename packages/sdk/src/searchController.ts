@@ -1,3 +1,7 @@
+// This controller is one cohesive unit. `selectResult` now returns whether the
+// navigate adapter handled the transition, nudging the file just past the
+// default 200-line cap — raised modestly rather than split artificially.
+/* eslint max-lines: ["error", 220] */
 import { SearchRequest } from "./types/search";
 import {
   SearchController,
@@ -166,16 +170,21 @@ export function createSearchController({
       controllerAnalytics.observeResult(element, state.response, index);
     },
 
-    selectResult(index) {
+    selectResult(index, options) {
       const response = state.response;
       if (response === undefined) {
-        return;
+        return false;
       }
       controllerAnalytics.select(response, index);
       const url = response.hits[index].product.url;
-      if (navigate !== undefined && url !== undefined) {
+      const runAdapter = options?.navigate ?? true;
+      if (runAdapter && navigate !== undefined && url !== undefined) {
         navigate(url, response.hits[index]);
+
+        return true;
       }
+
+      return false;
     },
 
     subscribe(listener) {
