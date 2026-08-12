@@ -2,12 +2,18 @@ import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
 export interface AnchorRect {
   top: number;
+  bottom: number;
   left: number;
   width: number;
+  viewportHeight: number;
 }
 
-// Tracks the viewport position of the in-flow anchor so a fixed element can
-// follow it; the capture-phase scroll listener also catches scrolling ancestors.
+// Tracks the viewport position of the element the panel is anchored to — the
+// anchor's previous sibling (the search bar in the documented composition),
+// falling back to the zero-height anchor itself — so a fixed element can
+// follow it; the capture-phase scroll listener also catches scrolling
+// ancestors. viewportHeight is part of the state so a resize busts the
+// equality bail-out even when the anchor did not move.
 export const useAnchorRect = (
   active: boolean,
 ): {
@@ -26,14 +32,18 @@ export const useAnchorRect = (
       if (anchor === null) {
         return;
       }
-      const { top, left, width } = anchor.getBoundingClientRect();
+      const target = anchor.previousElementSibling ?? anchor;
+      const { top, bottom, left, width } = target.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
       setRect((previous) =>
         previous !== undefined &&
         previous.top === top &&
+        previous.bottom === bottom &&
         previous.left === left &&
-        previous.width === width
+        previous.width === width &&
+        previous.viewportHeight === viewportHeight
           ? previous
-          : { top, left, width },
+          : { top, bottom, left, width, viewportHeight },
       );
     };
     update();
