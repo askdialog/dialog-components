@@ -62,7 +62,7 @@ const handleClick = (question: string) => {
   color: var(--dialog-theme-content-color, #575665);
   font-size: var(--dialog-theme-content-font-size, 14px);
   font-weight: 500;
-  text-align: left;
+  text-align: start;
   flex: 1;
 }
 .dialog-block-suggestions-item-icon {
