@@ -32,16 +32,19 @@ const describeError = (error: unknown): string => {
   return "Search failed: network error. Check your connection and try again.";
 };
 
-const panelStyle = (rect: AnchorRect): CSSProperties => {
+const panelStyle = (
+  rect: AnchorRect,
+  viewportHeight: number,
+): CSSProperties => {
   const spaceBelow =
-    rect.viewportHeight - rect.bottom - PANEL_OFFSET_PX - VIEWPORT_MARGIN_PX;
+    viewportHeight - rect.bottom - PANEL_OFFSET_PX - VIEWPORT_MARGIN_PX;
   const spaceAbove = rect.top - PANEL_OFFSET_PX - VIEWPORT_MARGIN_PX;
   const base = { left: rect.left, width: rect.width };
 
   if (spaceBelow < MIN_PANEL_SPACE_PX && spaceAbove > spaceBelow) {
     return {
       ...base,
-      bottom: rect.viewportHeight - rect.top + PANEL_OFFSET_PX,
+      bottom: viewportHeight - rect.top + PANEL_OFFSET_PX,
       maxHeight: Math.max(spaceAbove, 0),
     };
   }
@@ -126,7 +129,7 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
   state,
 }) => {
   const hasResults = state.status !== SearchStatus.IDLE;
-  const { anchorRef, rect } = useAnchorRect(hasResults);
+  const { anchorRef, rect, viewportHeight } = useAnchorRect(hasResults);
   const { isOpen, panelRef } = useOutsideDismiss(state, anchorRef);
 
   return (
@@ -138,7 +141,7 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
           <div
             ref={panelRef}
             className="dialog-search-panel"
-            style={panelStyle(rect)}
+            style={panelStyle(rect, viewportHeight)}
           >
             {panelContent(controller, state)}
           </div>,
