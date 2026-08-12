@@ -2,6 +2,7 @@
 import { Dialog, type SimplifiedProduct } from "@askdialog/dialog-sdk";
 import { DialogInput, DialogProductBlock } from "@askdialog/dialog-vue";
 import "@askdialog/dialog-vue/style.css";
+import SearchDemo from "./SearchDemo.vue";
 
 const client = new Dialog({
   apiKey: import.meta.env.VITE_DIALOG_API_KEY || "",
@@ -95,6 +96,8 @@ const client = new Dialog({
 </script>
 
 <template>
+  <SearchDemo :client="client" />
+
   <div class="app-container">
     <DialogProductBlock
       :client="client"

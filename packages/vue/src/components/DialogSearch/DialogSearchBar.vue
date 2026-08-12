@@ -1,0 +1,151 @@
+<template>
+  <form class="dialog-search-bar" role="search" @submit.prevent="handleSubmit">
+    <div class="dialog-search-bar-field">
+      <span class="dialog-search-bar-icon">
+        <ShurikenIcon />
+      </span>
+      <input
+        v-model="value"
+        type="text"
+        name="dialog-search-query"
+        class="dialog-search-bar-input"
+        :aria-label="props.placeholder"
+        :placeholder="props.placeholder"
+        :autofocus="props.autoFocus"
+        @input="handleInput"
+      />
+    </div>
+    <button
+      type="submit"
+      class="dialog-search-bar-submit"
+      :aria-label="props.submitAriaLabel"
+    >
+      <ArrowUpIcon />
+    </button>
+  </form>
+</template>
+
+<script setup lang="ts">
+import type { SearchController } from "@askdialog/dialog-sdk";
+import { ref } from "vue";
+import ArrowUpIcon from "../../icons/ArrowUpIcon.vue";
+import ShurikenIcon from "../../icons/ShurikenIcon.vue";
+
+interface Props {
+  controller: SearchController;
+  placeholder?: string;
+  autoFocus?: boolean;
+  submitAriaLabel?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  placeholder: "Search products...",
+  autoFocus: false,
+  submitAriaLabel: "Search",
+});
+
+const value = ref("");
+
+const handleInput = (): void => {
+  props.controller.setQuery(value.value);
+};
+
+const handleSubmit = (): void => {
+  props.controller.submit(value.value);
+};
+</script>
+
+<style>
+.dialog-search-bar {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 10px 10px 10px 14px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 24px;
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* The input suppresses its own focus ring; the pill carries the visible focus indicator instead. */
+.dialog-search-bar:focus-within {
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 6px 20px -6px rgba(0, 0, 0, 0.1),
+    0 0 0 2px rgba(23, 23, 23, 0.12);
+}
+
+.dialog-search-bar-field {
+  display: flex;
+  flex: 1 0 0;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.dialog-search-bar-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: #737373;
+}
+
+.dialog-search-bar-input {
+  flex: 1 0 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  /* 16px keeps iOS Safari from auto-zooming the page on focus. */
+  font-size: 16px;
+  line-height: 24px;
+  color: #171717;
+  text-overflow: ellipsis;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.dialog-search-bar-input::placeholder {
+  color: #a3a3a3;
+  opacity: 1;
+}
+
+.dialog-search-bar-input:focus,
+.dialog-search-bar-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+
+.dialog-search-bar-submit {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border: none;
+  border-radius: 9999px;
+  background: #171717;
+  color: #ffffff;
+  box-shadow: 0 1px 1px 0 rgba(23, 23, 23, 0.05);
+  cursor: pointer;
+}
+
+.dialog-search-bar-submit:focus-visible {
+  outline: 2px solid #171717;
+  outline-offset: 2px;
+}
+</style>
