@@ -290,17 +290,19 @@ export class Dialog {
 
     setTimeout(() => {
       const script = document.createElement("script");
-      script.type = "text/javascript";
+      if (this._ignoreOneTrustAutoBlock) {
+        // OneTrust auto-blocking also intercepts dynamically injected scripts
+        // (by domain), so the merchant's data-ot-ignore on their own SDK tag
+        // cannot cover this one — it has to be set here. OneTrust's trap fires
+        // synchronously inside the `src` setter, so the attribute must be in
+        // place BEFORE src is assigned or the script is rewritten to
+        // type="text/plain" despite carrying the attribute.
+        script.setAttribute("data-ot-ignore", "");
+      }
       script.defer = true;
       script.async = true;
       script.type = "module";
       script.src = config.assistantUrl;
-      if (this._ignoreOneTrustAutoBlock) {
-        // OneTrust auto-blocking also intercepts dynamically injected scripts
-        // (by domain), so the merchant's data-ot-ignore on their own SDK tag
-        // cannot cover this one — it has to be set here.
-        script.setAttribute("data-ot-ignore", "");
-      }
       document.head.insertBefore(script, document.head.firstChild);
     }, 50);
   }

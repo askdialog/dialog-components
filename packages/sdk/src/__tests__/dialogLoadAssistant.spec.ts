@@ -68,6 +68,23 @@ describe("Dialog._loadAssistant OneTrust exemption", () => {
     expect(insertBefore).toHaveBeenCalledWith(script, null);
   });
 
+  it("sets data-ot-ignore before assigning src, where OneTrust's trap fires", () => {
+    vi.useFakeTimers();
+    const { script } = stubDocument();
+    let ignoredWhenSrcAssigned: boolean | undefined;
+    Object.defineProperty(script, "src", {
+      set() {
+        ignoredWhenSrcAssigned = script.setAttribute.mock.calls.some(
+          ([name]) => name === "data-ot-ignore",
+        );
+      },
+    });
+
+    loadAssistant(buildDialog({ _ignoreOneTrustAutoBlock: true }));
+
+    expect(ignoredWhenSrcAssigned).toBe(true);
+  });
+
   it("leaves the injected script untouched by default", () => {
     vi.useFakeTimers();
     const { script, insertBefore } = stubDocument();
