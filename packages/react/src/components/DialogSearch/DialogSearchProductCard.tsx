@@ -24,16 +24,27 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
     }
   }, [controller, hit, index]);
 
-  // No preventDefault: attribution is recorded first and the events are
-  // designed to survive the same-tab navigation.
-  const handleClick = (): void => {
-    controller.selectResult(index);
+  // A modified click (cmd/ctrl/shift/alt) means "open in a new tab/window":
+  // the SPA adapter can't do that, so record the selection but let the browser
+  // navigate natively. For a plain click, when the adapter handles the
+  // in-app transition, suppress the anchor's native navigation so the click
+  // doesn't also trigger a full-page load. Without an adapter, selectResult
+  // returns false and the native same-tab navigation proceeds (attribution is
+  // designed to survive it).
+  const handleClick = (event: MouseEvent): void => {
+    const opensNatively =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (controller.selectResult(index, { navigate: !opensNatively })) {
+      event.preventDefault();
+    }
   };
 
-  // auxclick also fires on right-click; only the middle button navigates.
+  // auxclick also fires on right-click; only the middle button opens a tab.
+  // It always opens natively (new tab), so record attribution without running
+  // the in-app adapter.
   const handleAuxClick = (event: MouseEvent): void => {
     if (event.button === 1) {
-      controller.selectResult(index);
+      controller.selectResult(index, { navigate: false });
     }
   };
 

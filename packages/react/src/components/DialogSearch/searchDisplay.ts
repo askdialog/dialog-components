@@ -13,9 +13,16 @@ export const formatSearchPrice = (
       currency: currencyCode,
     }).format(Number(amount));
 
-  return min.amount === max.amount
-    ? format(min)
-    : `${format(min)} – ${format(max)}`;
+  // Catalog data is untrusted: a malformed `currencyCode` makes
+  // `Intl.NumberFormat` throw. Degrade to no price rather than taking the whole
+  // results panel down mid-render.
+  try {
+    return min.amount === max.amount
+      ? format(min)
+      : `${format(min)} – ${format(max)}`;
+  } catch {
+    return "";
+  }
 };
 
 // Catalog data is untrusted: only http(s) links, so a `javascript:` URL cannot execute script.

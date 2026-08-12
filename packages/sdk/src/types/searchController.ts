@@ -86,10 +86,21 @@ export interface SearchController {
   observeResult(element: Element, index: number): void;
   /**
    * Record selection attribution for `state.response.hits[index]` (forced
-   * impression + select event), then hand navigation to the `navigate`
-   * adapter. Call it on click AND middle-click/cmd+click.
+   * impression + select event), then — unless `options.navigate` is `false` —
+   * hand navigation to the `navigate` adapter. Call it on click AND
+   * middle-click/cmd+click.
+   *
+   * Pass `{ navigate: false }` for gestures the browser should handle natively
+   * (middle-click, or cmd/ctrl/shift/alt+click → new tab/window): attribution
+   * is still recorded, but the in-app adapter — which cannot open a new tab —
+   * is skipped so the native `<a href>` navigation runs.
+   *
+   * Returns `true` when the adapter handled the transition, so a rendering
+   * layer wrapping results in `<a href>` can `preventDefault()` and avoid a
+   * second (native) navigation. Returns `false` otherwise (adapter skipped, no
+   * adapter, or the hit has no URL) — let the native navigation proceed.
    */
-  selectResult(index: number): void;
+  selectResult(index: number, options?: { navigate?: boolean }): boolean;
   /** Register a state listener; returns its unsubscribe function. */
   subscribe(listener: (state: SearchControllerState) => void): () => void;
   getState(): SearchControllerState;

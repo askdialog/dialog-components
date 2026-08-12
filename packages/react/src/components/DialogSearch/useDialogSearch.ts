@@ -70,7 +70,8 @@ export const useDialogSearch = (
     retry: () => getController().retry(),
     observeResult: (element, index) =>
       getController().observeResult(element, index),
-    selectResult: (index) => getController().selectResult(index),
+    selectResult: (index, options) =>
+      getController().selectResult(index, options),
     subscribe: (listener) => getController().subscribe(listener),
     getState: () => getController().getState(),
     dispose: () => getController().dispose(),
