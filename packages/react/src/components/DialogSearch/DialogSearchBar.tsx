@@ -32,6 +32,7 @@ export const DialogSearchBar: FC<DialogSearchBarProps> = ({
         </span>
         <input
           type="text"
+          name="dialog-search-query"
           className="dialog-search-bar-input"
           value={value}
           aria-label={placeholder}
