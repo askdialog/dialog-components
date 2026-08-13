@@ -48,6 +48,7 @@
             :controller="props.controller"
             :hit="hit"
             :index="index"
+            :locale="props.locale"
           />
         </ul>
         <DialogSearchPagination
@@ -82,6 +83,7 @@ const MIN_PANEL_SPACE_PX = 200;
 interface Props {
   controller: SearchController;
   state: SearchControllerState;
+  locale?: string;
 }
 
 const props = defineProps<Props>();

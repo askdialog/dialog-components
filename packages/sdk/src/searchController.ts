@@ -30,6 +30,8 @@ export function createSearchController({
   navigate,
   debounceMs = DEFAULT_DEBOUNCE_MS,
   hitsPerPage = DEFAULT_HITS_PER_PAGE,
+  locale,
+  countryCode,
 }: SearchControllerOptions): SearchController {
   let state = INITIAL_STATE;
   const listeners = new Set<(next: SearchControllerState) => void>();
@@ -59,6 +61,12 @@ export function createSearchController({
 
   const buildRequest = (query: string, page: number): SearchRequest => {
     const request: SearchRequest = { query, page, hitsPerPage };
+    if (locale !== undefined) {
+      request.locale = locale;
+    }
+    if (countryCode !== undefined) {
+      request.countryCode = countryCode;
+    }
     // Query unchanged since the last response: resend its queryId; a new
     // query gets a fresh engine-generated one.
     const previous = state.response;

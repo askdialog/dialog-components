@@ -22,6 +22,7 @@ const MIN_PANEL_SPACE_PX = 200;
 interface DialogSearchResultsProps {
   controller: SearchController;
   state: SearchControllerState;
+  locale?: string;
 }
 
 const describeError = (error: unknown): string => {
@@ -62,6 +63,7 @@ const panelStyle = (
 const panelContent = (
   controller: SearchController,
   state: SearchControllerState,
+  locale: string | undefined,
 ): ReactNode => {
   const response = state.response;
 
@@ -113,6 +115,7 @@ const panelContent = (
                 controller={controller}
                 hit={hit}
                 index={index}
+                locale={locale}
               />
             ))}
           </ul>
@@ -130,6 +133,7 @@ const panelContent = (
 export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
   controller,
   state,
+  locale,
 }) => {
   const hasResults = state.status !== SearchStatus.IDLE;
   const { anchorRef, rect, viewportHeight } = useAnchorRect(hasResults);
@@ -147,7 +151,7 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = ({
             className="dialog-search-panel"
             style={panelStyle(rect, viewportHeight)}
           >
-            {panelContent(controller, state)}
+            {panelContent(controller, state, locale)}
           </div>,
           document.body,
         )}

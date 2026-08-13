@@ -114,6 +114,34 @@ describe("createSearchController", () => {
     expect(controller.getState().status).toBe(SearchStatus.SUCCESS);
   });
 
+  it("stamps the configured market on every request, and omits it otherwise", async () => {
+    const marketController = createSearchController({
+      search,
+      analytics: {
+        surface: "search_page",
+        trackViewSearchResults,
+        trackSelectSearchResult,
+      },
+      locale: "fr",
+      countryCode: "CA",
+    });
+    search.mockResolvedValue(response({ query: "shoes" }));
+
+    marketController.submit("shoes");
+    await settle();
+    expect(search.mock.calls[0][0]).toMatchObject({
+      locale: "fr",
+      countryCode: "CA",
+    });
+    marketController.dispose();
+
+    const bareController = createController();
+    bareController.submit("shoes");
+    await settle();
+    expect(search.mock.calls[1][0]).not.toHaveProperty("locale");
+    expect(search.mock.calls[1][0]).not.toHaveProperty("countryCode");
+  });
+
   it("submits immediately without waiting for the debounce", async () => {
     const controller = createController();
     search.mockResolvedValue(response());

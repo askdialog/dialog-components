@@ -1,25 +1,53 @@
-import type { SearchPriceRange } from "@askdialog/dialog-sdk";
+import type { SearchPriceRange, SearchProduct } from "@askdialog/dialog-sdk";
+
+// Catalog data is untrusted: a malformed `currencyCode` makes
+// `Intl.NumberFormat` throw. Degrade to no price rather than taking the whole
+// results panel down mid-render.
+const formatMoney = (
+  { amount, currencyCode }: SearchPriceRange["min"],
+  locale: string | undefined,
+): string =>
+  new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currencyCode,
+  }).format(Number(amount));
+
+const formatRange = (
+  { min, max }: SearchPriceRange,
+  locale: string | undefined,
+): string =>
+  min.amount === max.amount
+    ? formatMoney(min, locale)
+    : `${formatMoney(min, locale)} – ${formatMoney(max, locale)}`;
 
 export const formatSearchPrice = (
   priceRange: SearchPriceRange | undefined,
+  locale?: string,
 ): string => {
   if (priceRange === undefined) {
     return "";
   }
-  const { min, max } = priceRange;
-  const format = ({ amount, currencyCode }: SearchPriceRange["min"]): string =>
-    new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: currencyCode,
-    }).format(Number(amount));
-
-  // Catalog data is untrusted: a malformed `currencyCode` makes
-  // `Intl.NumberFormat` throw. Degrade to no price rather than taking the whole
-  // results panel down mid-render.
   try {
-    return min.amount === max.amount
-      ? format(min)
-      : `${format(min)} – ${format(max)}`;
+    return formatRange(priceRange, locale);
+  } catch {
+    return "";
+  }
+};
+
+export const formatSearchCompareAtPrice = (
+  product: SearchProduct,
+  locale?: string,
+): string => {
+  const priceRange = product.priceRange;
+  const compareAtRange = product.compareAtPriceRange;
+  if (priceRange === undefined || compareAtRange === undefined) {
+    return "";
+  }
+  if (Number(compareAtRange.min.amount) <= Number(priceRange.min.amount)) {
+    return "";
+  }
+  try {
+    return formatRange(compareAtRange, locale);
   } catch {
     return "";
   }

@@ -62,6 +62,8 @@ export interface SearchControllerOptions {
   navigate?: (url: string, hit: SearchHit) => void;
   debounceMs?: number;
   hitsPerPage?: number;
+  locale?: string;
+  countryCode?: string;
 }
 
 /**
