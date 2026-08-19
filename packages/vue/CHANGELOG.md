@@ -1,5 +1,11 @@
 # @askdialog/dialog-vue
 
+## 3.3.0
+
+### Minor Changes
+
+- 52fe8fd: Add the storefront search components: `useDialogSearch` (Vue binding of the SDK search controller) plus `DialogSearchBar`, `DialogSearchResults`, `DialogSearchProductCard` and `DialogSearchPagination`, with DEC-2448 attribution (viewport impressions and select events) wired in.
+
 ## 3.2.0
 
 ### Minor Changes
