@@ -37,6 +37,8 @@ export interface SearchProduct {
   id: string;
   title?: string;
   url?: string;
+  /** Shopify URL handle, lets the storefront build `/products/{handle}` when `url` is absent (DEC-2543). */
+  handle?: string;
   imageUrl?: string;
   priceRange?: SearchPriceRange;
   inStock?: boolean;
