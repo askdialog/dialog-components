@@ -121,7 +121,15 @@ export class Dialog {
     request: SearchRequest,
     options?: SearchOptions,
   ): Promise<SearchResponse> {
-    return searchProducts(this._apiKey, request, options);
+    return searchProducts(
+      this._apiKey,
+      {
+        ...request,
+        locale: request.locale ?? this._locale,
+        countryCode: request.countryCode ?? this._countryCode,
+      },
+      options,
+    );
   }
 
   // TODO: Not yet implemented on assistant

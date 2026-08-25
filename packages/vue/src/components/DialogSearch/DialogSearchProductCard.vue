@@ -1,7 +1,7 @@
 <template>
   <li ref="cardRef" class="dialog-search-card">
     <div v-if="href === undefined" class="dialog-search-card-body">
-      <DialogSearchProductCardContent :hit="props.hit" />
+      <DialogSearchProductCardContent :hit="props.hit" :locale="props.locale" />
     </div>
     <a
       v-else
@@ -10,7 +10,7 @@
       @click="handleClick"
       @auxclick="handleAuxClick"
     >
-      <DialogSearchProductCardContent :hit="props.hit" />
+      <DialogSearchProductCardContent :hit="props.hit" :locale="props.locale" />
     </a>
   </li>
 </template>
@@ -25,6 +25,7 @@ interface Props {
   controller: SearchController;
   hit: SearchHit;
   index: number;
+  locale?: string;
 }
 
 const props = defineProps<Props>();
@@ -147,5 +148,10 @@ a.dialog-search-card-body:hover {
   font-size: 12px;
   line-height: 16px;
   color: #737373;
+}
+
+.dialog-search-card-compare-at {
+  color: #a3a3a3;
+  text-decoration: line-through;
 }
 </style>
