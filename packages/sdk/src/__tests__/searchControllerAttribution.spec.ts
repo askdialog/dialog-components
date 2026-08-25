@@ -93,6 +93,7 @@ describe("search controller attribution", () => {
     expect(tracker.setContext).toHaveBeenCalledWith({
       query_id: "qid-1",
       surface: "search_page",
+      search_type: "lexical",
       page: 2,
       total_hits: 30,
       query_length: 5,
@@ -131,6 +132,7 @@ describe("search controller attribution", () => {
     expect(trackViewSearchResults).toHaveBeenCalledWith({
       query_id: "qid-1",
       surface: "search_page",
+      search_type: "lexical",
       page: 1,
       total_hits: 0,
       query_length: 7,
@@ -184,6 +186,7 @@ describe("search controller attribution", () => {
     expect(trackSelectSearchResult).toHaveBeenCalledWith({
       query_id: "qid-1",
       surface: "search_page",
+      search_type: "lexical",
       page: 1,
       total_hits: 30,
       query_length: 5,

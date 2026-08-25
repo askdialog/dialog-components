@@ -57,6 +57,8 @@ export function createControllerAnalytics(
         // across pagination and rotates with the query.
         query_id: response.queryId,
         surface: analytics.surface,
+        // The storefront search API is lexical-only today.
+        search_type: "lexical",
         // Analytics pages are 1-based; the wire response is 0-based.
         page: response.page + 1,
         total_hits: response.nbHits,
