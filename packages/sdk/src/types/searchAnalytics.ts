@@ -12,6 +12,10 @@ export const SEARCH_SURFACES = [
 
 export type SearchSurface = (typeof SEARCH_SURFACES)[number];
 
+export const SEARCH_TYPES = ["lexical"] as const;
+
+export type SearchType = (typeof SEARCH_TYPES)[number];
+
 // Shared by both search events. `query_id` comes from the Nest SearchResponse
 // and stays stable across pagination of the same query — the distinction is
 // carried by `page` and absolute positions; a new query or filter change
@@ -22,6 +26,8 @@ export interface SearchAnalyticsEnvelope {
   query_id: string;
   /** Where results are displayed — not the integration technology. */
   surface: SearchSurface;
+  /** Retrieval mode that produced the results. */
+  search_type: SearchType;
   /** 1-based results page. */
   page: number;
   /** Total results for the query, not for the page. */

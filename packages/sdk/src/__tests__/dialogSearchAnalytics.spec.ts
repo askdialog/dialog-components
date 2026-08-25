@@ -28,6 +28,7 @@ const buildDialog = (): {
 const envelope: SearchAnalyticsEnvelope = {
   query_id: "query-1",
   surface: "search_page",
+  search_type: "lexical",
   page: 2,
   total_hits: 1247,
   query_length: 14,
