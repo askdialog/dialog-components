@@ -17,6 +17,8 @@ export interface UseDialogSearchOptions {
   navigate?: (url: string, hit: SearchHit) => void;
   debounceMs?: number;
   hitsPerPage?: number;
+  locale?: string;
+  countryCode?: string;
 }
 
 export interface DialogSearch {

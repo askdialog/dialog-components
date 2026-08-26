@@ -6,6 +6,7 @@ import { SearchAnalyticsEnvelope } from "../types/searchAnalytics";
 const envelope: SearchAnalyticsEnvelope = {
   query_id: "query-1",
   surface: "search_page",
+  search_type: "lexical",
   page: 1,
   total_hits: 42,
   query_length: 6,

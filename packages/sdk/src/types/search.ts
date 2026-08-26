@@ -11,6 +11,8 @@ export interface SearchRequest {
   hitsPerPage?: number;
   /** Previous response's queryId while the query is unchanged; omit for a new query. */
   queryId?: string;
+  locale?: string;
+  countryCode?: string;
 }
 
 export interface SearchOptions {
@@ -37,8 +39,11 @@ export interface SearchProduct {
   id: string;
   title?: string;
   url?: string;
+  /** Shopify URL handle, lets the storefront build `/products/{handle}` when `url` is absent (DEC-2543). */
+  handle?: string;
   imageUrl?: string;
   priceRange?: SearchPriceRange;
+  compareAtPriceRange?: SearchPriceRange;
   inStock?: boolean;
 }
 
