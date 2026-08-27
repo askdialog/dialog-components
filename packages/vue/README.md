@@ -1,6 +1,6 @@
-# @askdialog/dialog-react
+# @askdialog/dialog-vue
 
-React component library for Dialog AI-powered product assistance.
+Vue 3 component library for Dialog AI-powered product assistance.
 
 ## Table of contents
 
@@ -17,24 +17,25 @@ React component library for Dialog AI-powered product assistance.
 - [Theming](#theming)
 - [Development](#development)
 - [TypeScript](#typescript)
-- [React Version](#react-version)
+- [Vue Version](#vue-version)
 
 ## Installation
 
 ```bash
-npm install @askdialog/dialog-react @askdialog/dialog-sdk
+npm install @askdialog/dialog-vue @askdialog/dialog-sdk
 # or
-pnpm add @askdialog/dialog-react @askdialog/dialog-sdk
+pnpm add @askdialog/dialog-vue @askdialog/dialog-sdk
 # or
-yarn add @askdialog/dialog-react @askdialog/dialog-sdk
+yarn add @askdialog/dialog-vue @askdialog/dialog-sdk
 ```
 
 ## Usage
 
-```tsx
+```vue
+<script setup lang="ts">
 import { Dialog } from '@askdialog/dialog-sdk';
-import { DialogInput, DialogProductBlock } from '@askdialog/dialog-react';
-import '@askdialog/dialog-react/style.css';
+import { DialogProductBlock } from '@askdialog/dialog-vue';
+import '@askdialog/dialog-vue/style.css';
 
 const client = new Dialog({
   apiKey: 'your-api-key',
@@ -46,16 +47,15 @@ const client = new Dialog({
     }),
   },
 });
+</script>
 
-function App() {
-  return (
-    <DialogProductBlock
-      client={client}
-      productId="product-123"
-      productTitle="Product Name"
-    />
-  );
-}
+<template>
+  <DialogProductBlock
+    :client="client"
+    product-id="product-123"
+    product-title="Product Name"
+  />
+</template>
 ```
 
 ## Available Components
@@ -72,13 +72,13 @@ Full-featured dialog component with suggestions and input.
 - `enableInput` (boolean, optional) - Enable input field (default: true)
 
 **Example:**
-```tsx
+```vue
 <DialogProductBlock
-  client={client}
-  productId="9403924119882"
-  productTitle="Blizzard King All-Mountain Snowboard"
-  selectedVariantId="variant-123"
-  enableInput={true}
+  :client="client"
+  product-id="9403924119882"
+  product-title="Blizzard King All-Mountain Snowboard"
+  selected-variant-id="variant-123"
+  :enable-input="true"
 />
 ```
 
@@ -94,45 +94,43 @@ Standalone input component for asking questions.
 - `selectedVariantId` (string, optional) - Selected variant ID
 
 **Example:**
-```tsx
+```vue
 <DialogInput
-  client={client}
-  productId="9403924119882"
-  productTitle="Product Name"
+  :client="client"
+  product-id="9403924119882"
+  product-title="Product Name"
   placeholder="Ask something about this product..."
 />
 ```
 
 ### Storefront search
 
-React binding of the SDK search controller (`createSearchController`): debounce, cancellation, stale-response protection, pagination and search attribution analytics all come from the SDK — these components only render and route.
+Vue binding of the SDK search controller (`createSearchController`): debounce, cancellation, stale-response protection, pagination and search attribution analytics all come from the SDK — these components only render and route.
 
-```tsx
+```vue
+<script setup lang="ts">
 import { Dialog } from '@askdialog/dialog-sdk';
 import {
   DialogSearchBar,
   DialogSearchResults,
   useDialogSearch,
-} from '@askdialog/dialog-react';
-import '@askdialog/dialog-react/style.css';
+} from '@askdialog/dialog-vue';
+import '@askdialog/dialog-vue/style.css';
 
 const client = new Dialog({ apiKey: 'your-api-key', locale: 'en' });
 
-function SearchPage() {
-  const { controller, state } = useDialogSearch({ client });
+const { controller, state } = useDialogSearch({ client });
+</script>
 
-  return (
-    <>
-      <DialogSearchBar controller={controller} placeholder="Search products..." />
-      <DialogSearchResults controller={controller} state={state} />
-    </>
-  );
-}
+<template>
+  <DialogSearchBar :controller="controller" placeholder="Search products..." />
+  <DialogSearchResults :controller="controller" :state="state" />
+</template>
 ```
 
 #### useDialogSearch
 
-Creates one search controller per hook instance and disposes it on unmount.
+Creates one search controller per composable instance and disposes it on unmount.
 
 **Options:**
 - `client` (Dialog) - Dialog SDK client instance (required)
@@ -142,7 +140,9 @@ Creates one search controller per hook instance and disposes it on unmount.
 - `hitsPerPage` (number, optional) - Results per page (default: 12)
 - `locale` (string, optional) - Locale forwarded to the search request
 
-**Returns:** `{ controller, state }` — pass both to the components below. `state.status` is `idle` / `loading` / `success` / `empty` / `error`.
+Options are read once during setup — later changes don't rebind the live controller.
+
+**Returns:** `{ controller, state }` — pass both to the components below. `state` is a `ShallowRef`; `state.value.status` is `idle` / `loading` / `success` / `empty` / `error`.
 
 #### DialogSearchBar
 
@@ -150,8 +150,8 @@ Search input: typing runs a debounced search, submitting (Enter) searches immedi
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
-- `placeholder` (string, optional) - Input placeholder text
-- `autoFocus` (boolean, optional) - Focus the input on mount
+- `placeholder` (string, optional) - Input placeholder text (default: `'Search products...'`)
+- `autoFocus` (boolean, optional) - Focus the input on mount (default: false)
 - `submitAriaLabel` (string, optional) - Accessible label of the submit button (default: `'Search'`)
 
 #### DialogSearchResults
@@ -175,7 +175,7 @@ Previous/next controls with a page indicator; hidden while there is a single pag
 
 The components use CSS variables for theming. You can customize the theme through the Dialog SDK client:
 
-```tsx
+```ts
 const client = new Dialog({
   apiKey: 'your-api-key',
   theme: {
@@ -226,13 +226,13 @@ Work on components with instant feedback:
 
 ```bash
 # From monorepo root
-pnpm dev:react-example
-# Opens react-example app at http://localhost:5173
+pnpm dev:vue-example
+# Opens vue-example app at http://localhost:5173
 ```
 
 **What happens:**
 - The example app runs with Vite dev server
-- Components are resolved from **source files** (`packages/react/src/`) via alias
+- Components are resolved from **source files** (`packages/vue/src/`) via alias
 - Changes to components are immediately reflected (HMR enabled)
 - No rebuild required
 
@@ -242,12 +242,12 @@ Test the library as consumers would receive it from npm:
 
 ```bash
 # Step 1: Build the library
-pnpm build:react
+pnpm build:vue
 
 # Step 2: Run example app against built dist/
-cd packages/react-example
+cd packages/vue-example
 pnpm dev:test-dist
-# Or from root: TEST_DIST=true pnpm dev:react-example
+# Or from root: TEST_DIST=true pnpm dev:vue-example
 ```
 
 **When to use:**
@@ -260,35 +260,38 @@ pnpm dev:test-dist
 
 ```bash
 # Build the library only
-pnpm build:react
+pnpm build:vue
 
 # Build all packages in the monorepo
 pnpm build
 
 # Clean dist folder
-pnpm --filter @askdialog/dialog-react clean
+pnpm --filter @askdialog/dialog-vue clean
 
 # Lint code
-pnpm --filter @askdialog/dialog-react lint
+pnpm --filter @askdialog/dialog-vue lint
 
 # Fix linting issues
-pnpm --filter @askdialog/dialog-react lint:fix
+pnpm --filter @askdialog/dialog-vue lint:fix
 ```
 
 ### Project Structure
 
 ```
-packages/react/
+packages/vue/
 ├── src/
 │   ├── main.ts              # Library entry point
 │   ├── components/          # Exported components
 │   │   ├── index.ts         # Component barrel export
-│   │   └── DialogProductBlock/
-│   │       ├── DialogProductBlock.tsx
-│   │       ├── DialogProductBlock.css
-│   │       ├── DialogInput.tsx
-│   │       ├── DialogInput.css
-│   │       ├── ThemeProvider.tsx
+│   │   ├── DialogProductBlock/
+│   │   │   ├── DialogProductBlock.vue
+│   │   │   ├── DialogInput.vue
+│   │   │   ├── ThemeProvider.vue
+│   │   │   └── ...
+│   │   └── DialogSearch/
+│   │       ├── DialogSearchBar.vue
+│   │       ├── DialogSearchResults.vue
+│   │       ├── useDialogSearch.ts
 │   │       └── ...
 │   └── icons/               # Icon components
 ├── dist/                    # Build output (gitignored)
@@ -297,36 +300,11 @@ packages/react/
 └── project.json             # Nx configuration
 ```
 
-### Testing the Package
-
-#### Full Integration Test
-
-Test the package in a real React project:
-
-```bash
-# 1. Build and pack
-cd packages/react
-pnpm build
-pnpm pack
-
-# 2. Create test project
-cd /tmp
-pnpm create vite test-dialog --template react-ts
-cd test-dialog
-pnpm install
-
-# 3. Install from tarball
-pnpm add /path/to/askdialog-dialog-react-*.tgz
-
-# 4. Test imports and functionality
-pnpm dev
-```
-
 ### Publishing
 
 ```bash
 # From monorepo root
-pnpm publish:react
+pnpm publish:vue
 ```
 
 **Pre-publish checklist:**
@@ -340,7 +318,7 @@ pnpm publish:react
 
 This package includes TypeScript type definitions. The types are automatically available when you install the package.
 
-## React Version
+## Vue Version
 
-This package requires React 19 or higher as a peer dependency.
+This package requires Vue 3 or higher as a peer dependency.
 
