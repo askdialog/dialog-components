@@ -1,5 +1,11 @@
 # @askdialog/dialog-vue
 
+## 3.4.1
+
+### Patch Changes
+
+- d2c9824: Docs: add a package README for `@askdialog/dialog-vue` (install, components, storefront search, theming) and a features table of contents to both the Vue and React READMEs. Drop the unfinished License placeholder section from the React README.
+
 ## 3.4.0
 
 ### Minor Changes
