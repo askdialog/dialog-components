@@ -60,6 +60,26 @@ describe("searchProducts", () => {
     });
   });
 
+  it.each([
+    ["fr-FR", "fr"],
+    ["pt-BR", "pt"],
+    ["fr", "fr"],
+    ["not a locale", "not a locale"],
+  ])(
+    "sends the locale %s as its bare ISO 639-1 language %s",
+    async (locale, expected) => {
+      fetchMock.mockResolvedValue(jsonResponse(emptyResponse));
+
+      await searchProducts(API_KEY, { query: "running shoes", locale });
+
+      const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(JSON.parse(init.body as string)).toEqual({
+        query: "running shoes",
+        locale: expected,
+      });
+    },
+  );
+
   it("omits pagination fields and queryId the caller did not provide", async () => {
     fetchMock.mockResolvedValue(jsonResponse(emptyResponse));
 
