@@ -10,6 +10,12 @@ export interface DialogCallbacks {
   ) => Promise<SimplifiedProduct>;
 }
 
+export interface CurrentProduct {
+  /** The catalog product id — must match the id in the Dialog product feed. */
+  id: string;
+  variantId?: string;
+}
+
 export interface DialogConstructor {
   apiKey: string;
   locale: string;
@@ -45,4 +51,14 @@ export interface DialogConstructor {
    * Product links and recommendation browsing are unaffected.
    */
   disableAddToCart?: boolean;
+  /**
+   * The product of the page the SDK is instantiated on, when it is a product
+   * page. The assistant uses it as the conversation's product context for
+   * entry points that carry no product of their own (floating bookmark,
+   * resume surface, free-text questions), so answers stay grounded on the
+   * product under the visitor's eyes after PDP-to-PDP navigation. On
+   * single-page storefronts, update it on navigation with
+   * `setCurrentProduct()` / `clearCurrentProduct()`.
+   */
+  product?: CurrentProduct;
 }

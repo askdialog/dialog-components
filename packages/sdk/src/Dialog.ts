@@ -2,7 +2,11 @@
 import { uuidv7 } from "uuidv7";
 import packageJson from "../package.json";
 import { defaultTheme } from "./constants/theme";
-import { DialogCallbacks, DialogConstructor } from "./types/constructor";
+import {
+  CurrentProduct,
+  DialogCallbacks,
+  DialogConstructor,
+} from "./types/constructor";
 import { Theme } from "./types/theme";
 import {
   DetailedLocaleInfo,
@@ -44,6 +48,7 @@ export class Dialog {
   private _eventsHandler: EventsHandler;
   private _ignoreOneTrustAutoBlock: boolean;
   private _disableAddToCart: boolean;
+  private _currentProduct?: CurrentProduct;
 
   constructor({
     apiKey,
@@ -54,6 +59,7 @@ export class Dialog {
     userId,
     ignoreOneTrustAutoBlock,
     disableAddToCart,
+    product,
   }: DialogConstructor) {
     this._apiKey = apiKey;
     this._locale = locale;
@@ -61,6 +67,15 @@ export class Dialog {
     this._callbacks = callbacks;
     this._ignoreOneTrustAutoBlock = ignoreOneTrustAutoBlock ?? false;
     this._disableAddToCart = disableAddToCart ?? false;
+    this._currentProduct =
+      product !== undefined && Dialog._isValidProductId(product.id)
+        ? product
+        : undefined;
+    if (product !== undefined && this._currentProduct === undefined) {
+      console.error(
+        "Dialog: `product.id` must be a non-empty string; ignoring the constructor option.",
+      );
+    }
     this._theme = { ...defaultTheme, ...theme };
     this._userId = this._createOrRetrieveUserId(userId);
     this._eventsHandler = new EventsHandler(locale, userId);
@@ -140,6 +155,69 @@ export class Dialog {
   // TODO: Not yet implemented on assistant
   public closeAssistant(): void {
     this._eventsHandler.emitExternalEvent(DialogEvents.CLOSE_ASSISTANT);
+  }
+
+  /**
+   * Declare the product of the current page. The assistant reads it as the
+   * conversation's product context whenever a question carries no product of
+   * its own (floating bookmark, resume surface, free-text input). Call it on
+   * every PDP navigation on single-page storefronts; ids must match the
+   * Dialog product feed.
+   */
+  public setCurrentProduct(productId: string, variantId?: string): void {
+    if (!Dialog._isValidProductId(productId)) {
+      console.error(
+        "Dialog: setCurrentProduct expects a non-empty string productId; ignoring the call. Use clearCurrentProduct() to declare a non-product page.",
+      );
+
+      return;
+    }
+    this._currentProduct = { id: productId, variantId };
+    this._applyCurrentProductDataset();
+  }
+
+  private static _isValidProductId(productId: unknown): productId is string {
+    return typeof productId === "string" && productId.trim() !== "";
+  }
+
+  /** Declare that the current page is not a product page. */
+  public clearCurrentProduct(): void {
+    this._currentProduct = undefined;
+    this._applyCurrentProductDataset();
+  }
+
+  // The dataset on the assistant mount node is the SDK⇄runtime contract for
+  // the page product: the runtime observes data-product-id / data-variant-id
+  // and needs no event plumbing, so SDK and runtime versions can drift.
+  private _applyCurrentProductDataset(): void {
+    // Resolved via getElementById on purpose, NOT an instance reference: the
+    // assistant runtime reads the dataset the same way, so on a page where
+    // another integration already rendered #dialog-shopify-ai (duplicate-id
+    // case) writer and reader must land on the same — first — node.
+    const mountNode = document.getElementById("dialog-shopify-ai");
+    if (mountNode === null) {
+      // Assistant mount node absent (locale error at load, or the host page
+      // removed it) — the declaration is kept but cannot reach the runtime.
+      console.warn(
+        "Dialog: assistant mount node not found; the current product declaration has no effect.",
+      );
+
+      return;
+    }
+
+    if (this._currentProduct === undefined) {
+      delete mountNode.dataset.productId;
+      delete mountNode.dataset.variantId;
+
+      return;
+    }
+
+    mountNode.dataset.productId = this._currentProduct.id;
+    if (this._currentProduct.variantId === undefined) {
+      delete mountNode.dataset.variantId;
+    } else {
+      mountNode.dataset.variantId = this._currentProduct.variantId;
+    }
   }
 
   public sendProductMessage(params: ProductQuestionPayload): void {
@@ -295,6 +373,9 @@ export class Dialog {
       div.dataset.disableAddToCart = "true";
     }
     document.body.appendChild(div);
+    if (this._currentProduct !== undefined) {
+      this._applyCurrentProductDataset();
+    }
 
     setTimeout(() => {
       const script = document.createElement("script");

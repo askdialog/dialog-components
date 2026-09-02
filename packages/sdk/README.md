@@ -91,6 +91,29 @@ The getProduct function is used to display product information in the assistant.
 
 When the client is instantiated, it will automatically insert into the DOM the Dialog Assistant script, so you can interact with the assistant using `sendProductMessage` or `sendGenericMessage`. This assistant runtime always loads — it owns the shopper identity, consent handling and analytics bridge — while the heavy assistant UI stays lazy-loaded and is not fetched eagerly.
 
+### Declaring the current product page
+
+The assistant answers product questions with the product context of the page the shopper is on. Entry points that carry a product id (like `sendProductMessage`) set it themselves, but entry points that don't — the floating bookmark, the resume-conversation surface, free-text questions — need the SDK to know what PDP the shopper is looking at, especially after navigating from one product page to another.
+
+Declare it at construction on product pages:
+
+```ts
+new Dialog({
+  apiKey: 'YOUR_API_KEY',
+  locale: 'fr',
+  product: { id: 'PRODUCT_ID', variantId: 'VARIANT_ID' }, // variantId optional
+});
+```
+
+On single-page storefronts, update it on client-side navigation:
+
+```ts
+client.setCurrentProduct('PRODUCT_ID');   // arrived on a PDP
+client.clearCurrentProduct();             // left for a non-product page
+```
+
+Ids must match the product ids of your Dialog product feed. Without a declared product, questions asked from the bookmark after a page change reach the assistant without product context and are answered generically.
+
 ### OneTrust auto-blocking
 
 If your site uses OneTrust auto-blocking, it may neutralize the assistant script injected by the SDK (`type` rewritten to `text/plain`) for visitors who declined cookies — a `data-ot-ignore` on your own SDK `<script>` tag does not cover dynamically injected scripts. Two remedies, both merchant-side decisions:
