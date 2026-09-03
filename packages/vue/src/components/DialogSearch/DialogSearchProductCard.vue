@@ -71,9 +71,7 @@ const handleAuxClick = (event: MouseEvent): void => {
 };
 
 const href = computed(() =>
-  props.hit.product.url === undefined
-    ? undefined
-    : safeProductHref(props.hit.product.url),
+  props.hit.url === undefined ? undefined : safeProductHref(props.hit.url),
 );
 </script>
 

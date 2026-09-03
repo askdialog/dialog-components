@@ -5,6 +5,7 @@ import { SearchAnalyticsEnvelope } from "../types/searchAnalytics";
 
 const envelope: SearchAnalyticsEnvelope = {
   query_id: "query-1",
+  index: "products_fr",
   surface: "search_page",
   search_type: "lexical",
   page: 1,
@@ -171,7 +172,7 @@ describe("createSearchImpressionTracker", () => {
     expect(emit).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps deduplication across pagination of the same query", () => {
+  it("restarts deduplication on every context change: each response mints a fresh query_id", () => {
     const emit = vi.fn();
     const tracker = createSearchImpressionTracker({ emit });
     tracker.setContext(envelope);
@@ -180,31 +181,10 @@ describe("createSearchImpressionTracker", () => {
     intersect(card, 0.6);
     vi.advanceTimersByTime(2000);
 
-    tracker.setContext({ ...envelope, page: 2 });
+    tracker.setContext({ ...envelope, query_id: "query-2", page: 2 });
     const cardOnPage2 = element();
     tracker.observe(cardOnPage2, { product_id: "product-1", position: 1 });
     intersect(cardOnPage2, 0.6);
-    vi.advanceTimersByTime(2000);
-
-    expect(emit).toHaveBeenCalledTimes(1);
-  });
-
-  it("drops a previous query's dedup keys when the query changes", () => {
-    const emit = vi.fn();
-    const tracker = createSearchImpressionTracker({ emit });
-    tracker.setContext(envelope);
-    const card = element();
-    tracker.observe(card, { product_id: "product-1", position: 1 });
-    intersect(card, 0.6);
-    vi.advanceTimersByTime(2000);
-
-    tracker.setContext({ ...envelope, query_id: "query-2" });
-    // Same query_id served again (e.g. a cached response): a fresh render is
-    // a new exposure, like the bfcache restore.
-    tracker.setContext(envelope);
-    const cardAgain = element();
-    tracker.observe(cardAgain, { product_id: "product-1", position: 1 });
-    intersect(cardAgain, 0.6);
     vi.advanceTimersByTime(2000);
 
     expect(emit).toHaveBeenCalledTimes(2);

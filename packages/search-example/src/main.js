@@ -45,16 +45,16 @@ function safeProductHref(url) {
   }
 }
 
-function renderProductCard({ product }, index) {
+function renderProductCard(hit, index) {
   const li = document.createElement("li");
   li.className = "card";
 
   const image = document.createElement("div");
   image.className = "card-image";
-  if (product.imageUrl !== undefined) {
+  if (hit.imageUrl !== undefined) {
     const img = document.createElement("img");
-    img.src = product.imageUrl;
-    img.alt = product.title ?? product.id;
+    img.src = hit.imageUrl;
+    img.alt = hit.title ?? hit.objectID;
     img.loading = "lazy";
     image.appendChild(img);
   }
@@ -62,23 +62,18 @@ function renderProductCard({ product }, index) {
 
   const title = document.createElement("p");
   title.className = "card-title";
-  title.textContent = product.title ?? product.id;
+  title.textContent = hit.title ?? hit.objectID;
   li.appendChild(title);
 
   const meta = document.createElement("p");
   meta.className = "card-meta";
-  const price = formatPrice(product.priceRange);
+  const price = formatPrice(hit.priceRange);
   const stock =
-    product.inStock === undefined
-      ? ""
-      : product.inStock
-        ? "In stock"
-        : "Out of stock";
+    hit.inStock === undefined ? "" : hit.inStock ? "In stock" : "Out of stock";
   meta.textContent = [price, stock].filter(Boolean).join(" · ");
   li.appendChild(meta);
 
-  const href =
-    product.url === undefined ? undefined : safeProductHref(product.url);
+  const href = hit.url === undefined ? undefined : safeProductHref(hit.url);
   if (href !== undefined) {
     const link = document.createElement("a");
     link.className = "card-link";
@@ -115,7 +110,7 @@ function describeError(error) {
 }
 
 function renderResults(response) {
-  statusEl.textContent = `${response.nbHits} product${response.nbHits > 1 ? "s" : ""} for “${response.query}” (${response.processingTimeMs} ms)`;
+  statusEl.textContent = `${response.nbHits} product${response.nbHits > 1 ? "s" : ""} for “${response.query}” (${response.processingTimeMS} ms)`;
   resultsEl.replaceChildren(
     ...response.hits.map((hit, index) => {
       const card = renderProductCard(hit, index);
@@ -163,6 +158,7 @@ function start(apiKey) {
   const dialog = new Dialog({ apiKey, locale: "fr" });
   controller = createSearchController({
     search: (request, options) => dialog.search(request, options),
+    locale: dialog.locale,
     analytics: {
       surface: "search_page",
       trackViewSearchResults: (params) => dialog.trackViewSearchResults(params),

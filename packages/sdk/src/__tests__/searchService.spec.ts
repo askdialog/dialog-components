@@ -1,19 +1,35 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DialogSearchError } from "../DialogSearchError";
-import { searchProducts } from "../services/search";
-import { SearchResponse } from "../types/search";
+import { searchIndexName, searchLexical } from "../services/search";
+import { SearchRequest, SearchResponse } from "../types/search";
 
 const API_KEY = "pk_test_abcdef";
 
+const request: SearchRequest = {
+  requests: [
+    {
+      indexName: "products_fr",
+      query: "running shoes",
+      page: 2,
+      hitsPerPage: 50,
+    },
+  ],
+};
+
 const emptyResponse: SearchResponse = {
-  queryId: "0198c3f2-0000-7000-8000-000000000000",
-  hits: [],
-  nbHits: 0,
-  page: 0,
-  nbPages: 0,
-  hitsPerPage: 20,
-  processingTimeMs: 3,
-  query: "running shoes",
+  results: [
+    {
+      index: "products_fr",
+      hits: [],
+      nbHits: 0,
+      page: 0,
+      nbPages: 0,
+      hitsPerPage: 20,
+      processingTimeMS: 3,
+      query: "running shoes",
+      queryID: "0198c3f2-0000-7000-8000-000000000000",
+    },
+  ],
 };
 
 const jsonResponse = (body: unknown, status = 200): Response =>
@@ -33,99 +49,97 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("searchProducts", () => {
-  it("POSTs the exact request to /public/search with only the api key header", async () => {
+describe("searchIndexName", () => {
+  it.each([
+    ["fr-FR", "products_fr"],
+    ["pt-BR", "products_pt"],
+    ["fr", "products_fr"],
+    ["not a locale", "products_not a locale"],
+  ])("reduces the locale %s to a bare-language index name", (locale, name) => {
+    expect(searchIndexName("products", locale)).toBe(name);
+  });
+
+  it("names every logical index", () => {
+    expect(searchIndexName("collections", "en-US")).toBe("collections_en");
+  });
+});
+
+describe("searchLexical", () => {
+  it("POSTs the exact request to /public/search/lexical with only the api key header", async () => {
     fetchMock.mockResolvedValue(jsonResponse(emptyResponse));
 
-    await searchProducts(API_KEY, {
-      query: "running shoes",
-      page: 2,
-      hitsPerPage: 50,
-      queryId: "0198c3f2-0000-7000-8000-000000000000",
-    });
+    await searchLexical(API_KEY, request);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toMatch(/\/public\/search$/);
+    expect(url).toMatch(/\/public\/search\/lexical$/);
     expect(init.method).toBe("POST");
     expect(init.headers).toEqual({
       "Content-Type": "application/json",
       "x-dialog-api-key": API_KEY,
     });
-    expect(JSON.parse(init.body as string)).toEqual({
-      query: "running shoes",
-      page: 2,
-      hitsPerPage: 50,
-      queryId: "0198c3f2-0000-7000-8000-000000000000",
-    });
+    expect(JSON.parse(init.body as string)).toEqual(request);
   });
 
-  it.each([
-    ["fr-FR", "fr"],
-    ["pt-BR", "pt"],
-    ["fr", "fr"],
-    ["not a locale", "not a locale"],
-  ])(
-    "sends the locale %s as its bare ISO 639-1 language %s",
-    async (locale, expected) => {
-      fetchMock.mockResolvedValue(jsonResponse(emptyResponse));
-
-      await searchProducts(API_KEY, { query: "running shoes", locale });
-
-      const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-      expect(JSON.parse(init.body as string)).toEqual({
-        query: "running shoes",
-        locale: expected,
-      });
-    },
-  );
-
-  it("omits pagination fields and queryId the caller did not provide", async () => {
+  it("keeps optional per-entry fields the caller did not provide off the wire", async () => {
     fetchMock.mockResolvedValue(jsonResponse(emptyResponse));
 
-    await searchProducts(API_KEY, { query: "running shoes" });
+    await searchLexical(API_KEY, {
+      requests: [{ indexName: "products_fr", query: "running shoes" }],
+    });
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(JSON.parse(init.body as string)).toEqual({
-      query: "running shoes",
+      requests: [{ indexName: "products_fr", query: "running shoes" }],
     });
   });
 
   it("resolves the typed response, including empty results", async () => {
     fetchMock.mockResolvedValue(jsonResponse(emptyResponse));
 
-    await expect(
-      searchProducts(API_KEY, { query: "running shoes" }),
-    ).resolves.toEqual(emptyResponse);
+    await expect(searchLexical(API_KEY, request)).resolves.toEqual(
+      emptyResponse,
+    );
   });
 
   it.each([
-    [401, "INVALID_WIDGET_API_KEY", "Invalid widget API key"],
-    [
-      422,
-      "VALIDATION_ERROR",
-      "query must contain at least 2 visible characters",
-    ],
-    [429, "THROTTLED", "Too many requests"],
-    [503, "STOREFRONT_SEARCH_UNAVAILABLE", "Storefront search is unavailable"],
+    [404, "Index products_xx does not exist"],
+    [400, "Unknown parameter: foo"],
   ])(
-    "rejects a %i answer with a DialogSearchError carrying status, code and message",
-    async (status, code, message) => {
-      fetchMock.mockResolvedValue(
-        jsonResponse({ statusCode: status, error: code, message }, status),
-      );
+    "rejects the Algolia-shaped %i error body with a DialogSearchError",
+    async (status, message) => {
+      fetchMock.mockResolvedValue(jsonResponse({ message, status }, status));
 
-      const error = await searchProducts(API_KEY, {
-        query: "running shoes",
-      }).catch((caught: unknown) => caught as DialogSearchError);
+      const error = await searchLexical(API_KEY, request).catch(
+        (caught: unknown) => caught as DialogSearchError,
+      );
 
       expect(error).toBeInstanceOf(DialogSearchError);
       expect(error).toMatchObject({
         name: "DialogSearchError",
         status,
-        code,
+        code: undefined,
         message,
       });
+    },
+  );
+
+  it.each([
+    [401, "INVALID_WIDGET_API_KEY", "Invalid widget API key"],
+    [429, "THROTTLED", "Too many requests"],
+  ])(
+    "still reads the code of a Nest-shaped %i guard error",
+    async (status, code, message) => {
+      fetchMock.mockResolvedValue(
+        jsonResponse({ statusCode: status, error: code, message }, status),
+      );
+
+      const error = await searchLexical(API_KEY, request).catch(
+        (caught: unknown) => caught as DialogSearchError,
+      );
+
+      expect(error).toBeInstanceOf(DialogSearchError);
+      expect(error).toMatchObject({ status, code, message });
     },
   );
 
@@ -137,9 +151,9 @@ describe("searchProducts", () => {
       }),
     );
 
-    const error = await searchProducts(API_KEY, {
-      query: "running shoes",
-    }).catch((caught: unknown) => caught as DialogSearchError);
+    const error = await searchLexical(API_KEY, request).catch(
+      (caught: unknown) => caught as DialogSearchError,
+    );
 
     expect(error).toBeInstanceOf(DialogSearchError);
     expect(error).toMatchObject({
@@ -153,9 +167,7 @@ describe("searchProducts", () => {
     const networkError = new TypeError("Failed to fetch");
     fetchMock.mockRejectedValue(networkError);
 
-    await expect(
-      searchProducts(API_KEY, { query: "running shoes" }),
-    ).rejects.toBe(networkError);
+    await expect(searchLexical(API_KEY, request)).rejects.toBe(networkError);
   });
 
   it("forwards the AbortSignal and preserves the native AbortError", async () => {
@@ -167,11 +179,7 @@ describe("searchProducts", () => {
     const controller = new AbortController();
 
     await expect(
-      searchProducts(
-        API_KEY,
-        { query: "running shoes" },
-        { signal: controller.signal },
-      ),
+      searchLexical(API_KEY, request, { signal: controller.signal }),
     ).rejects.toBe(abortError);
 
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];

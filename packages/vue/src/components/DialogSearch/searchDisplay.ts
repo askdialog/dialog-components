@@ -1,4 +1,4 @@
-import type { SearchPriceRange, SearchProduct } from "@askdialog/dialog-sdk";
+import type { SearchHit, SearchPriceRange } from "@askdialog/dialog-sdk";
 
 // Catalog data is untrusted: a malformed `currencyCode` makes
 // `Intl.NumberFormat` throw. Degrade to no price rather than taking the whole
@@ -35,11 +35,11 @@ export const formatSearchPrice = (
 };
 
 export const formatSearchCompareAtPrice = (
-  product: SearchProduct,
+  hit: SearchHit,
   locale?: string,
 ): string => {
-  const priceRange = product.priceRange;
-  const compareAtRange = product.compareAtPriceRange;
+  const priceRange = hit.priceRange;
+  const compareAtRange = hit.compareAtPriceRange;
   if (priceRange === undefined || compareAtRange === undefined) {
     return "";
   }

@@ -1,7 +1,7 @@
 /* eslint max-lines: ["error", 300] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../searchController";
-import { SearchResponse } from "../types/search";
+import { SearchResponse, SearchResult } from "../types/search";
 import { SearchController } from "../types/searchController";
 
 const tracker = vi.hoisted(() => ({
@@ -16,23 +16,24 @@ vi.mock("../utils/searchImpressions", () => ({
   createSearchImpressionTracker: () => tracker,
 }));
 
-const response = (overrides: Partial<SearchResponse> = {}): SearchResponse => ({
-  queryId: "qid-1",
-  hits: [
+const response = (overrides: Partial<SearchResult> = {}): SearchResponse => ({
+  results: [
     {
-      id: "h1",
-      score: 1,
-      product: { id: "p1", url: "https://shop.example/p1" },
+      index: "products_fr",
+      hits: [
+        { objectID: "p1", url: "https://shop.example/p1" },
+        { objectID: "p2" },
+      ],
+      nbHits: 30,
+      page: 0,
+      nbPages: 3,
+      hitsPerPage: 12,
+      processingTimeMS: 5,
+      query: "shoes",
+      queryID: "qid-1",
+      ...overrides,
     },
-    { id: "h2", score: 0.9, product: { id: "p2" } },
   ],
-  nbHits: 30,
-  page: 0,
-  nbPages: 3,
-  hitsPerPage: 12,
-  processingTimeMs: 5,
-  query: "shoes",
-  ...overrides,
 });
 
 const search = vi.fn();
@@ -49,6 +50,7 @@ const createController = (): SearchController =>
       trackSelectSearchResult,
     },
     navigate,
+    locale: "fr",
   });
 
 beforeEach(() => {
@@ -66,7 +68,7 @@ const settle = async (): Promise<void> => {
 };
 
 describe("search controller attribution", () => {
-  it("omits queryId for a new query and resends it while the query is unchanged", async () => {
+  it("never resends a query id: each request is its own query", async () => {
     const controller = createController();
     search.mockResolvedValue(response());
 
@@ -75,15 +77,13 @@ describe("search controller attribution", () => {
     controller.setPage(1);
     await settle();
 
-    expect(search.mock.calls[0][0].queryId).toBeUndefined();
-    expect(search.mock.calls[1][0]).toMatchObject({
-      query: "shoes",
-      page: 1,
-      queryId: "qid-1",
-    });
+    for (const [request] of search.mock.calls) {
+      expect(request.requests[0]).not.toHaveProperty("queryId");
+      expect(request.requests[0]).not.toHaveProperty("queryID");
+    }
   });
 
-  it("declares the rendered response's envelope to the impression tracker", async () => {
+  it("declares the rendered result's envelope to the impression tracker", async () => {
     const controller = createController();
     search.mockResolvedValue(response({ page: 1, query: "shoes" }));
 
@@ -92,6 +92,7 @@ describe("search controller attribution", () => {
 
     expect(tracker.setContext).toHaveBeenCalledWith({
       query_id: "qid-1",
+      index: "products_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 2,
@@ -100,12 +101,12 @@ describe("search controller attribution", () => {
     });
   });
 
-  it("keeps query_id stable across pagination and rotates it on a new query", async () => {
+  it("follows the response's queryID: every page is its own query", async () => {
     const controller = createController();
     search
       .mockResolvedValueOnce(response())
-      .mockResolvedValueOnce(response({ page: 1, queryId: "qid-1" }))
-      .mockResolvedValueOnce(response({ query: "boots", queryId: "qid-2" }));
+      .mockResolvedValueOnce(response({ page: 1, queryID: "qid-2" }))
+      .mockResolvedValueOnce(response({ query: "boots", queryID: "qid-3" }));
 
     controller.submit("shoes");
     await settle();
@@ -117,7 +118,7 @@ describe("search controller attribution", () => {
     const queryIds = tracker.setContext.mock.calls.map(
       ([envelope]) => envelope.query_id,
     );
-    expect(queryIds).toEqual(["qid-1", "qid-1", "qid-2"]);
+    expect(queryIds).toEqual(["qid-1", "qid-2", "qid-3"]);
   });
 
   it("emits the zero-items view event for a rendered no-results state", async () => {
@@ -131,6 +132,7 @@ describe("search controller attribution", () => {
 
     expect(trackViewSearchResults).toHaveBeenCalledWith({
       query_id: "qid-1",
+      index: "products_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 1,
@@ -185,6 +187,7 @@ describe("search controller attribution", () => {
     });
     expect(trackSelectSearchResult).toHaveBeenCalledWith({
       query_id: "qid-1",
+      index: "products_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 1,
@@ -194,7 +197,7 @@ describe("search controller attribution", () => {
     });
     expect(navigate).toHaveBeenCalledWith(
       "https://shop.example/p1",
-      landed.hits[0],
+      landed.results[0].hits[0],
     );
     expect(order).toEqual(["impression", "select", "navigate"]);
   });
@@ -258,6 +261,7 @@ describe("search controller attribution", () => {
         trackViewSearchResults,
         trackSelectSearchResult,
       },
+      locale: "fr",
     });
     search.mockResolvedValue(response());
 

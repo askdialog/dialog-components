@@ -1,8 +1,8 @@
 <template>
   <div class="dialog-search-card-image">
     <img
-      v-if="props.hit.product.imageUrl !== undefined"
-      :src="props.hit.product.imageUrl"
+      v-if="props.hit.imageUrl !== undefined"
+      :src="props.hit.imageUrl"
       :alt="title"
       loading="lazy"
     />
@@ -28,11 +28,11 @@ const props = defineProps<{
   locale?: string;
 }>();
 
-const title = computed(() => props.hit.product.title ?? props.hit.product.id);
+const title = computed(() => props.hit.title ?? props.hit.objectID);
 const price = computed(() =>
-  formatSearchPrice(props.hit.product.priceRange, props.locale),
+  formatSearchPrice(props.hit.priceRange, props.locale),
 );
 const compareAtPrice = computed(() =>
-  formatSearchCompareAtPrice(props.hit.product, props.locale),
+  formatSearchCompareAtPrice(props.hit, props.locale),
 );
 </script>

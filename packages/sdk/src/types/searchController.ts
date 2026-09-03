@@ -3,6 +3,7 @@ import {
   SearchOptions,
   SearchRequest,
   SearchResponse,
+  SearchResult,
 } from "./search";
 import {
   SearchSurface,
@@ -27,8 +28,11 @@ export interface SearchControllerState {
   query: string;
   /** Zero-indexed page of the last run. */
   page: number;
-  /** Last landed response; kept while the next page loads, cleared on error. */
-  response?: SearchResponse;
+  /**
+   * Products entry of the last landed response; kept while the next page
+   * loads, cleared on error. Hits are flat records (`objectID`, `title`, …).
+   */
+  response?: SearchResult;
   error?: unknown;
 }
 
@@ -62,8 +66,7 @@ export interface SearchControllerOptions {
   navigate?: (url: string, hit: SearchHit) => void;
   debounceMs?: number;
   hitsPerPage?: number;
-  locale?: string;
-  countryCode?: string;
+  locale: string;
 }
 
 /**

@@ -219,21 +219,28 @@ Example of expected result:
 
 - Search products
 
-`client.search()` performs a typed product search through Dialog's public API, with no framework and no commerce callbacks required.
+`client.search()` performs a typed, Algolia-shaped search through Dialog's public API, with no framework and no commerce callbacks required. Each entry targets an index named `<index>_<locale>` (index ∈ `products | collections | articles | pages`, locale ISO 639-1) — build the name with `searchIndexName(index, locale)`, which reduces any BCP-47 tag to its bare language.
 
 ```typescript
-import { Dialog, DialogSearchError } from '@askdialog/dialog-sdk';
+import { Dialog, DialogSearchError, searchIndexName } from '@askdialog/dialog-sdk';
 import type { SearchResponse } from '@askdialog/dialog-sdk';
 
 const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr' });
 
 const response: SearchResponse = await client.search({
-  query: 'shampoo',
-  page: 0, // optional, zero-indexed (default 0)
-  hitsPerPage: 20, // optional, 1-100 (default 20)
-  queryId: previousResponse?.queryId, // optional, resend while the query is unchanged
+  requests: [
+    {
+      indexName: searchIndexName('products', client.locale), // "products_fr"
+      query: 'shampoo',
+      page: 0, // optional, zero-indexed (default 0)
+      hitsPerPage: 20, // optional, 1-100 (default 20)
+    },
+  ],
 });
-// response.hits[n].product: { id, title?, url?, imageUrl?, priceRange?, inStock? }
+// response.results[n]: { index, hits, nbHits, page, nbPages, hitsPerPage,
+//                        processingTimeMS, query, queryID }
+// response.results[n].hits[m]: { objectID, title?, url?, handle?, imageUrl?,
+//                                priceRange?, compareAtPriceRange?, inStock? }
 ```
 
 With the IIFE bundle the results are plain runtime JSON (same shape, no types):
@@ -242,17 +249,19 @@ With the IIFE bundle the results are plain runtime JSON (same shape, no types):
 <script src="https://d2m6yt8rnm4dos.cloudfront.net/dialog-sdk.X.Y.Z.min.js"></script>
 <script>
   const client = new window.DialogSDK.Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr' });
-  client.search({ query: 'shampoo' }).then((response) => console.log(response.hits));
+  client
+    .search({ requests: [{ indexName: 'products_fr', query: 'shampoo' }] })
+    .then((response) => console.log(response.results[0].hits));
 </script>
 ```
 
-A non-2xx answer rejects with `DialogSearchError` — stable `name`, HTTP `status`, optional machine-readable `code` (e.g. `SEARCH_INDEX_NOT_FOUND`) and `message`. Aborting rejects with the native `AbortError`, and network failures keep their native errors.
+A non-2xx answer rejects with `DialogSearchError` — stable `name`, HTTP `status` and `message` (e.g. `404 Index products_xx does not exist`, `400 Unknown parameter: foo`). Aborting rejects with the native `AbortError`, and network failures keep their native errors.
 
 `client.search()` itself is stateless: no debounce, no cache, no automatic cancellation of previous searches. For search-as-you-type, use the search controller below instead of hand-rolling those.
 
 - Search controller
 
-`createSearchController()` wraps the stateless transport with the stateful behavior every search UI needs — debounce (immediate on explicit submission), cancellation of the in-flight request, stale-response protection (a late response never replaces newer results, even if the transport ignores the abort), pagination that resets on a new query, `idle` / `loading` / `success` / `empty` / `error` states, retry, and the DEC-2448 attribution events (`view_search_results` viewport impressions, `select_search_result` clicks) with a consistent `query_id`. It has no framework or rendering dependency: raw JavaScript, React, Vue and Shopify integrations are rendering-and-routing adapters around it.
+`createSearchController()` wraps the stateless transport with the stateful behavior every search UI needs — debounce (immediate on explicit submission), cancellation of the in-flight request, stale-response protection (a late response never replaces newer results, even if the transport ignores the abort), pagination that resets on a new query, `idle` / `loading` / `success` / `empty` / `error` states, retry, and the DEC-2448 attribution events (`view_search_results` viewport impressions, `select_search_result` clicks). It searches the products index (`products_<locale>`) and exposes the products result entry as `state.response`. It has no framework or rendering dependency: raw JavaScript, React, Vue and Shopify integrations are rendering-and-routing adapters around it.
 
 ```typescript
 import { createSearchController, Dialog, SearchStatus } from '@askdialog/dialog-sdk';
@@ -261,6 +270,7 @@ const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr' });
 
 const controller = createSearchController({
   search: (request, options) => client.search(request, options),
+  locale: client.locale, // names the searched index ("products_fr")
   analytics: {
     surface: 'search_page', // where results are displayed
     trackViewSearchResults: (params) => client.trackViewSearchResults(params),

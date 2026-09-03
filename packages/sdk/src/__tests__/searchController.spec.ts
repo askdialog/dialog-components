@@ -1,7 +1,12 @@
 /* eslint max-lines: ["error", 400] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../searchController";
-import { SearchOptions, SearchRequest, SearchResponse } from "../types/search";
+import {
+  SearchOptions,
+  SearchRequest,
+  SearchResponse,
+  SearchResult,
+} from "../types/search";
 import { SearchControllerState, SearchStatus } from "../types/searchController";
 
 vi.mock("../utils/searchImpressions", () => ({
@@ -16,19 +21,21 @@ vi.mock("../utils/searchImpressions", () => ({
 
 const DEBOUNCE_MS = 250;
 
-const response = (overrides: Partial<SearchResponse> = {}): SearchResponse => ({
-  queryId: "qid-1",
-  hits: [
-    { id: "h1", score: 1, product: { id: "p1" } },
-    { id: "h2", score: 0.9, product: { id: "p2" } },
+const response = (overrides: Partial<SearchResult> = {}): SearchResponse => ({
+  results: [
+    {
+      index: "products_fr",
+      hits: [{ objectID: "p1" }, { objectID: "p2" }],
+      nbHits: 2,
+      page: 0,
+      nbPages: 3,
+      hitsPerPage: 12,
+      processingTimeMS: 5,
+      query: "shoes",
+      queryID: "qid-1",
+      ...overrides,
+    },
   ],
-  nbHits: 2,
-  page: 0,
-  nbPages: 3,
-  hitsPerPage: 12,
-  processingTimeMs: 5,
-  query: "shoes",
-  ...overrides,
 });
 
 interface Deferred {
@@ -70,6 +77,7 @@ const createController = (): ReturnType<typeof createSearchController> => {
       trackViewSearchResults,
       trackSelectSearchResult,
     },
+    locale: "fr",
   });
   controller.subscribe((state) => states.push(state));
 
@@ -110,36 +118,34 @@ describe("createSearchController", () => {
     await settle();
 
     expect(search).toHaveBeenCalledTimes(1);
-    expect(search.mock.calls[0][0]).toMatchObject({ query: "shoes", page: 0 });
+    expect(search.mock.calls[0][0].requests[0]).toMatchObject({
+      query: "shoes",
+      page: 0,
+    });
     expect(controller.getState().status).toBe(SearchStatus.SUCCESS);
   });
 
-  it("stamps the configured market on every request, and omits it otherwise", async () => {
-    const marketController = createSearchController({
+  it("sends one products entry named after the bare-language locale", async () => {
+    const controller = createSearchController({
       search,
       analytics: {
         surface: "search_page",
         trackViewSearchResults,
         trackSelectSearchResult,
       },
-      locale: "fr",
-      countryCode: "CA",
+      locale: "fr-FR",
     });
     search.mockResolvedValue(response({ query: "shoes" }));
 
-    marketController.submit("shoes");
+    controller.submit("shoes");
     await settle();
-    expect(search.mock.calls[0][0]).toMatchObject({
-      locale: "fr",
-      countryCode: "CA",
-    });
-    marketController.dispose();
 
-    const bareController = createController();
-    bareController.submit("shoes");
-    await settle();
-    expect(search.mock.calls[1][0]).not.toHaveProperty("locale");
-    expect(search.mock.calls[1][0]).not.toHaveProperty("countryCode");
+    expect(search.mock.calls[0][0]).toEqual({
+      requests: [
+        { indexName: "products_fr", query: "shoes", page: 0, hitsPerPage: 12 },
+      ],
+    });
+    controller.dispose();
   });
 
   it("submits immediately without waiting for the debounce", async () => {
@@ -151,7 +157,9 @@ describe("createSearchController", () => {
     await settle();
 
     expect(search).toHaveBeenCalledTimes(1);
-    expect(search.mock.calls[0][0]).toMatchObject({ query: "shoes" });
+    expect(search.mock.calls[0][0].requests[0]).toMatchObject({
+      query: "shoes",
+    });
     expect(controller.getState().status).toBe(SearchStatus.SUCCESS);
   });
 
@@ -169,7 +177,7 @@ describe("createSearchController", () => {
 
     expect(firstSignal?.aborted).toBe(true);
 
-    second.resolve(response({ query: "boots", queryId: "qid-2" }));
+    second.resolve(response({ query: "boots", queryID: "qid-2" }));
     await settle();
 
     expect(controller.getState().response?.query).toBe("boots");
@@ -185,10 +193,10 @@ describe("createSearchController", () => {
 
     controller.submit("shoes");
     controller.submit("boots");
-    fresh.resolve(response({ query: "boots", queryId: "qid-2" }));
+    fresh.resolve(response({ query: "boots", queryID: "qid-2" }));
     await settle();
     // The stale transport ignored the abort and answers after the fresh one.
-    stale.resolve(response({ query: "shoes", queryId: "qid-1" }));
+    stale.resolve(response({ query: "shoes", queryID: "qid-1" }));
     await settle();
 
     expect(controller.getState().status).toBe(SearchStatus.SUCCESS);
@@ -200,7 +208,7 @@ describe("createSearchController", () => {
     const first = deferred();
     search
       .mockReturnValueOnce(first.promise)
-      .mockResolvedValueOnce(response({ query: "boots", queryId: "qid-2" }));
+      .mockResolvedValueOnce(response({ query: "boots", queryID: "qid-2" }));
 
     controller.submit("shoes");
     controller.submit("boots");
@@ -234,7 +242,10 @@ describe("createSearchController", () => {
     await settle();
 
     expect(search).toHaveBeenCalledTimes(3);
-    expect(search.mock.calls[2][0]).toMatchObject({ query: "shoes", page: 2 });
+    expect(search.mock.calls[2][0].requests[0]).toMatchObject({
+      query: "shoes",
+      page: 2,
+    });
     expect(controller.getState().status).toBe(SearchStatus.SUCCESS);
   });
 
@@ -285,7 +296,10 @@ describe("createSearchController", () => {
     controller.submit("boots");
     await settle();
 
-    expect(search.mock.calls[2][0]).toMatchObject({ query: "boots", page: 0 });
+    expect(search.mock.calls[2][0].requests[0]).toMatchObject({
+      query: "boots",
+      page: 0,
+    });
   });
 
   it("flushes a pending debounced query instead of paginating stale results", async () => {
@@ -299,7 +313,10 @@ describe("createSearchController", () => {
     await settle();
 
     expect(search).toHaveBeenCalledTimes(2);
-    expect(search.mock.calls[1][0]).toMatchObject({ query: "boots", page: 0 });
+    expect(search.mock.calls[1][0].requests[0]).toMatchObject({
+      query: "boots",
+      page: 0,
+    });
   });
 
   it("ignores pagination without a committed query", () => {
