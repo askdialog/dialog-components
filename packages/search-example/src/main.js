@@ -22,11 +22,14 @@ function formatPrice(priceRange) {
     return "";
   }
   const { min, max } = priceRange;
+  // A price indexed without a currency shows as a bare amount.
   const format = ({ amount, currencyCode }) =>
-    new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: currencyCode,
-    }).format(Number(amount));
+    currencyCode === undefined
+      ? new Intl.NumberFormat().format(Number(amount))
+      : new Intl.NumberFormat(undefined, {
+          style: "currency",
+          currency: currencyCode,
+        }).format(Number(amount));
   return min.amount === max.amount
     ? format(min)
     : `${format(min)} – ${format(max)}`;
@@ -67,10 +70,7 @@ function renderProductCard(hit, index) {
 
   const meta = document.createElement("p");
   meta.className = "card-meta";
-  const price = formatPrice(hit.priceRange);
-  const stock =
-    hit.inStock === undefined ? "" : hit.inStock ? "In stock" : "Out of stock";
-  meta.textContent = [price, stock].filter(Boolean).join(" · ");
+  meta.textContent = formatPrice(hit.priceRange);
   li.appendChild(meta);
 
   const href = hit.url === undefined ? undefined : safeProductHref(hit.url);

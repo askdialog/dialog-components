@@ -31,7 +31,8 @@ export interface SearchOptions {
 export interface SearchPrice {
   /** Decimal amount as a string, exactly as indexed (e.g. "24.90"). */
   amount: string;
-  currencyCode: string;
+  /** Absent when the price was indexed without a currency. */
+  currencyCode?: string;
 }
 
 export interface SearchPriceRange {
@@ -41,8 +42,8 @@ export interface SearchPriceRange {
 
 /**
  * A flat, storefront-ready record: `objectID` plus the record's attributes.
- * Every display field is best-effort — a hit may carry only its id. The
- * price/stock fields are only served by the products index.
+ * Every display field is best-effort — a hit may carry only its id;
+ * `priceRange` only comes from the products index.
  */
 export interface SearchHit {
   objectID: string;
@@ -51,8 +52,6 @@ export interface SearchHit {
   handle?: string;
   imageUrl?: string;
   priceRange?: SearchPriceRange;
-  compareAtPriceRange?: SearchPriceRange;
-  inStock?: boolean;
 }
 
 export interface SearchResult {

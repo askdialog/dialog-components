@@ -59,7 +59,7 @@ describe("public API types", () => {
     expectTypeOf<SearchResult["queryID"]>().toEqualTypeOf<string>();
     expectTypeOf<SearchHit["objectID"]>().toEqualTypeOf<string>();
     expectTypeOf<SearchHit["priceRange"]>().toMatchTypeOf<
-      { min: { amount: string; currencyCode: string } } | undefined
+      { min: { amount: string; currencyCode?: string } } | undefined
     >();
 
     const error = new DialogSearchError({ status: 404, message: "not found" });

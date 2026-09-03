@@ -147,9 +147,4 @@ a.dialog-search-card-body:hover {
   line-height: 16px;
   color: #737373;
 }
-
-.dialog-search-card-compare-at {
-  color: #a3a3a3;
-  text-decoration: line-through;
-}
 </style>

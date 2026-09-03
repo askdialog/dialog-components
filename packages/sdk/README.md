@@ -240,7 +240,7 @@ const response: SearchResponse = await client.search({
 // response.results[n]: { index, hits, nbHits, page, nbPages, hitsPerPage,
 //                        processingTimeMS, query, queryID }
 // response.results[n].hits[m]: { objectID, title?, url?, handle?, imageUrl?,
-//                                priceRange?, compareAtPriceRange?, inStock? }
+//                                priceRange? }
 ```
 
 With the IIFE bundle the results are plain runtime JSON (same shape, no types):
