@@ -8,9 +8,9 @@ import {
   DialogSearchError,
   SearchHit,
   SearchOptions,
-  SearchProduct,
   SearchRequest,
   SearchResponse,
+  SearchResult,
 } from "../index";
 
 describe("public API types", () => {
@@ -37,21 +37,29 @@ describe("public API types", () => {
       [SearchRequest, (SearchOptions | undefined)?]
     >();
 
-    expectTypeOf<{ query: string }>().toMatchTypeOf<SearchRequest>();
     expectTypeOf<{
-      query: string;
-      page: number;
-      queryId: string;
+      requests: [{ indexName: string; query: string }];
     }>().toMatchTypeOf<SearchRequest>();
-    expectTypeOf<SearchResponse["queryId"]>().toEqualTypeOf<string>();
+    expectTypeOf<{
+      requests: [
+        {
+          indexName: string;
+          query: string;
+          page: number;
+          hitsPerPage: number;
+        },
+      ];
+    }>().toMatchTypeOf<SearchRequest>();
     expectTypeOf<
       Dialog["search"]
     >().returns.resolves.toEqualTypeOf<SearchResponse>();
 
-    expectTypeOf<SearchResponse["hits"]>().toEqualTypeOf<SearchHit[]>();
-    expectTypeOf<SearchHit["product"]>().toEqualTypeOf<SearchProduct>();
-    expectTypeOf<SearchProduct["priceRange"]>().toMatchTypeOf<
-      { min: { amount: string; currencyCode: string } } | undefined
+    expectTypeOf<SearchResponse["results"]>().toEqualTypeOf<SearchResult[]>();
+    expectTypeOf<SearchResult["hits"]>().toEqualTypeOf<SearchHit[]>();
+    expectTypeOf<SearchResult["queryID"]>().toEqualTypeOf<string>();
+    expectTypeOf<SearchHit["objectID"]>().toEqualTypeOf<string>();
+    expectTypeOf<SearchHit["priceRange"]>().toMatchTypeOf<
+      { min: { amount: string; currencyCode?: string } } | undefined
     >();
 
     const error = new DialogSearchError({ status: 404, message: "not found" });

@@ -1,6 +1,6 @@
 export const config = {
   baseApiUrl: "https://hr5buzenb1.execute-api.eu-west-1.amazonaws.com",
-  // Nest monolith (staging) — serves POST /public/search.
+  // Nest monolith (staging) — serves POST /public/search/lexical.
   monolithApiUrl: "https://fvcphlqyle.execute-api.eu-west-1.amazonaws.com",
   assistantUrl: "https://d2bycosa71tnxv.cloudfront.net/assets/index.js",
 };

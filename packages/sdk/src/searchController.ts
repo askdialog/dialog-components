@@ -2,7 +2,8 @@
 // navigate adapter handled the transition, nudging the file just past the
 // default 200-line cap — raised modestly rather than split artificially.
 /* eslint max-lines: ["error", 220] */
-import { SearchRequest } from "./types/search";
+import { searchIndexName } from "./services/search";
+import { SearchRequest, SearchResult } from "./types/search";
 import {
   SearchController,
   SearchControllerOptions,
@@ -31,8 +32,8 @@ export function createSearchController({
   debounceMs = DEFAULT_DEBOUNCE_MS,
   hitsPerPage = DEFAULT_HITS_PER_PAGE,
   locale,
-  countryCode,
 }: SearchControllerOptions): SearchController {
+  const indexName = searchIndexName("products", locale);
   let state = INITIAL_STATE;
   const listeners = new Set<(next: SearchControllerState) => void>();
   const controllerAnalytics = createControllerAnalytics(analytics);
@@ -59,23 +60,9 @@ export function createSearchController({
     abortController = undefined;
   };
 
-  const buildRequest = (query: string, page: number): SearchRequest => {
-    const request: SearchRequest = { query, page, hitsPerPage };
-    if (locale !== undefined) {
-      request.locale = locale;
-    }
-    if (countryCode !== undefined) {
-      request.countryCode = countryCode;
-    }
-    // Query unchanged since the last response: resend its queryId; a new
-    // query gets a fresh engine-generated one.
-    const previous = state.response;
-    if (previous?.query === query) {
-      request.queryId = previous.queryId;
-    }
-
-    return request;
-  };
+  const buildRequest = (query: string, page: number): SearchRequest => ({
+    requests: [{ indexName, query, page, hitsPerPage }],
+  });
 
   const run = async (query: string, page: number): Promise<void> => {
     cancelInFlight();
@@ -91,11 +78,16 @@ export function createSearchController({
       if (id !== requestId) {
         return; // A newer request landed first: this response is stale.
       }
-      controllerAnalytics.onResponse(response);
+      const result: SearchResult | undefined = response.results.find(
+        (entry) => entry.index === indexName,
+      );
+      if (result === undefined) {
+        throw new Error(`Dialog search returned no ${indexName} entry`);
+      }
+      controllerAnalytics.onResponse(result);
       setState({
-        status:
-          response.nbHits === 0 ? SearchStatus.EMPTY : SearchStatus.SUCCESS,
-        response,
+        status: result.nbHits === 0 ? SearchStatus.EMPTY : SearchStatus.SUCCESS,
+        response: result,
         error: undefined,
       });
     } catch (error) {
@@ -184,7 +176,7 @@ export function createSearchController({
         return false;
       }
       controllerAnalytics.select(response, index);
-      const url = response.hits[index].product.url;
+      const url = response.hits[index].url;
       const runAdapter = options?.navigate ?? true;
       if (runAdapter && navigate !== undefined && url !== undefined) {
         navigate(url, response.hits[index]);

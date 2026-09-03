@@ -111,7 +111,7 @@ const panelContent = (
           <ul className="dialog-search-results">
             {response.hits.map((hit, index) => (
               <DialogSearchProductCard
-                key={hit.id}
+                key={hit.objectID}
                 controller={controller}
                 hit={hit}
                 index={index}

@@ -138,7 +138,7 @@ Creates one search controller per composable instance and disposes it on unmount
 - `navigate` ((url, hit) => void, optional) - Router adapter called after selection attribution (e.g. `(url) => router.push(url)`). Omit it to let the cards' plain `<a href>` links navigate natively.
 - `debounceMs` (number, optional) - Keystroke debounce (default: 250)
 - `hitsPerPage` (number, optional) - Results per page (default: 12)
-- `locale` (string, optional) - Locale forwarded to the search request
+- `locale` (string, optional) - Storefront locale naming the searched index (`products_fr`); defaults to the client's
 
 Options are read once during setup — later changes don't rebind the live controller.
 

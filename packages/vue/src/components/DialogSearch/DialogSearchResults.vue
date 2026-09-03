@@ -44,7 +44,7 @@
         <ul class="dialog-search-results">
           <DialogSearchProductCard
             v-for="(hit, index) in props.state.response.hits"
-            :key="hit.id"
+            :key="hit.objectID"
             :controller="props.controller"
             :hit="hit"
             :index="index"

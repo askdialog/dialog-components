@@ -1,10 +1,6 @@
 import { type FC, type MouseEvent, useEffect, useRef } from "react";
 import type { SearchController, SearchHit } from "@askdialog/dialog-sdk";
-import {
-  formatSearchCompareAtPrice,
-  formatSearchPrice,
-  safeProductHref,
-} from "./searchDisplay";
+import { formatSearchPrice, safeProductHref } from "./searchDisplay";
 import "./DialogSearchProductCard.css";
 
 interface DialogSearchProductCardProps {
@@ -54,30 +50,20 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
     }
   };
 
-  const { product } = hit;
-  const title = product.title ?? product.id;
-  const price = formatSearchPrice(product.priceRange, locale);
-  const compareAtPrice = formatSearchCompareAtPrice(product, locale);
-  const href =
-    product.url === undefined ? undefined : safeProductHref(product.url);
+  const title = hit.title ?? hit.objectID;
+  const price = formatSearchPrice(hit.priceRange, locale);
+  const href = hit.url === undefined ? undefined : safeProductHref(hit.url);
 
   const content = (
     <>
       <div className="dialog-search-card-image">
-        {product.imageUrl !== undefined && (
-          <img src={product.imageUrl} alt={title} loading="lazy" />
+        {hit.imageUrl !== undefined && (
+          <img src={hit.imageUrl} alt={title} loading="lazy" />
         )}
       </div>
       <div className="dialog-search-card-info">
         <p className="dialog-search-card-title">{title}</p>
-        {price !== "" && (
-          <p className="dialog-search-card-price">
-            {price}
-            {compareAtPrice !== "" && (
-              <s className="dialog-search-card-compare-at"> {compareAtPrice}</s>
-            )}
-          </p>
-        )}
+        {price !== "" && <p className="dialog-search-card-price">{price}</p>}
       </div>
     </>
   );

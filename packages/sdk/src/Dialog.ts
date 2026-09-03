@@ -30,7 +30,7 @@ import {
 } from "./types/searchAnalytics";
 import { EventsHandler } from "./EventsHandler";
 import { loadSuggestions } from "./services/suggestions";
-import { searchProducts } from "./services/search";
+import { searchLexical } from "./services/search";
 import { SearchOptions, SearchRequest, SearchResponse } from "./types/search";
 import { config } from "./config";
 import { AssistantEvent } from "./types/assistantEvent";
@@ -126,25 +126,19 @@ export class Dialog {
   }
 
   /**
-   * Typed product search through the Nest public endpoint. Stateless: one
-   * request per call, cancellation belongs to the caller via
-   * `options.signal` (previous searches are never cancelled automatically).
-   * Rejects with `DialogSearchError` on a non-2xx answer, and with the
-   * native AbortError / network error otherwise.
+   * Typed multi-index search through the Nest public endpoint (Algolia-shaped,
+   * DAT-412). The locale travels in each entry's `indexName` (`products_fr`) —
+   * build it with `searchIndexName(index, locale)`. Stateless: one request per
+   * call, cancellation belongs to the caller via `options.signal` (previous
+   * searches are never cancelled automatically). Rejects with
+   * `DialogSearchError` on a non-2xx answer, and with the native AbortError /
+   * network error otherwise.
    */
   public search(
     request: SearchRequest,
     options?: SearchOptions,
   ): Promise<SearchResponse> {
-    return searchProducts(
-      this._apiKey,
-      {
-        ...request,
-        locale: request.locale ?? this._locale,
-        countryCode: request.countryCode ?? this._countryCode,
-      },
-      options,
-    );
+    return searchLexical(this._apiKey, request, options);
   }
 
   // TODO: Not yet implemented on assistant

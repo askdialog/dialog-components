@@ -1,18 +1,26 @@
-// Mirrors the public Nest storefront-search DTO exactly (POST /public/search,
-// `storefrontSearchRequestSchema` / `storefrontSearchResponseSchema` in
-// @dialog/shared-schemas) — camelCase wire format, no internal Python casing.
+/** Logical indices the public search serves; the wire name adds the locale. */
+export const SEARCH_INDICES = [
+  "products",
+  "collections",
+  "articles",
+  "pages",
+] as const;
 
-export interface SearchRequest {
+export type SearchIndex = (typeof SEARCH_INDICES)[number];
+
+export interface SearchQuery {
+  /** `<index>_<locale>` (e.g. `products_fr`), one shared locale per request; unknown or unserved → 404. */
+  indexName: string;
   /** Trimmed server-side; must keep at least two visible characters (code points). */
   query: string;
   /** Zero-indexed results page. Defaults to 0 server-side. */
   page?: number;
   /** Between 1 and 100. Defaults to 20 server-side. */
   hitsPerPage?: number;
-  /** Previous response's queryId while the query is unchanged; omit for a new query. */
-  queryId?: string;
-  locale?: string;
-  countryCode?: string;
+}
+
+export interface SearchRequest {
+  requests: SearchQuery[];
 }
 
 export interface SearchOptions {
@@ -23,7 +31,8 @@ export interface SearchOptions {
 export interface SearchPrice {
   /** Decimal amount as a string, exactly as indexed (e.g. "24.90"). */
   amount: string;
-  currencyCode: string;
+  /** Absent when the price was indexed without a currency. */
+  currencyCode?: string;
 }
 
 export interface SearchPriceRange {
@@ -32,35 +41,32 @@ export interface SearchPriceRange {
 }
 
 /**
- * Storefront-ready projection of a search hit. Every display field is
- * best-effort: a product may carry only its id.
+ * A flat, storefront-ready record: `objectID` plus the record's attributes.
+ * Every display field is best-effort — a hit may carry only its id;
+ * `priceRange` only comes from the products index.
  */
-export interface SearchProduct {
-  id: string;
+export interface SearchHit {
+  objectID: string;
   title?: string;
   url?: string;
-  /** Shopify URL handle, lets the storefront build `/products/{handle}` when `url` is absent (DEC-2543). */
   handle?: string;
   imageUrl?: string;
   priceRange?: SearchPriceRange;
-  compareAtPriceRange?: SearchPriceRange;
-  inStock?: boolean;
 }
 
-export interface SearchHit {
-  id: string;
-  score: number;
-  product: SearchProduct;
-}
-
-export interface SearchResponse {
-  /** Engine-generated id for search attribution analytics. */
-  queryId: string;
+export interface SearchResult {
+  index: string;
   hits: SearchHit[];
   nbHits: number;
   page: number;
   nbPages: number;
   hitsPerPage: number;
-  processingTimeMs: number;
+  processingTimeMS: number;
   query: string;
+  queryID: string;
+}
+
+/** One entry per request entry, in request order. */
+export interface SearchResponse {
+  results: SearchResult[];
 }
