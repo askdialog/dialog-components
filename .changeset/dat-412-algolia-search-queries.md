@@ -1,7 +1,7 @@
 ---
-"@askdialog/dialog-sdk": major
-"@askdialog/dialog-react": major
-"@askdialog/dialog-vue": major
+"@askdialog/dialog-sdk": minor
+"@askdialog/dialog-react": minor
+"@askdialog/dialog-vue": minor
 ---
 
 feat!: Algolia-shaped public search — the index name carries the locale (DAT-412)
