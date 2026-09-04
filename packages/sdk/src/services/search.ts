@@ -1,10 +1,18 @@
 import { config } from "../config";
 import { DialogSearchError } from "../DialogSearchError";
-import { SearchOptions, SearchRequest, SearchResponse } from "../types/search";
+import {
+  SearchIndex,
+  SearchOptions,
+  SearchRequest,
+  SearchResponse,
+} from "../types/search";
 import { toIso639LanguageCode } from "../utils/localization";
 
-const SEARCH_PATH = "/public/search";
+const SEARCH_PATH = "/public/search/lexical";
 const API_KEY_HEADER = "x-dialog-api-key";
+
+export const searchIndexName = (index: SearchIndex, locale: string): string =>
+  `${index}_${toIso639LanguageCode(locale)}`;
 
 const toSearchError = async (
   response: Response,
@@ -24,19 +32,11 @@ const toSearchError = async (
   return new DialogSearchError({ status: response.status, code, message });
 };
 
-// Every search path (Dialog instance, search controller, direct transport)
-// funnels through here, so the locale reaches the wire as the bare ISO 639-1
-// language whatever tag the caller holds.
-const withNormalizedLocale = (request: SearchRequest): SearchRequest =>
-  request.locale === undefined
-    ? request
-    : { ...request, locale: toIso639LanguageCode(request.locale) };
-
 /**
  * One POST per invocation — no debounce, cache, retry or request state; the
  * caller owns cancellation through `options.signal`.
  */
-export const searchProducts = async (
+export const searchLexical = async (
   apiKey: string,
   request: SearchRequest,
   options?: SearchOptions,
@@ -47,7 +47,7 @@ export const searchProducts = async (
       "Content-Type": "application/json",
       [API_KEY_HEADER]: apiKey,
     },
-    body: JSON.stringify(withNormalizedLocale(request)),
+    body: JSON.stringify(request),
     signal: options?.signal,
   });
 

@@ -18,8 +18,8 @@ export interface UseDialogSearchOptions {
   navigate?: (url: string, hit: SearchHit) => void;
   debounceMs?: number;
   hitsPerPage?: number;
+  /** Storefront locale for the searched index (`products_fr`); defaults to the client's. */
   locale?: string;
-  countryCode?: string;
 }
 
 export interface DialogSearch {
@@ -43,10 +43,16 @@ export const useDialogSearch = (
 
   const getController = useCallback((): SearchController => {
     if (controllerRef.current === undefined) {
-      const { client, surface = "search_page", ...rest } = optionsRef.current;
+      const {
+        client,
+        surface = "search_page",
+        locale = client.locale,
+        ...rest
+      } = optionsRef.current;
       controllerRef.current = createSearchController({
         search: (request, requestOptions) =>
           client.search(request, requestOptions),
+        locale,
         analytics: {
           surface,
           trackViewSearchResults: (params) =>

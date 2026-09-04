@@ -146,14 +146,7 @@ export function createSearchImpressionTracker({
     setContext(nextEnvelope) {
       // Pending impressions belong to the envelope they qualified under.
       flush();
-      // Dedup only needs to span one query's lifetime (pagination keeps its
-      // query_id): dropping older keys bounds the set across search-as-you-type.
-      if (
-        envelope !== undefined &&
-        envelope.query_id !== nextEnvelope.query_id
-      ) {
-        seen.clear();
-      }
+      seen.clear();
       envelope = nextEnvelope;
       stopObserving();
     },

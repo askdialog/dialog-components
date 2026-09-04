@@ -16,14 +16,10 @@ export const SEARCH_TYPES = ["lexical"] as const;
 
 export type SearchType = (typeof SEARCH_TYPES)[number];
 
-// Shared by both search events. `query_id` comes from the Nest SearchResponse
-// and stays stable across pagination of the same query — the distinction is
-// carried by `page` and absolute positions; a new query or filter change
-// means a new id. No raw query text (GDPR): `query_length` is the only
-// query-derived signal, the text itself lives in the data API logs joinable
-// by `query_id`.
 export interface SearchAnalyticsEnvelope {
   query_id: string;
+  /** Public index name the result came from (e.g. `products_fr`) — the Algolia Insights tuple's index. */
+  index: string;
   /** Where results are displayed — not the integration technology. */
   surface: SearchSurface;
   /** Retrieval mode that produced the results. */
