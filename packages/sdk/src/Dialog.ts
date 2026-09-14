@@ -16,6 +16,7 @@ import { ANONYMOUS_CUSTOMER_ID, CUSTOMER_ID } from "./constants/user";
 import { Suggestion } from "./types/suggestion";
 import {
   AddToCartInput,
+  ChangeCartQuantityInput,
   DialogEvents,
   GenericQuestionPayload,
   LegacyCheckoutParams,
@@ -239,13 +240,7 @@ export class Dialog {
   // Forward all product fields to the commerce callback and analytics.
   public async addToCart(input: AddToCartInput): Promise<void> {
     // Disabled instances must neither modify the cart nor emit analytics.
-    if (this._disableAddToCart) {
-      console.warn(
-        "Dialog: addToCart is disabled on this instance (disableAddToCart); ignoring the call.",
-      );
-
-      return;
-    }
+    if (this._isCartWriteDisabled("addToCart")) return;
 
     await this._getCallbacksOrThrow("addToCart").addToCart(input);
     this.registerAddToCartEvent(input);
@@ -253,15 +248,46 @@ export class Dialog {
     return;
   }
 
+  public canChangeCartQuantity(): boolean {
+    return (
+      !this._disableAddToCart &&
+      this._callbacks?.changeCartQuantity !== undefined
+    );
+  }
+
+  public async changeCartQuantity(
+    input: ChangeCartQuantityInput,
+  ): Promise<void> {
+    if (this._isCartWriteDisabled("changeCartQuantity")) return;
+
+    await this._getCallbacksOrThrow("changeCartQuantity").changeCartQuantity(
+      input,
+    );
+  }
+
+  private _isCartWriteDisabled(
+    operation: "addToCart" | "changeCartQuantity",
+  ): boolean {
+    if (!this._disableAddToCart) return false;
+    console.warn(
+      `Dialog: ${operation} is disabled on this instance (disableAddToCart); ignoring the call.`,
+    );
+
+    return true;
+  }
+
   // Validate optional commerce callbacks when invoked.
-  private _getCallbacksOrThrow(name: keyof DialogCallbacks): DialogCallbacks {
-    if (this._callbacks?.[name] === undefined) {
+  private _getCallbacksOrThrow<K extends keyof DialogCallbacks>(
+    name: K,
+  ): DialogCallbacks & Required<Pick<DialogCallbacks, K>> {
+    const callbacks = this._callbacks;
+    if (callbacks?.[name] === undefined) {
       throw new Error(
         `Dialog: \`callbacks.${name}\` was not provided to the constructor; ${name}() is unavailable on this instance.`,
       );
     }
 
-    return this._callbacks;
+    return callbacks as DialogCallbacks & Required<Pick<DialogCallbacks, K>>;
   }
 
   public registerAddToCartEvent(input: AddToCartInput): void {

@@ -36,6 +36,19 @@ describe("public API types", () => {
       callbacks: { addToCart: string; getProduct: number };
     }>().not.toMatchTypeOf<DialogConstructor>();
 
+    expectTypeOf<{
+      addToCart: (input: {
+        productId: string;
+        quantity: number;
+      }) => Promise<void>;
+      getProduct: (productId: string) => Promise<never>;
+    }>().toMatchTypeOf<DialogCallbacks>();
+    expectTypeOf<
+      NonNullable<DialogCallbacks["changeCartQuantity"]>
+    >().parameters.toMatchTypeOf<
+      [{ productId: string; variantId?: string; quantity: number }]
+    >();
+
     expectTypeOf<Dialog["currency"]>().toEqualTypeOf<string>();
 
     expectTypeOf<Dialog["search"]>().parameters.toMatchTypeOf<
