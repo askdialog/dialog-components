@@ -71,6 +71,12 @@ export interface AddToCartInput extends AddToCartProductDetails {
   variantId?: string;
 }
 
+export interface ChangeCartQuantityInput {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+}
+
 // Forwarded to the host app (e.g. shopify-assistant) so it can capture the
 // event through its own PostHog instance instead of the SDK instantiating a
 // second one. Field names are part of the cross-repo contract consumed by the

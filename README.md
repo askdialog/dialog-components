@@ -206,6 +206,10 @@ const client = new Dialog({
     addToCart: async ({ productId, quantity, variantId }) => {
       // Handle add to cart
     },
+    // Optional: sets a line the assistant added to `quantity` (absolute)
+    changeCartQuantity: async ({ productId, quantity, variantId }) => {
+      // Set the cart line to `quantity`
+    },
     getProduct: async (productId, variantId): Promise<SimplifiedProduct> => {
       // Return product data - see type definition below
     },
