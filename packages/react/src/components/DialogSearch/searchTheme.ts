@@ -1,4 +1,5 @@
 import type { Theme } from "@askdialog/dialog-sdk";
+import { relativeLuminance } from "./cssColor";
 
 type PanelMode = "light" | "dark";
 type PanelShape = "rectangle" | "rectangle-rounded";
@@ -47,41 +48,6 @@ const RADII: Record<PanelShape, Record<string, string>> = {
 
 const nonEmpty = (value: string | undefined): string | undefined =>
   value === undefined || value.trim() === "" ? undefined : value.trim();
-
-// Alpha (#rgba, #rrggbbaa) is dropped: only the opaque channels weigh in the
-// luminance, the CSS variables keep the merchant's value as is.
-const parseHexColor = (color: string): [number, number, number] | undefined => {
-  const hex = color.trim().replace(/^#/, "");
-  if (!/^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(hex)) {
-    return undefined;
-  }
-  const expanded =
-    hex.length <= 4
-      ? [...hex].map((character) => character + character).join("")
-      : hex;
-
-  return [0, 2, 4].map((offset) =>
-    Number.parseInt(expanded.slice(offset, offset + 2), 16),
-  ) as [number, number, number];
-};
-
-const channelLuminance = (channel: number): number => {
-  const normalized = channel / 255;
-
-  return normalized <= 0.03928
-    ? normalized / 12.92
-    : ((normalized + 0.055) / 1.055) ** 2.4;
-};
-
-const relativeLuminance = (color: string): number | undefined => {
-  const rgb = parseHexColor(color);
-  if (rgb === undefined) {
-    return undefined;
-  }
-  const [red, green, blue] = rgb.map(channelLuminance);
-
-  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
-};
 
 const resolveMode = (backgroundColor: string | undefined): PanelMode => {
   const luminance =

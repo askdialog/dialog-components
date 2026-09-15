@@ -68,7 +68,13 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
   return (
     <li ref={cardRef} className="dialog-search-card">
       {href === undefined ? (
-        <div className="dialog-search-product">{content}</div>
+        <div
+          className="dialog-search-product"
+          onClick={handleClick}
+          onAuxClick={handleAuxClick}
+        >
+          {content}
+        </div>
       ) : (
         <a
           className="dialog-search-product"

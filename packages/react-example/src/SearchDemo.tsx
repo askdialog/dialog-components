@@ -46,7 +46,6 @@ export const SearchDemo: FC<{ client: Dialog }> = ({ client }) => {
         locale="fr-FR"
         theme={theme}
         layout={layout}
-        seeAllHref={(query) => `/search?q=${encodeURIComponent(query)}`}
       />
     </section>
   );

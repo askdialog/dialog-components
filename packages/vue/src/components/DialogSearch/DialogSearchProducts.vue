@@ -4,58 +4,46 @@
       <p class="dialog-search-label">
         {{ props.messages.productsLabel
         }}<span
-          v-if="response !== undefined && response.nbHits > 0"
+          v-if="props.response.nbHits > 0"
           class="dialog-search-label-count"
         >
-          · {{ props.messages.resultsCount(response.nbHits) }}</span
+          · {{ props.messages.resultsCount(props.response.nbHits) }}</span
         >
       </p>
     </div>
     <ul class="dialog-search-results">
-      <li v-if="hits.length === 0" class="dialog-search-empty" role="status">
+      <li
+        v-if="props.response.hits.length === 0"
+        class="dialog-search-empty"
+        role="status"
+      >
         {{ props.messages.noResults }}
       </li>
       <DialogSearchProductCard
-        v-for="(hit, index) in hits"
+        v-for="(hit, index) in props.response.hits"
         v-else
         :key="hit.objectID"
         :controller="props.controller"
         :hit="hit"
         :index="index"
         :locale="props.locale"
-        :query="props.state.query"
+        :query="props.response.query"
       />
     </ul>
-    <DialogSearchPagination
-      v-if="!props.hasSeeAll"
-      :controller="props.controller"
-      :state="props.state"
-      :locale="props.locale"
-    />
   </section>
 </template>
 
 <script setup lang="ts">
-import type {
-  SearchController,
-  SearchControllerState,
-} from "@askdialog/dialog-sdk";
-import { computed } from "vue";
-import DialogSearchPagination from "./DialogSearchPagination.vue";
+import type { SearchController, SearchResult } from "@askdialog/dialog-sdk";
 import DialogSearchProductCard from "./DialogSearchProductCard.vue";
 import type { SearchMessages } from "./searchMessages";
 
 const props = defineProps<{
   controller: SearchController;
-  state: SearchControllerState;
+  response: SearchResult;
   locale: string | undefined;
   messages: SearchMessages;
-  /** The footer link replaces in-panel pagination when set. */
-  hasSeeAll: boolean;
 }>();
-
-const response = computed(() => props.state.response);
-const hits = computed(() => response.value?.hits ?? []);
 </script>
 
 <style>

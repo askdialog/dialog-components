@@ -155,6 +155,10 @@
   filter: brightness(0.95);
 }
 
+.dialog-search-footer .dialog-search-pagination {
+  flex: 1;
+}
+
 @media (min-width: 768px) {
   .dialog-search-panel--grid .dialog-search-results {
     display: grid;

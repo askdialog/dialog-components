@@ -26,9 +26,6 @@ const { controller, state, theme } = useDialogSearch({
   currency: props.client.currency,
   sections,
 });
-
-const seeAllHref = (query: string): string =>
-  `/search?q=${encodeURIComponent(query)}`;
 </script>
 
 <template>
@@ -50,7 +47,6 @@ const seeAllHref = (query: string): string =>
       locale="fr-FR"
       :theme="theme"
       :layout="layout"
-      :see-all-href="seeAllHref"
     />
   </section>
 </template>

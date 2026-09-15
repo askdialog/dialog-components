@@ -1,16 +1,11 @@
 <template>
-  <span v-if="parts === undefined" class="dialog-search-match">{{
-    props.title
+  <span v-if="parts.before !== ''" class="dialog-search-muted">{{
+    parts.before
   }}</span>
-  <template v-else>
-    <span v-if="parts.before !== ''" class="dialog-search-muted">{{
-      parts.before
-    }}</span>
-    <span class="dialog-search-match">{{ parts.match }}</span>
-    <span v-if="parts.after !== ''" class="dialog-search-muted">{{
-      parts.after
-    }}</span>
-  </template>
+  <span class="dialog-search-match">{{ parts.match }}</span>
+  <span v-if="parts.after !== ''" class="dialog-search-muted">{{
+    parts.after
+  }}</span>
 </template>
 
 <script setup lang="ts">

@@ -66,9 +66,6 @@ const price = computed(() =>
 // Preserve native modified clicks. Prevent default navigation only when the
 // adapter handles the click; record selection in both cases.
 const handleClick = (event: MouseEvent): void => {
-  if (href.value === undefined) {
-    return;
-  }
   const opensNatively =
     event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
   if (
@@ -80,7 +77,7 @@ const handleClick = (event: MouseEvent): void => {
 
 // Track middle-clicks without the navigation adapter; ignore right-clicks.
 const handleAuxClick = (event: MouseEvent): void => {
-  if (href.value !== undefined && event.button === 1) {
+  if (event.button === 1) {
     props.controller.selectResult(props.index, { navigate: false });
   }
 };
