@@ -4,8 +4,11 @@
       :is="href === undefined ? 'div' : 'a'"
       class="dialog-search-product"
       :href="href"
-      @click="handleClick"
-      @auxclick="handleAuxClick"
+      v-on="
+        href === undefined
+          ? {}
+          : { click: handleClick, auxclick: handleAuxClick }
+      "
     >
       <span class="dialog-search-product-thumb" aria-hidden="true">
         <img

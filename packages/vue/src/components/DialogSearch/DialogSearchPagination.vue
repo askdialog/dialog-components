@@ -1,6 +1,6 @@
 <template>
   <nav
-    v-if="response !== undefined && response.nbPages > 1"
+    v-if="response !== undefined && hasPagination(props.state)"
     aria-label="Search results pages"
     class="dialog-search-pagination"
   >
@@ -29,6 +29,7 @@ import type {
 } from "@askdialog/dialog-sdk";
 import { computed } from "vue";
 import { getSearchMessages } from "./searchMessages";
+import { hasPagination } from "./searchPagination";
 
 interface Props {
   controller: SearchController;

@@ -1,9 +1,10 @@
 // Case- and diacritic-insensitive ("creme" highlights "Crème"); the upper/lower
-// round trip gives ß and SS one form, the sigma rewrite ignores final-sigma context.
+// round trip gives ß, ẞ and SS one form, the sigma rewrite ignores final-sigma context.
 const fold = (value: string): string =>
   value
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
+    .replace(/ẞ/gu, "ß")
     .toUpperCase()
     .toLowerCase()
     .replace(/ς/g, "σ");

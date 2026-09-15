@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from "react";
+import { type FC, type ReactNode, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   DialogSearchError,
@@ -9,7 +9,10 @@ import {
 } from "@askdialog/dialog-sdk";
 import { ArrowRightIcon } from "../../icons/ArrowRightIcon";
 import { DialogSearchCollections } from "./DialogSearchCollections";
-import { DialogSearchPagination } from "./DialogSearchPagination";
+import {
+  DialogSearchPagination,
+  hasPagination,
+} from "./DialogSearchPagination";
 import { DialogSearchProducts } from "./DialogSearchProducts";
 import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
 import { navigableCollections } from "./searchCollections";
@@ -80,7 +83,7 @@ const panelContent = (
   const collections = state.sections?.collections?.hits ?? [];
   const hasCollections = navigableCollections(collections).length > 0;
   const hasSeeAll = seeAllHref !== undefined && response.nbHits > 0;
-  const hasPages = !hasSeeAll && response.nbPages > 1;
+  const hasPages = !hasSeeAll && hasPagination(state);
 
   return (
     <>
@@ -126,6 +129,10 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = (props) => {
   const { anchorRef, rect, viewport } = useAnchorRect(hasResults);
   const { isOpen, panelRef } = useOutsideDismiss(state, anchorRef);
   const messages = getSearchMessages(locale);
+  const panelVariables = useMemo(
+    () => resolveSearchPanelVariables(theme),
+    [theme],
+  );
 
   return (
     <>
@@ -139,7 +146,7 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = (props) => {
             className={`dialog-search-panel dialog-search-panel--${layout}`}
             style={{
               ...panelStyle(rect, viewport.width, viewport.height),
-              ...resolveSearchPanelVariables(theme),
+              ...panelVariables,
             }}
           >
             {panelContent(props, messages)}

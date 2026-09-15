@@ -1,7 +1,8 @@
 import type { FC } from "react";
-import type {
-  SearchController,
-  SearchControllerState,
+import {
+  SearchStatus,
+  type SearchController,
+  type SearchControllerState,
 } from "@askdialog/dialog-sdk";
 import { getSearchMessages } from "./searchMessages";
 import "./DialogSearchPagination.css";
@@ -12,13 +13,19 @@ interface DialogSearchPaginationProps {
   locale?: string;
 }
 
+// Hidden while loading: a page taken from the retained response would apply to the pending query.
+export const hasPagination = (state: SearchControllerState): boolean =>
+  state.status !== SearchStatus.LOADING &&
+  state.response !== undefined &&
+  state.response.nbPages > 1;
+
 export const DialogSearchPagination: FC<DialogSearchPaginationProps> = ({
   controller,
   state,
   locale,
 }) => {
   const response = state.response;
-  if (response === undefined || response.nbPages <= 1) {
+  if (response === undefined || !hasPagination(state)) {
     return null;
   }
   const messages = getSearchMessages(locale);

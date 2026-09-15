@@ -81,6 +81,7 @@ import DialogSearchPagination from "./DialogSearchPagination.vue";
 import DialogSearchProducts from "./DialogSearchProducts.vue";
 import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
 import { navigableCollections } from "./searchCollections";
+import { hasPagination } from "./searchPagination";
 import type { SearchProductsLayout } from "./searchLayout";
 import { getSearchMessages } from "./searchMessages";
 import { resolveSearchPanelVariables } from "./searchTheme";
@@ -127,11 +128,12 @@ const showPanel = computed(
     rect.value !== undefined &&
     isAnchorOnScreen(rect.value, viewport.value.height),
 );
+const panelVariables = computed(() => resolveSearchPanelVariables(props.theme));
 const style = computed(() => ({
   ...(rect.value === undefined
     ? {}
     : panelStyle(rect.value, viewport.value.width, viewport.value.height)),
-  ...resolveSearchPanelVariables(props.theme),
+  ...panelVariables.value,
 }));
 
 const messages = computed(() => getSearchMessages(props.locale));
@@ -148,12 +150,7 @@ const hasSeeAll = computed(
     response.value !== undefined &&
     response.value.nbHits > 0,
 );
-const hasPages = computed(
-  () =>
-    !hasSeeAll.value &&
-    response.value !== undefined &&
-    response.value.nbPages > 1,
-);
+const hasPages = computed(() => !hasSeeAll.value && hasPagination(props.state));
 const seeAllHref = computed(() =>
   response.value === undefined
     ? undefined

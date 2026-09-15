@@ -30,24 +30,19 @@ const parseComputedRgb = (computed: string): Rgb | undefined => {
 
 // Every non-hex value (`black`, `rgb(...)`, `hsl(...)`) is validated and
 // resolved by the browser; an invalid value leaves the probe's style empty.
-const computedColorCache = new Map<string, Rgb | undefined>();
-
+// Not cached: the caller memoizes per theme, and `var()` values may change.
 const parseComputedColor = (color: string): Rgb | undefined => {
   if (typeof document === "undefined") {
     return undefined;
   }
-  if (computedColorCache.has(color)) {
-    return computedColorCache.get(color);
-  }
   const probe = document.createElement("span");
   probe.style.color = color;
-  let rgb: Rgb | undefined;
-  if (probe.style.color !== "") {
-    document.body.appendChild(probe);
-    rgb = parseComputedRgb(getComputedStyle(probe).color);
-    probe.remove();
+  if (probe.style.color === "") {
+    return undefined;
   }
-  computedColorCache.set(color, rgb);
+  document.body.appendChild(probe);
+  const rgb = parseComputedRgb(getComputedStyle(probe).color);
+  probe.remove();
 
   return rgb;
 };
