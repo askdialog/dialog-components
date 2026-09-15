@@ -17,28 +17,19 @@ const parseHexColor = (color: string): Rgb | undefined => {
   ) as Rgb;
 };
 
-// Split on separators rather than matched with an ambiguous whitespace
-// pattern: the value is merchant input and must not backtrack.
-const parseRgbColor = (color: string): Rgb | undefined => {
-  const trimmed = color.trim();
-  if (!/^rgba?\(/i.test(trimmed)) {
-    return undefined;
-  }
-  const channels = trimmed
-    .slice(trimmed.indexOf("(") + 1, trimmed.lastIndexOf(")"))
-    .split(/[\s,/]+/)
-    .filter((value) => value !== "")
-    .slice(0, 3)
-    .map(Number);
-  if (channels.length !== 3 || channels.some(Number.isNaN)) {
+// Only the browser's canonical computed color is parsed here: fixed ", "
+// separators, so the pattern cannot backtrack on merchant input.
+const parseComputedRgb = (computed: string): Rgb | undefined => {
+  const match = /^rgba?\((\d+), (\d+), (\d+)(?:, [\d.]+)?\)$/.exec(computed);
+  if (match === null) {
     return undefined;
   }
 
-  return channels as Rgb;
+  return [match[1], match[2], match[3]].map(Number) as Rgb;
 };
 
-// Named and functional colors (`black`, `hsl(...)`) are resolved by the
-// browser; an unparseable value leaves the probe's style empty.
+// Every non-hex value (`black`, `rgb(...)`, `hsl(...)`) is validated and
+// resolved by the browser; an invalid value leaves the probe's style empty.
 const computedColorCache = new Map<string, Rgb | undefined>();
 
 const parseComputedColor = (color: string): Rgb | undefined => {
@@ -53,7 +44,7 @@ const parseComputedColor = (color: string): Rgb | undefined => {
   let rgb: Rgb | undefined;
   if (probe.style.color !== "") {
     document.body.appendChild(probe);
-    rgb = parseRgbColor(getComputedStyle(probe).color);
+    rgb = parseComputedRgb(getComputedStyle(probe).color);
     probe.remove();
   }
   computedColorCache.set(color, rgb);
@@ -62,7 +53,7 @@ const parseComputedColor = (color: string): Rgb | undefined => {
 };
 
 export const parseCssColor = (color: string): Rgb | undefined =>
-  parseHexColor(color) ?? parseRgbColor(color) ?? parseComputedColor(color);
+  parseHexColor(color) ?? parseComputedColor(color);
 
 const channelLuminance = (channel: number): number => {
   const normalized = channel / 255;
