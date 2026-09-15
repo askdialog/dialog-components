@@ -3,28 +3,25 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-top: 4px;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
+  padding: 4px 0;
   font-size: 12px;
-  line-height: 16px;
-  color: #737373;
+  color: var(--dso-text-sec);
 }
 
 .dialog-search-pagination button {
   margin: 0;
   padding: 6px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 9999px;
-  background: #ffffff;
+  border: 1px solid var(--dso-border);
+  border-radius: var(--dso-r-btn);
+  background: transparent;
   font: inherit;
-  color: inherit;
+  color: var(--dso-text);
   cursor: pointer;
   transition: background-color 120ms ease;
 }
 
 .dialog-search-pagination button:hover:not(:disabled) {
-  background-color: #fafafa;
+  background-color: var(--dso-hover);
 }
 
 .dialog-search-pagination button:disabled {

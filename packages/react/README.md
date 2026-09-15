@@ -119,12 +119,17 @@ import '@askdialog/dialog-react/style.css';
 const client = new Dialog({ apiKey: 'your-api-key', locale: 'en-US', currency: 'USD' });
 
 function SearchPage() {
-  const { controller, state } = useDialogSearch({ client, language: 'en', currency: client.currency });
+  const { controller, state, theme } = useDialogSearch({
+    client,
+    language: 'en',
+    currency: client.currency,
+    sections: [{ index: 'collections', hitsPerPage: 5 }],
+  });
 
   return (
     <>
       <DialogSearchBar controller={controller} placeholder="Search products..." />
-      <DialogSearchResults controller={controller} state={state} />
+      <DialogSearchResults controller={controller} state={state} theme={theme} />
     </>
   );
 }
@@ -142,10 +147,11 @@ Creates one search controller per hook instance and disposes it on unmount.
 - `navigate` ((url, hit) => void, optional) - Router adapter called after selection attribution (e.g. `(url) => router.push(url)`). Omit it to let the cards' plain `<a href>` links navigate natively.
 - `debounceMs` (number, optional) - Keystroke debounce (default: 250)
 - `hitsPerPage` (number, optional) - Results per page (default: 12)
+- `sections` (SearchSection[], optional) - Extra indices searched alongside the products, e.g. `[{ index: 'collections', hitsPerPage: 5 }]` fills the collections column of `DialogSearchResults`. Only request an index the catalog exposes: a missing one fails the whole search.
 
 Search language and currency are explicit and independent of `client.locale`, which can be a regional locale such as `fr-FR`.
 
-**Returns:** `{ controller, state }` — pass both to the components below. `state.status` is `idle` / `loading` / `success` / `empty` / `error`.
+**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `state.status` is `idle` / `loading` / `success` / `empty` / `error`.
 
 #### DialogSearchBar
 
@@ -159,11 +165,15 @@ Search input: typing runs a debounced search, submitting (Enter) searches immedi
 
 #### DialogSearchResults
 
-Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. Renders the controller states; successful searches render a scrollable list of `DialogSearchProductCard` rows plus the pagination controls. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically. Clicking outside the panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept.
+Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, centered on the bar (up to 1440px wide, filling the viewport) and anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. It shows the same layout as the Shopify search overlay: a collections column on the left when `sections` requests them, the products on the right as a list or a 3-column grid, the query match emphasized in every title, and either a "See all results" button or the pagination controls. Below 768px the panel stacks, collections in a horizontal rail above the products. Colors, radii and font follow the SDK theme (dark palette when `backgroundColor` is dark, straight or rounded corners from `ctaBorderType`). Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically. Clicking outside the panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
 - `state` (SearchControllerState) - From `useDialogSearch` (required)
+- `locale` (string, optional) - BCP 47 locale for prices, counts and labels (English labels and browser number format when omitted)
+- `theme` (Theme, optional) - The client's theme, as returned by `useDialogSearch`; styles the panel (palette, radii, font)
+- `layout` (`'list' | 'grid'`, optional) - Products layout (default: `'list'`)
+- `seeAllHref` ((query) => string, optional) - Link of the "See all results" footer button; omitted, the panel paginates instead
 
 #### DialogSearchPagination
 
@@ -172,6 +182,7 @@ Previous/next controls with a page indicator; hidden while there is a single pag
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
 - `state` (SearchControllerState) - From `useDialogSearch` (required)
+- `locale` (string, optional) - Locale of the button labels
 
 ## Theming
 
