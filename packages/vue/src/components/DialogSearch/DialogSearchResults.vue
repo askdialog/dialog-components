@@ -1,16 +1,13 @@
 <template>
   <div ref="anchorRef" />
   <Teleport v-if="showPanel" to="body">
-    <div ref="panelRef" class="dialog-search-panel" :style="panelStyle">
-      <p
-        v-if="props.state.status === SearchStatus.LOADING"
-        role="status"
-        class="dialog-search-status"
-      >
-        Searching “{{ props.state.query }}”…
-      </p>
+    <div
+      ref="panelRef"
+      :class="['dialog-search-panel', `dialog-search-panel--${props.layout}`]"
+      :style="style"
+    >
       <div
-        v-else-if="props.state.status === SearchStatus.ERROR"
+        v-if="props.state.status === SearchStatus.ERROR"
         class="dialog-search-error"
       >
         <p role="alert" class="dialog-search-status dialog-search-status-error">
@@ -21,40 +18,43 @@
           class="dialog-search-retry"
           @click="props.controller.retry()"
         >
-          Retry
+          {{ messages.retry }}
         </button>
       </div>
+      <!-- Non-blocking: the previous results stay while the next query is loading. -->
       <p
-        v-else-if="props.state.status === SearchStatus.EMPTY"
+        v-else-if="response === undefined"
         role="status"
         class="dialog-search-status"
       >
-        No products match “{{ props.state.response?.query }}”.
+        {{ messages.searching(props.state.query) }}
       </p>
-      <template
-        v-else-if="
-          props.state.status === SearchStatus.SUCCESS &&
-          props.state.response !== undefined
-        "
-      >
-        <p role="status" class="dialog-search-status">
-          {{ props.state.response.nbHits }}
-          result{{ props.state.response.nbHits > 1 ? "s" : "" }}
-        </p>
-        <ul class="dialog-search-results">
-          <DialogSearchProductCard
-            v-for="(hit, index) in props.state.response.hits"
-            :key="hit.objectID"
-            :controller="props.controller"
-            :hit="hit"
-            :index="index"
-            :locale="props.locale"
+      <template v-else>
+        <div
+          :class="[
+            'dialog-search-body',
+            { 'dialog-search-body--no-collections': !hasCollections },
+          ]"
+        >
+          <DialogSearchCollections
+            :collections="collections"
+            :query="props.state.query"
+            :messages="messages"
           />
-        </ul>
-        <DialogSearchPagination
-          :controller="props.controller"
-          :state="props.state"
-        />
+          <DialogSearchProducts
+            :controller="props.controller"
+            :state="props.state"
+            :locale="props.locale"
+            :messages="messages"
+            :has-see-all="hasSeeAll"
+          />
+        </div>
+        <div v-if="hasSeeAll" class="dialog-search-footer">
+          <a class="dialog-search-cta" :href="seeAllHref">
+            {{ messages.seeAllLabel(response.nbHits) }}
+            <ArrowRightIcon />
+          </a>
+        </div>
       </template>
     </div>
   </Teleport>
@@ -66,25 +66,38 @@ import {
   SearchStatus,
   type SearchController,
   type SearchControllerState,
+  type Theme,
 } from "@askdialog/dialog-sdk";
-import { computed, type CSSProperties } from "vue";
-import DialogSearchPagination from "./DialogSearchPagination.vue";
-import DialogSearchProductCard from "./DialogSearchProductCard.vue";
-import { useAnchorRect, type AnchorRect } from "./useAnchorRect";
+import { computed } from "vue";
+import ArrowRightIcon from "../../icons/ArrowRightIcon.vue";
+import DialogSearchCollections from "./DialogSearchCollections.vue";
+import DialogSearchProducts from "./DialogSearchProducts.vue";
+import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
+import { navigableCollections } from "./searchCollections";
+import type { SearchProductsLayout } from "./searchLayout";
+import { getSearchMessages } from "./searchMessages";
+import { resolveSearchPanelVariables } from "./searchTheme";
+import { useAnchorRect } from "./useAnchorRect";
 import { useOutsideDismiss } from "./useOutsideDismiss";
-
-const PANEL_OFFSET_PX = 8;
-const VIEWPORT_MARGIN_PX = 16;
-// Flip above the bar when space below is limited and more is available above.
-const MIN_PANEL_SPACE_PX = 200;
 
 interface Props {
   controller: SearchController;
   state: SearchControllerState;
+  /** BCP 47 locale for prices, counts and labels. */
   locale?: string;
+  /** Usually `client.theme`, as returned by `useDialogSearch`. */
+  theme?: Theme;
+  layout?: SearchProductsLayout;
+  /** Link of the "See all results" footer; omitted, the panel paginates instead. */
+  seeAllHref?: (query: string) => string;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  locale: undefined,
+  theme: undefined,
+  layout: "list",
+  seeAllHref: undefined,
+});
 
 const describeError = (error: unknown): string => {
   if (error instanceof DialogSearchError) {
@@ -94,79 +107,76 @@ const describeError = (error: unknown): string => {
   return "Search failed: network error. Check your connection and try again.";
 };
 
-const isAnchorOnScreen = (rect: AnchorRect, viewportHeight: number): boolean =>
-  rect.bottom > 0 && rect.top < viewportHeight;
-
-const computePanelStyle = (
-  rect: AnchorRect,
-  viewportHeight: number,
-): CSSProperties => {
-  const spaceBelow =
-    viewportHeight - rect.bottom - PANEL_OFFSET_PX - VIEWPORT_MARGIN_PX;
-  const spaceAbove = rect.top - PANEL_OFFSET_PX - VIEWPORT_MARGIN_PX;
-  const base = { left: `${rect.left}px`, width: `${rect.width}px` };
-
-  if (spaceBelow < MIN_PANEL_SPACE_PX && spaceAbove > spaceBelow) {
-    return {
-      ...base,
-      bottom: `${viewportHeight - rect.top + PANEL_OFFSET_PX}px`,
-      maxHeight: `${Math.max(spaceAbove, 0)}px`,
-    };
-  }
-
-  return {
-    ...base,
-    top: `${rect.bottom + PANEL_OFFSET_PX}px`,
-    maxHeight: `${Math.max(spaceBelow, 0)}px`,
-  };
-};
-
 const stateRef = computed(() => props.state);
 const hasResults = computed(() => props.state.status !== SearchStatus.IDLE);
 
 // Render fixed under document.body to avoid ancestor clipping and stacking contexts.
-const { anchorRef, rect, viewportHeight } = useAnchorRect(hasResults);
+const { anchorRef, rect, viewport } = useAnchorRect(hasResults);
 const { isOpen, panelRef } = useOutsideDismiss(stateRef, anchorRef);
 
 const showPanel = computed(
   () =>
     isOpen.value &&
     rect.value !== undefined &&
-    isAnchorOnScreen(rect.value, viewportHeight.value),
+    isAnchorOnScreen(rect.value, viewport.value.height),
 );
-const panelStyle = computed(() =>
-  rect.value === undefined
-    ? undefined
-    : computePanelStyle(rect.value, viewportHeight.value),
+const style = computed(() => ({
+  ...(rect.value === undefined
+    ? {}
+    : panelStyle(rect.value, viewport.value.width, viewport.value.height)),
+  ...resolveSearchPanelVariables(props.theme),
+}));
+
+const messages = computed(() => getSearchMessages(props.locale));
+const response = computed(() => props.state.response);
+const collections = computed(
+  () => props.state.sections?.collections?.hits ?? [],
 );
+const hasCollections = computed(
+  () => navigableCollections(collections.value).length > 0,
+);
+const hasSeeAll = computed(
+  () =>
+    props.seeAllHref !== undefined &&
+    response.value !== undefined &&
+    response.value.nbHits > 0,
+);
+const seeAllHref = computed(() => props.seeAllHref?.(props.state.query));
 </script>
 
 <style>
-/* Teleported to document.body; top/left/width/max-height are set inline from the anchor. */
+/* Teleported to document.body; top/left/width/max-height are set inline from the anchor.
+   Palette and radii come from the --dso-* custom properties resolved from the
+   SDK theme (searchTheme.ts); only the font is inherited from the page. */
 .dialog-search-panel {
   position: fixed;
   z-index: 9999;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   margin: 0;
-  padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 24px;
-  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  background: var(--dso-panel);
+  border-radius: var(--dso-r-panel);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  font-family: var(--dso-font, inherit);
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--dso-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.dialog-search-panel *,
+.dialog-search-panel *::before,
+.dialog-search-panel *::after {
+  box-sizing: border-box;
 }
 
 .dialog-search-status {
   margin: 0;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  color: #a3a3a3;
+  padding: 16px 24px;
+  color: var(--dso-text-sec);
 }
 
 .dialog-search-status-error {
@@ -178,36 +188,114 @@ const panelStyle = computed(() =>
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+  padding-bottom: 16px;
 }
 
 .dialog-search-retry {
-  margin: 0;
+  margin: 0 24px;
   padding: 6px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 9999px;
-  background: #ffffff;
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
+  border: 1px solid var(--dso-border);
+  border-radius: var(--dso-r-btn);
+  background: transparent;
+  font: inherit;
   font-size: 13px;
-  line-height: 20px;
-  color: #737373;
+  color: var(--dso-text);
   cursor: pointer;
   transition: background-color 120ms ease;
 }
 
 .dialog-search-retry:hover {
-  background-color: #fafafa;
+  background-color: var(--dso-hover);
 }
 
-.dialog-search-results {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 480px;
+.dialog-search-body {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  flex: 1;
   min-height: 0;
-  overflow-y: auto;
+}
+
+.dialog-search-body--no-collections {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dialog-search-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 12px 8px;
+}
+
+.dialog-search-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dso-text-sec);
+}
+
+.dialog-search-label-count {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.dialog-search-count {
+  font-size: 12px;
+  color: var(--dso-text-sec);
+}
+
+.dialog-search-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex: none;
+  padding: 14px 24px;
+  border-top: 1px solid var(--dso-border);
+}
+
+.dialog-search-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border: 1px solid var(--dso-primary);
+  border-radius: var(--dso-r-btn);
+  background: var(--dso-primary);
+  color: var(--dso-cta-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.dialog-search-cta:hover {
+  filter: brightness(0.95);
+}
+
+@media (max-width: 767px) {
+  .dialog-search-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: 16px;
+    overflow-y: auto;
+  }
+
+  .dialog-search-footer {
+    padding: 12px 16px;
+  }
+
+  .dialog-search-cta {
+    width: 100%;
+    height: 44px;
+  }
+
+  .dialog-search-cta svg {
+    display: none;
+  }
 }
 </style>

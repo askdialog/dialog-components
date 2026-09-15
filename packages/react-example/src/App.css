@@ -8,3 +8,10 @@
   max-width: calc(100vw - 40px);
   margin: 20px;
 }
+
+.search-demo-layout {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}

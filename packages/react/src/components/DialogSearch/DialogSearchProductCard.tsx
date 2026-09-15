@@ -1,6 +1,7 @@
 import { type FC, type MouseEvent, useEffect, useRef } from "react";
 import type { SearchController, SearchHit } from "@askdialog/dialog-sdk";
-import { formatSearchPrice, safeProductHref } from "./searchDisplay";
+import { HighlightedTitle } from "./HighlightedTitle";
+import { formatSearchPrice, hitHref, hitTitle } from "./searchDisplay";
 import "./DialogSearchProductCard.css";
 
 interface DialogSearchProductCardProps {
@@ -8,6 +9,8 @@ interface DialogSearchProductCardProps {
   hit: SearchHit;
   index: number;
   locale?: string;
+  /** Committed query, emphasized inside the title. */
+  query?: string;
 }
 
 export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
@@ -15,6 +18,7 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
   hit,
   index,
   locale,
+  query = "",
 }) => {
   const cardRef = useRef<HTMLLIElement>(null);
 
@@ -42,31 +46,32 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
     }
   };
 
-  const title = hit.title ?? hit.objectID;
   const price = formatSearchPrice(hit.priceRange, locale);
-  const href = hit.url === undefined ? undefined : safeProductHref(hit.url);
+  const href = hitHref(hit);
 
   const content = (
     <>
-      <div className="dialog-search-card-image">
-        {hit.imageUrl !== undefined && (
-          <img src={hit.imageUrl} alt={title} loading="lazy" />
+      <span className="dialog-search-product-thumb" aria-hidden>
+        {hit.imageUrl !== undefined && hit.imageUrl !== "" && (
+          <img src={hit.imageUrl} alt="" loading="lazy" />
         )}
-      </div>
-      <div className="dialog-search-card-info">
-        <p className="dialog-search-card-title">{title}</p>
-        {price !== "" && <p className="dialog-search-card-price">{price}</p>}
-      </div>
+      </span>
+      <span className="dialog-search-product-title">
+        <HighlightedTitle title={hitTitle(hit)} query={query} />
+      </span>
+      {price !== "" && (
+        <span className="dialog-search-product-price">{price}</span>
+      )}
     </>
   );
 
   return (
     <li ref={cardRef} className="dialog-search-card">
       {href === undefined ? (
-        <div className="dialog-search-card-body">{content}</div>
+        <div className="dialog-search-product">{content}</div>
       ) : (
         <a
-          className="dialog-search-card-body"
+          className="dialog-search-product"
           href={href}
           onClick={handleClick}
           onAuxClick={handleAuxClick}

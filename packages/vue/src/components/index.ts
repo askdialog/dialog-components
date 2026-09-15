@@ -13,6 +13,7 @@ export {
   DialogSearchProductCard,
   DialogSearchResults,
 };
+export type { SearchProductsLayout } from "./DialogSearch/searchLayout";
 export {
   useDialogSearch,
   type DialogSearch,

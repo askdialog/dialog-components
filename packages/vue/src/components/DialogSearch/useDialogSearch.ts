@@ -5,7 +5,9 @@ import {
   type SearchController,
   type SearchControllerState,
   type SearchHit,
+  type SearchSection,
   type SearchSurface,
+  type Theme,
 } from "@askdialog/dialog-sdk";
 import { onMounted, onUnmounted, shallowRef, type ShallowRef } from "vue";
 
@@ -21,11 +23,18 @@ export interface UseDialogSearchOptions {
   navigate?: (url: string, hit: SearchHit) => void;
   debounceMs?: number;
   hitsPerPage?: number;
+  /**
+   * Extra indices searched alongside the products, e.g. `[{ index: 'collections', hitsPerPage: 5 }]`.
+   * Only request an index the catalog exposes: a missing one fails the whole search.
+   */
+  sections?: readonly SearchSection[];
 }
 
 export interface DialogSearch {
   controller: SearchController;
   state: Readonly<ShallowRef<SearchControllerState>>;
+  /** The client's theme, for `DialogSearchResults`. */
+  theme: Theme;
 }
 
 /** Options are fixed when the controller is created. */
@@ -64,5 +73,5 @@ export const useDialogSearch = (
     controller.dispose();
   });
 
-  return { controller, state };
+  return { controller, state, theme: client.theme };
 };
