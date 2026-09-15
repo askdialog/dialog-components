@@ -17,16 +17,24 @@ const parseHexColor = (color: string): Rgb | undefined => {
   ) as Rgb;
 };
 
+// Split on separators rather than matched with an ambiguous whitespace
+// pattern: the value is merchant input and must not backtrack.
 const parseRgbColor = (color: string): Rgb | undefined => {
-  const match =
-    /^rgba?\(\s*([\d.]+)\s*[,\s]\s*([\d.]+)\s*[,\s]\s*([\d.]+)/i.exec(
-      color.trim(),
-    );
-  if (match === null) {
+  const trimmed = color.trim();
+  if (!/^rgba?\(/i.test(trimmed)) {
+    return undefined;
+  }
+  const channels = trimmed
+    .slice(trimmed.indexOf("(") + 1, trimmed.lastIndexOf(")"))
+    .split(/[\s,/]+/)
+    .filter((value) => value !== "")
+    .slice(0, 3)
+    .map(Number);
+  if (channels.length !== 3 || channels.some(Number.isNaN)) {
     return undefined;
   }
 
-  return [match[1], match[2], match[3]].map(Number) as Rgb;
+  return channels as Rgb;
 };
 
 // Named and functional colors (`black`, `hsl(...)`) are resolved by the
