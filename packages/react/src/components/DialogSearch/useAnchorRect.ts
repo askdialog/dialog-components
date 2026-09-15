@@ -7,18 +7,23 @@ export interface AnchorRect {
   width: number;
 }
 
+interface Viewport {
+  width: number;
+  height: number;
+}
+
 // Position the panel from the previous sibling (search bar), falling back to the anchor.
-// Capture ancestor scrolls and track viewport height separately for available space.
+// Capture ancestor scrolls and track the viewport separately for available space.
 export const useAnchorRect = (
   active: boolean,
 ): {
   anchorRef: RefObject<HTMLDivElement | null>;
   rect: AnchorRect | undefined;
-  viewportHeight: number;
+  viewport: Viewport;
 } => {
   const anchorRef = useRef<HTMLDivElement>(null);
   const [rect, setRect] = useState<AnchorRect | undefined>(undefined);
-  const [viewportHeight, setViewportHeight] = useState(0);
+  const [viewport, setViewport] = useState<Viewport>({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
     if (!active) {
@@ -31,7 +36,12 @@ export const useAnchorRect = (
       }
       const target = anchor.previousElementSibling ?? anchor;
       const { top, bottom, left, width } = target.getBoundingClientRect();
-      setViewportHeight(window.innerHeight);
+      setViewport((previous) =>
+        previous.width === window.innerWidth &&
+        previous.height === window.innerHeight
+          ? previous
+          : { width: window.innerWidth, height: window.innerHeight },
+      );
       setRect((previous) =>
         previous !== undefined &&
         previous.top === top &&
@@ -52,5 +62,5 @@ export const useAnchorRect = (
     };
   }, [active]);
 
-  return { anchorRef, rect, viewportHeight };
+  return { anchorRef, rect, viewport };
 };
