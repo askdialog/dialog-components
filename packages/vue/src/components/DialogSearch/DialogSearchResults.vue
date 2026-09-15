@@ -21,7 +21,8 @@
           {{ messages.retry }}
         </button>
       </div>
-      <!-- Non-blocking: the previous results stay while the next query is loading. -->
+      <!-- Non-blocking: the previous results stay while the next query is loading,
+           so everything below reads the response's own query, not the pending one. -->
       <p
         v-else-if="response === undefined"
         role="status"
@@ -38,22 +39,27 @@
         >
           <DialogSearchCollections
             :collections="collections"
-            :query="props.state.query"
+            :query="response.query"
             :messages="messages"
           />
           <DialogSearchProducts
             :controller="props.controller"
-            :state="props.state"
+            :response="response"
             :locale="props.locale"
             :messages="messages"
-            :has-see-all="hasSeeAll"
           />
         </div>
-        <div v-if="hasSeeAll" class="dialog-search-footer">
-          <a class="dialog-search-cta" :href="seeAllHref">
+        <div v-if="hasSeeAll || hasPages" class="dialog-search-footer">
+          <a v-if="hasSeeAll" class="dialog-search-cta" :href="seeAllHref">
             {{ messages.seeAllLabel(response.nbHits) }}
             <ArrowRightIcon />
           </a>
+          <DialogSearchPagination
+            v-else
+            :controller="props.controller"
+            :state="props.state"
+            :locale="props.locale"
+          />
         </div>
       </template>
     </div>
@@ -71,9 +77,11 @@ import {
 import { computed } from "vue";
 import ArrowRightIcon from "../../icons/ArrowRightIcon.vue";
 import DialogSearchCollections from "./DialogSearchCollections.vue";
+import DialogSearchPagination from "./DialogSearchPagination.vue";
 import DialogSearchProducts from "./DialogSearchProducts.vue";
 import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
 import { navigableCollections } from "./searchCollections";
+import { hasPagination } from "./searchPagination";
 import type { SearchProductsLayout } from "./searchLayout";
 import { getSearchMessages } from "./searchMessages";
 import { resolveSearchPanelVariables } from "./searchTheme";
@@ -120,11 +128,12 @@ const showPanel = computed(
     rect.value !== undefined &&
     isAnchorOnScreen(rect.value, viewport.value.height),
 );
+const panelVariables = computed(() => resolveSearchPanelVariables(props.theme));
 const style = computed(() => ({
   ...(rect.value === undefined
     ? {}
     : panelStyle(rect.value, viewport.value.width, viewport.value.height)),
-  ...resolveSearchPanelVariables(props.theme),
+  ...panelVariables.value,
 }));
 
 const messages = computed(() => getSearchMessages(props.locale));
@@ -141,7 +150,12 @@ const hasSeeAll = computed(
     response.value !== undefined &&
     response.value.nbHits > 0,
 );
-const seeAllHref = computed(() => props.seeAllHref?.(props.state.query));
+const hasPages = computed(() => !hasSeeAll.value && hasPagination(props.state));
+const seeAllHref = computed(() =>
+  response.value === undefined
+    ? undefined
+    : props.seeAllHref?.(response.value.query),
+);
 </script>
 
 <style>
@@ -274,6 +288,10 @@ const seeAllHref = computed(() => props.seeAllHref?.(props.state.query));
 
 .dialog-search-cta:hover {
   filter: brightness(0.95);
+}
+
+.dialog-search-footer .dialog-search-pagination {
+  flex: 1;
 }
 
 @media (max-width: 767px) {

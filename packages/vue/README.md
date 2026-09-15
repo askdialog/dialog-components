@@ -119,12 +119,7 @@ import '@askdialog/dialog-vue/style.css';
 
 const client = new Dialog({ apiKey: 'your-api-key', locale: 'en-US', currency: 'USD' });
 
-const { controller, state, theme } = useDialogSearch({
-  client,
-  language: 'en',
-  currency: client.currency,
-  sections: [{ index: 'collections', hitsPerPage: 5 }],
-});
+const { controller, state, theme } = useDialogSearch({ client, language: 'en', currency: client.currency });
 </script>
 
 <template>
@@ -145,13 +140,24 @@ Creates one search controller per composable instance and disposes it on unmount
 - `navigate` ((url, hit) => void, optional) - Router adapter called after selection attribution (e.g. `(url) => router.push(url)`). Omit it to let the cards' plain `<a href>` links navigate natively.
 - `debounceMs` (number, optional) - Keystroke debounce (default: 250)
 - `hitsPerPage` (number, optional) - Results per page (default: 12)
-- `sections` (SearchSection[], optional) - Extra indices searched alongside the products, e.g. `[{ index: 'collections', hitsPerPage: 5 }]` fills the collections column of `DialogSearchResults`. Only request an index the catalog exposes: a missing one fails the whole search.
+- `sections` (SearchSection[], optional) - Extra indices searched alongside the products; `collections` fills the collections column of `DialogSearchResults`. Only request an index the catalog exposes: a missing one fails the whole search.
 
 Search language and currency are explicit and independent of `client.locale`, which can be a regional locale such as `fr-FR`.
 
 Options are read once during setup — later changes don't rebind the live controller.
 
 **Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `state` is a `ShallowRef`; `state.value.status` is `idle` / `loading` / `success` / `empty` / `error`.
+
+With the collections column, for a catalog that exposes a collections index:
+
+```ts
+const { controller, state, theme } = useDialogSearch({
+  client,
+  language: 'en',
+  currency: client.currency,
+  sections: [{ index: 'collections', hitsPerPage: 5 }],
+});
+```
 
 #### DialogSearchBar
 

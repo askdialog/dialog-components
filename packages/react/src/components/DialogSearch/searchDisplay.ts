@@ -39,7 +39,7 @@ export const safeHref = (url: string): string | undefined => {
 };
 
 export const hitHref = (hit: SearchHit): string | undefined =>
-  hit.url === undefined ? undefined : safeHref(hit.url);
+  hit.url === undefined || hit.url === "" ? undefined : safeHref(hit.url);
 
 export const hitTitle = (hit: SearchHit): string =>
   hit.title ?? hit.handle ?? hit.objectID;

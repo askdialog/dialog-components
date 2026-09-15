@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from "react";
+import { type FC, type ReactNode, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   DialogSearchError,
@@ -9,6 +9,10 @@ import {
 } from "@askdialog/dialog-sdk";
 import { ArrowRightIcon } from "../../icons/ArrowRightIcon";
 import { DialogSearchCollections } from "./DialogSearchCollections";
+import {
+  DialogSearchPagination,
+  hasPagination,
+} from "./DialogSearchPagination";
 import { DialogSearchProducts } from "./DialogSearchProducts";
 import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
 import { navigableCollections } from "./searchCollections";
@@ -66,7 +70,8 @@ const panelContent = (
       </div>
     );
   }
-  // Non-blocking: the previous results stay while the next query is loading.
+  // Non-blocking: the previous results stay while the next query is loading,
+  // so everything below reads the response's own query, not the pending one.
   if (response === undefined) {
     return (
       <p role="status" className="dialog-search-status">
@@ -75,9 +80,10 @@ const panelContent = (
     );
   }
 
-  const collections = state.sections?.collections?.hits;
+  const collections = state.sections?.collections?.hits ?? [];
   const hasCollections = navigableCollections(collections).length > 0;
   const hasSeeAll = seeAllHref !== undefined && response.nbHits > 0;
+  const hasPages = !hasSeeAll && hasPagination(state);
 
   return (
     <>
@@ -85,24 +91,31 @@ const panelContent = (
         className={`dialog-search-body${hasCollections ? "" : " dialog-search-body--no-collections"}`}
       >
         <DialogSearchCollections
-          collections={collections ?? []}
-          query={state.query}
+          collections={collections}
+          query={response.query}
           messages={messages}
         />
         <DialogSearchProducts
           controller={controller}
-          state={state}
+          response={response}
           locale={locale}
           messages={messages}
-          hasSeeAll={hasSeeAll}
         />
       </div>
-      {hasSeeAll && (
+      {(hasSeeAll || hasPages) && (
         <div className="dialog-search-footer">
-          <a className="dialog-search-cta" href={seeAllHref(state.query)}>
-            {messages.seeAllLabel(response.nbHits)}
-            <ArrowRightIcon />
-          </a>
+          {hasSeeAll ? (
+            <a className="dialog-search-cta" href={seeAllHref(response.query)}>
+              {messages.seeAllLabel(response.nbHits)}
+              <ArrowRightIcon />
+            </a>
+          ) : (
+            <DialogSearchPagination
+              controller={controller}
+              state={state}
+              locale={locale}
+            />
+          )}
         </div>
       )}
     </>
@@ -116,6 +129,10 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = (props) => {
   const { anchorRef, rect, viewport } = useAnchorRect(hasResults);
   const { isOpen, panelRef } = useOutsideDismiss(state, anchorRef);
   const messages = getSearchMessages(locale);
+  const panelVariables = useMemo(
+    () => resolveSearchPanelVariables(theme),
+    [theme],
+  );
 
   return (
     <>
@@ -129,7 +146,7 @@ export const DialogSearchResults: FC<DialogSearchResultsProps> = (props) => {
             className={`dialog-search-panel dialog-search-panel--${layout}`}
             style={{
               ...panelStyle(rect, viewport.width, viewport.height),
-              ...resolveSearchPanelVariables(theme),
+              ...panelVariables,
             }}
           >
             {panelContent(props, messages)}
