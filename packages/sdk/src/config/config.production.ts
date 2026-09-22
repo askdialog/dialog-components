@@ -1,5 +1,5 @@
 export const config = {
-  // Nest monolith (production) — serves POST /public/search and
+  // Nest monolith (production) — serves POST /public/search/lexical and
   // GET /public/product-page-questions. Custom domain, same as the dashboard's
   // VITE_MONOLITH_API_URL: the raw execute-api gateway URL answers 500 on
   // every route and must not be used.

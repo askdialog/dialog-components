@@ -2,7 +2,7 @@
 // the values, then activate it with `pnpm set-config local` (restore with
 // `pnpm set-config production`).
 export const config = {
-  // Local Nest monolith — serves POST /public/search and
+  // Local Nest monolith — serves POST /public/search/lexical and
   // GET /public/product-page-questions. Match your monolith port
   // (per-developer; see backend/monolith/.env PORT in dialog-ecom).
   monolithApiUrl: "http://localhost:3001",
