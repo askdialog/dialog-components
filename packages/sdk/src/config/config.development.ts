@@ -1,7 +1,7 @@
 export const config = {
-  baseApiUrl: "https://hr5buzenb1.execute-api.eu-west-1.amazonaws.com",
-  // Nest monolith (staging) — serves POST /public/search/lexical.
-  monolithApiUrl: "https://fvcphlqyle.execute-api.eu-west-1.amazonaws.com",
+  // Nest monolith (staging) — serves POST /public/search and
+  // GET /public/product-page-questions.
+  monolithApiUrl: "https://api-staging.askdialog.ai",
   assistantUrl: "https://d2bycosa71tnxv.cloudfront.net/assets/index.js",
 };
 export type Config = typeof config;
