@@ -3,6 +3,7 @@ import { uuidv7 } from "uuidv7";
 import packageJson from "../package.json";
 import { defaultTheme } from "./constants/theme";
 import {
+  AnalyticsConsent,
   CurrentProduct,
   DialogCallbacks,
   DialogConstructor,
@@ -50,6 +51,7 @@ export class Dialog {
   private _eventsHandler: EventsHandler;
   private _ignoreOneTrustAutoBlock: boolean;
   private _disableAddToCart: boolean;
+  private _analyticsConsent?: AnalyticsConsent;
   private _currentProduct?: CurrentProduct;
 
   constructor({
@@ -62,6 +64,7 @@ export class Dialog {
     userId,
     ignoreOneTrustAutoBlock,
     disableAddToCart,
+    analyticsConsent,
     product,
   }: DialogConstructor) {
     this._apiKey = apiKey;
@@ -71,6 +74,7 @@ export class Dialog {
     this._callbacks = callbacks;
     this._ignoreOneTrustAutoBlock = ignoreOneTrustAutoBlock ?? false;
     this._disableAddToCart = disableAddToCart ?? false;
+    this._analyticsConsent = analyticsConsent;
     this._currentProduct =
       product !== undefined && Dialog._isValidProductId(product.id)
         ? product
@@ -371,6 +375,9 @@ export class Dialog {
     if (this._disableAddToCart) {
       // Hide the add-to-cart button in the assistant.
       div.dataset.disableAddToCart = "true";
+    }
+    if (this._analyticsConsent === "granted") {
+      div.dataset.analyticsConsent = this._analyticsConsent;
     }
     document.body.appendChild(div);
     if (this._currentProduct !== undefined) {
