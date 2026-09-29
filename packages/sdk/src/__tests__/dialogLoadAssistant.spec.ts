@@ -8,6 +8,7 @@ const buildDialog = (
   overrides: Partial<{
     _ignoreOneTrustAutoBlock: boolean;
     _disableAddToCart: boolean;
+    _analyticsConsent: string;
   }> = {},
 ): Dialog => {
   const dialog = Object.create(Dialog.prototype) as Dialog;
@@ -113,5 +114,34 @@ describe("Dialog._loadAssistant add-to-cart toggle", () => {
     loadAssistant(buildDialog({ _disableAddToCart: false }));
 
     expect(div.dataset.disableAddToCart).toBeUndefined();
+  });
+});
+
+describe("Dialog._loadAssistant analytics consent", () => {
+  it("declares the granted consent on the injected div", () => {
+    vi.useFakeTimers();
+    const { div } = stubDocument();
+
+    loadAssistant(buildDialog({ _analyticsConsent: "granted" }));
+
+    expect(div.dataset.analyticsConsent).toBe("granted");
+  });
+
+  it("declares nothing by default", () => {
+    vi.useFakeTimers();
+    const { div } = stubDocument();
+
+    loadAssistant(buildDialog());
+
+    expect(div.dataset.analyticsConsent).toBeUndefined();
+  });
+
+  it("ignores a value other than granted", () => {
+    vi.useFakeTimers();
+    const { div } = stubDocument();
+
+    loadAssistant(buildDialog({ _analyticsConsent: "true" }));
+
+    expect(div.dataset.analyticsConsent).toBeUndefined();
   });
 });
