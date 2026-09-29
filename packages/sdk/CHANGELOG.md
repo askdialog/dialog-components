@@ -1,5 +1,28 @@
 # @askdialog/dialog-sdk
 
+## 2.14.0
+
+### Minor Changes
+
+- 2d9052a: New optional constructor option `analyticsConsent` (type `'granted'`, omitted by default). When set, the SDK declares the analytics consent to the injected assistant (via `data-analytics-consent` on the mounted `#dialog-shopify-ai` div), which then sends analytics events from the first page view instead of waiting for a consent signal.
+
+  Context: the assistant only sends analytics once it detects a consent signal (Google Consent Mode, TCF v2, OneTrust). A site with no cookie banner emits none, so add-to-cart and checkout events were never collected there. The option works like a Google Consent Mode `default` state: a refusal coming from a consent platform present on the page still turns analytics off for that visitor. Default behavior is unchanged: omit the option and analytics stays gated on detection.
+
+  ```ts
+  new Dialog({
+    apiKey,
+    locale,
+    currency,
+    analyticsConsent: "granted", // no cookie banner on this site
+  });
+  ```
+
+### Patch Changes
+
+- 680d462: fix(sdk): call the monolith directly for product questions (DEC-2698)
+
+  `getSuggestions()` fetched `/ai/product-questions` on the core API Gateway, which has only relayed to the monolith since the route moved. It now calls `GET /public/product-page-questions` on `monolithApiUrl` — the same base as `dialog.search()` — with the `x-dialog-api-key` header, and `pagePath` is URL-encoded. `baseApiUrl` is removed from the config flavors: nothing in the SDK reaches the gateway anymore. The development flavor's `monolithApiUrl` is the staging custom domain (`https://api-staging.askdialog.ai`) instead of the raw execute-api URL.
+
 ## 2.13.0
 
 ### Minor Changes
