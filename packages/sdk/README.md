@@ -122,7 +122,29 @@ If your site uses OneTrust auto-blocking, it may neutralize the assistant script
 - categorize the assistant CDN domain as strictly necessary in your OneTrust console, or
 - pass the optional `ignoreOneTrustAutoBlock: true` constructor flag so the SDK adds `data-ot-ignore` on the script it injects.
 
-Either is compliance-safe with regard to analytics: the assistant gates all analytics on consent internally and sends nothing without an explicit opt-in (inspect `window.dialog.audit.consent`).
+Either is compliance-safe with regard to analytics: the assistant gates all analytics on consent internally and sends nothing without an explicit opt-in, unless you declared the consent yourself with `analyticsConsent` (inspect `window.dialog.audit.consent`).
+
+### Declaring the analytics consent
+
+By default the assistant sends analytics events (add-to-cart, checkout, assistant usage) only once it detects a consent signal on the page: Google Consent Mode, TCF v2 or OneTrust. A site with no cookie banner emits no such signal, so nothing is sent for any of its visitors.
+
+On those sites, pass the optional `analyticsConsent: 'granted'` constructor option:
+
+```ts
+new Dialog({
+  apiKey: 'YOUR_API_KEY',
+  locale: 'en-US', currency: 'USD',
+  analyticsConsent: 'granted', // no cookie banner on this site
+});
+```
+
+It works like a Google Consent Mode `default` state:
+
+- analytics is on from the first page view, for every visitor;
+- a refusal coming from a consent platform present on the page still wins: a Google Consent Mode `update` set to `denied`, or OneTrust loaded without the performance group (`C0002`), turns analytics off for that visitor;
+- `window.dialog.audit.consent` reports `detectedCmp: 'declared'` when the option is what enabled analytics.
+
+Whether consent can be assumed for your visitors is your compliance decision. Omit the option to keep the default detection.
 
 ### Disabling add-to-cart
 
