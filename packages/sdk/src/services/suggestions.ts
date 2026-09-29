@@ -1,5 +1,8 @@
+import { config } from "../config";
 import { Suggestion } from "../types/suggestion";
-import { getBaseApiUrl } from "./base";
+
+const PRODUCT_QUESTIONS_PATH = "/public/product-page-questions";
+const API_KEY_HEADER = "x-dialog-api-key";
 
 export const loadSuggestions = async (
   apiKey: string,
@@ -7,15 +10,13 @@ export const loadSuggestions = async (
   productId: string,
 ): Promise<Suggestion> => {
   const pagePath = window.location.pathname.split("?")[0];
+  const query = new URLSearchParams({ pagePath, locale, productId });
 
-  const baseApiUrl = getBaseApiUrl();
   const response = await fetch(
-    `${baseApiUrl}/ai/product-questions?pagePath=${pagePath}&locale=${locale}&productId=${
-      productId
-    }`,
+    `${config.monolithApiUrl}${PRODUCT_QUESTIONS_PATH}?${query.toString()}`,
     {
       headers: {
-        Authorization: apiKey,
+        [API_KEY_HEADER]: apiKey,
       },
     },
   );

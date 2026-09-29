@@ -17,6 +17,8 @@ export interface CurrentProduct {
   variantId?: string;
 }
 
+export type AnalyticsConsent = "granted";
+
 export interface DialogConstructor {
   apiKey: string;
   /** BCP-47 locale, e.g. `fr-FR`. */
@@ -57,6 +59,7 @@ export interface DialogConstructor {
    * Product links and recommendation browsing are unaffected.
    */
   disableAddToCart?: boolean;
+  analyticsConsent?: AnalyticsConsent;
   /**
    * The product of the page the SDK is instantiated on, when it is a product
    * page. The assistant uses it as the conversation's product context for
