@@ -1,5 +1,13 @@
 # @askdialog/dialog-react
 
+## 2.7.0
+
+### Minor Changes
+
+- 602a6b1: `DialogInput` now tells the shopper they are talking to an AI before they type: its placeholder is the fixed text "Ask the AI a question", and an AI disclosure line sits under the input. Both are in English, French or Spanish depending on the client `locale`, English otherwise.
+
+  The `placeholder` prop is deprecated and ignored. It stays accepted so existing code keeps compiling; remove it at your convenience.
+
 ## 2.6.0
 
 ### Minor Changes
