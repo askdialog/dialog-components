@@ -121,6 +121,7 @@ const handleSubmitQuestion = () => {
   margin: 0;
   font-size: 12px;
   line-height: 1.4;
-  color: #6b6b6b;
+  font-family: var(--dialog-theme-font-family);
+  color: var(--dialog-theme-description-color, #6b6b6b);
 }
 </style>
