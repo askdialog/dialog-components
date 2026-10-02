@@ -12,6 +12,8 @@ import { DialogInput } from "./DialogInput";
 import { ThemeProvider } from "./ThemeProvider";
 import "./DialogProductBlock.css";
 
+const BLOCK_QUESTIONS_LIMIT = 2;
+
 interface DialogProductBlockProps {
   client: Dialog;
   productId: string;
@@ -98,7 +100,7 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
         <DialogBlockHeader title={assistantName} description={description} />
         <DialogBlockSuggestionsContainer
           client={client}
-          questions={suggestionData?.questions}
+          questions={suggestionData?.questions?.slice(0, BLOCK_QUESTIONS_LIMIT)}
           isLoading={isFetchingSuggestions}
           productId={productId}
           productTitle={productTitle}

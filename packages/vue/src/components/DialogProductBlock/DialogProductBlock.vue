@@ -4,7 +4,7 @@
       <DialogBlockHeader :title="assistantName" :description="description" />
       <DialogBlockSuggestionsContainer
         :client="props.client"
-        :questions="suggestionData?.questions"
+        :questions="blockQuestions"
         :is-loading="isFetchingSuggestions"
         :product-id="props.productId"
         :product-title="props.productTitle"
@@ -35,6 +35,8 @@ import DialogBlockSuggestionsContainer from "./DialogBlockSuggestionsContainer.v
 import DialogInput from "./DialogInput.vue";
 import ThemeProvider from "./ThemeProvider.vue";
 import { computed, onMounted, ref, watch } from "vue";
+
+const BLOCK_QUESTIONS_LIMIT = 2;
 
 interface Props {
   client: Dialog;
@@ -70,6 +72,9 @@ const assistantName = computed(() => {
 const description = computed(() => {
   return isFetchingSuggestions.value ? "" : suggestionData.value?.description;
 });
+const blockQuestions = computed(() =>
+  suggestionData.value?.questions?.slice(0, BLOCK_QUESTIONS_LIMIT),
+);
 const inputPlaceholder = computed(() => {
   return isFetchingSuggestions.value
     ? ""
