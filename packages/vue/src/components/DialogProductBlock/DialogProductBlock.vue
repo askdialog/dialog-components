@@ -41,11 +41,12 @@ interface Props {
   productId: string;
   productTitle: string;
   selectedVariantId?: string;
+  /** @deprecated Use the default "Ask something else" button. */
   enableInput?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  enableInput: true,
+  enableInput: false,
   selectedVariantId: undefined,
 });
 

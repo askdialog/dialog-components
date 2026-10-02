@@ -17,6 +17,7 @@ interface DialogProductBlockProps {
   productId: string;
   productTitle: string;
   selectedVariantId?: string;
+  /** @deprecated Use the default "Ask something else" button. */
   enableInput?: boolean;
 }
 
@@ -25,7 +26,7 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
   productId,
   productTitle,
   selectedVariantId,
-  enableInput = true,
+  enableInput = false,
 }) => {
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(true);
   const [suggestionData, setSuggestionData] = useState<Suggestion | undefined>(
