@@ -114,7 +114,6 @@ function App() {
           client={client}
           productId="9403924119882"
           productTitle="Product Title"
-          placeholder="Ask something about this product..."
         />
       </div>
     </>

@@ -1,32 +1,40 @@
 <template>
-  <div class="dialog-input-wrapper" @click="focusInput">
-    <input
-      id="dialog-ask-anything-input-ai-input"
-      ref="inputRef"
-      v-model="inputValue"
-      class="dialog-ask-anything-input-ai-input"
-      :placeholder="props.placeholder ?? 'Ask anything...'"
-      @keydown.enter="handleSubmitQuestion"
-    />
+  <div class="dialog-input-container">
+    <div class="dialog-input-wrapper" @click="focusInput">
+      <input
+        id="dialog-ask-anything-input-ai-input"
+        ref="inputRef"
+        v-model="inputValue"
+        class="dialog-ask-anything-input-ai-input"
+        :placeholder="messages.placeholder"
+        aria-describedby="dialog-input-ai-disclosure"
+        @keydown.enter="handleSubmitQuestion"
+      />
 
-    <button
-      id="send-message-button-ai-input"
-      class="dialog-input-submit"
-      :disabled="!inputValue.trim()"
-      @click="handleSubmitQuestion"
-    >
-      <ArrowIcon :color="props.client.theme.ctaTextColor" />
-    </button>
+      <button
+        id="send-message-button-ai-input"
+        class="dialog-input-submit"
+        :disabled="!inputValue.trim()"
+        @click="handleSubmitQuestion"
+      >
+        <ArrowIcon :color="props.client.theme.ctaTextColor" />
+      </button>
+    </div>
+    <p id="dialog-input-ai-disclosure" class="dialog-input-ai-disclosure">
+      {{ messages.aiDisclosure }}
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Dialog } from "@askdialog/dialog-sdk";
 import ArrowIcon from "../../icons/ArrowIcon.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { getInputMessages } from "./inputMessages";
 
 interface Props {
   client: Dialog;
+  /** @deprecated Ignored: the input always shows the fixed AI text. */
   placeholder?: string;
   productId: string;
   productTitle: string;
@@ -36,6 +44,7 @@ interface Props {
 const props = defineProps<Props>();
 const inputRef = ref<HTMLInputElement>();
 const inputValue = ref("");
+const messages = computed(() => getInputMessages(props.client.locale));
 
 const focusInput = () => {
   inputRef.value?.focus();
@@ -75,11 +84,9 @@ const handleSubmitQuestion = () => {
 
 .dialog-input-container {
   display: flex;
-  justify-items: center;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
-  height: 100%;
 }
 
 .dialog-ask-anything-input-ai-input {
@@ -108,5 +115,12 @@ const handleSubmitQuestion = () => {
 }
 .dialog-input-submit:disabled {
   opacity: 0.5;
+}
+
+.dialog-input-ai-disclosure {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6b6b6b;
 }
 </style>
