@@ -22,6 +22,7 @@ import {
   GenericQuestionPayload,
   LegacyCheckoutParams,
   OpenAssistantPayload,
+  OpenWithSuggestionsParams,
   ProductQuestionPayload,
   SubmitCheckoutParams,
 } from "./types/events";
@@ -132,8 +133,17 @@ export class Dialog {
     return newUserId;
   }
 
-  public async getSuggestions(productId: string): Promise<Suggestion> {
-    return loadSuggestions(this._apiKey, this._locale, productId);
+  /** `limit` (1 to 5) defaults to 2 server-side. */
+  public async getSuggestions(
+    productId: string,
+    options?: { limit?: number },
+  ): Promise<Suggestion> {
+    return loadSuggestions(
+      this._apiKey,
+      this._locale,
+      productId,
+      options?.limit,
+    );
   }
 
   /**
@@ -151,6 +161,21 @@ export class Dialog {
   // TODO: Not yet implemented on assistant
   public openAssistant(params: OpenAssistantPayload): void {
     this._eventsHandler.emitExternalEvent(DialogEvents.OPEN_ASSISTANT, params);
+  }
+
+  public openAssistantWithSuggestions({
+    questions,
+    product,
+  }: OpenWithSuggestionsParams): void {
+    this._eventsHandler.emitExternalEvent(DialogEvents.OPEN_WITH_SUGGESTIONS, {
+      suggestions: questions.map(({ question }) => ({ question })),
+      ...(product !== undefined && {
+        productId: product.id,
+        productTitle: product.title,
+        handle: product.handle,
+        selectedVariantId: product.selectedVariantId,
+      }),
+    });
   }
 
   // TODO: Not yet implemented on assistant
