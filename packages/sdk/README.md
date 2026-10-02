@@ -195,6 +195,22 @@ client.sendGenericMessage({
 });
 ```
 
+- Open the assistant with suggested questions
+
+The assistant opens on a list of questions the shopper can click. With a `product`, a clicked question is asked about that product.
+
+```typescript
+client.openAssistantWithSuggestions({
+  questions: [{ question: 'YOUR_QUESTION' }], // required, e.g. suggestions.questions
+  product: { // Optional
+    id: 'PRODUCT_ID',
+    title: 'PRODUCT_TITLE',
+    handle: 'PRODUCT_HANDLE',
+    selectedVariantId: 'CURRENT_VARIANT_ID', // Optional
+  },
+});
+```
+
 - Get locale information
 
 ```typescript 

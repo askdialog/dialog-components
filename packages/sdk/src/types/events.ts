@@ -7,6 +7,7 @@ export const DIALOG_CUSTOM_EVENT = "enableDialogAssistantEvent";
 
 export enum DialogEvents {
   OPEN_ASSISTANT = "open_assistant",
+  OPEN_WITH_SUGGESTIONS = "OPEN_WITH_SUGGESTIONS",
   CLOSE_ASSISTANT = "close_assistant",
   SEND_MESSAGE = "PRODUCT_QUESTION",
   SEND_GENERIC_QUESTION = "GENERIC_QUESTION",
@@ -32,6 +33,26 @@ export interface OpenAssistantPayload {
   productId?: string;
   productTitle?: string;
   fromQuestionSuggestion?: boolean;
+  selectedVariantId?: string;
+}
+
+export interface SuggestionsProduct {
+  id: string;
+  title: string;
+  handle: string;
+  selectedVariantId?: string;
+}
+
+export interface OpenWithSuggestionsParams {
+  questions: { question: string }[];
+  product?: SuggestionsProduct;
+}
+
+export interface OpenWithSuggestionsPayload {
+  suggestions: { question: string }[];
+  productId?: string;
+  productTitle?: string;
+  handle?: string;
   selectedVariantId?: string;
 }
 
@@ -141,6 +162,7 @@ export type DialogEventPayload =
   | GenericQuestionPayload
   | DiagnosticPayload
   | OpenAssistantPayload
+  | OpenWithSuggestionsPayload
   | TrackEventPayload
   | SubmitCheckoutEventPayload
   | ViewSearchResultsEventPayload

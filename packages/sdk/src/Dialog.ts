@@ -22,6 +22,7 @@ import {
   GenericQuestionPayload,
   LegacyCheckoutParams,
   OpenAssistantPayload,
+  OpenWithSuggestionsParams,
   ProductQuestionPayload,
   SubmitCheckoutParams,
 } from "./types/events";
@@ -151,6 +152,21 @@ export class Dialog {
   // TODO: Not yet implemented on assistant
   public openAssistant(params: OpenAssistantPayload): void {
     this._eventsHandler.emitExternalEvent(DialogEvents.OPEN_ASSISTANT, params);
+  }
+
+  public openAssistantWithSuggestions({
+    questions,
+    product,
+  }: OpenWithSuggestionsParams): void {
+    this._eventsHandler.emitExternalEvent(DialogEvents.OPEN_WITH_SUGGESTIONS, {
+      suggestions: questions.map(({ question }) => ({ question })),
+      ...(product !== undefined && {
+        productId: product.id,
+        productTitle: product.title,
+        handle: product.handle,
+        selectedVariantId: product.selectedVariantId,
+      }),
+    });
   }
 
   // TODO: Not yet implemented on assistant
