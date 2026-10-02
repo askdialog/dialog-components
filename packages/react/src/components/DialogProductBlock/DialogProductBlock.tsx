@@ -6,6 +6,7 @@ import {
   type Suggestion,
 } from "@askdialog/dialog-sdk";
 import type { Dialog } from "@askdialog/dialog-sdk";
+import { DialogAskSomethingElse } from "./DialogAskSomethingElse";
 import { DialogBlockHeader } from "./DialogBlockHeader";
 import { DialogBlockSuggestionsContainer } from "./DialogBlockSuggestionsContainer";
 import { DialogInput } from "./DialogInput";
@@ -13,6 +14,7 @@ import { ThemeProvider } from "./ThemeProvider";
 import "./DialogProductBlock.css";
 
 const BLOCK_QUESTIONS_LIMIT = 2;
+const PANEL_QUESTIONS_LIMIT = 5;
 
 interface DialogProductBlockProps {
   client: Dialog;
@@ -71,7 +73,9 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
       setIsFetchingSuggestions(true);
       setSuggestionData(undefined);
       try {
-        const suggestion = await client.getSuggestions(productId);
+        const suggestion = await client.getSuggestions(productId, {
+          limit: PANEL_QUESTIONS_LIMIT,
+        });
         if (isActive) {
           setSuggestionData(suggestion);
         }
@@ -106,10 +110,19 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
           productTitle={productTitle}
           selectedVariantId={selectedVariantId}
         />
-        {enableInput && (
+        {enableInput ? (
           <DialogInput
             client={client}
             placeholder={inputPlaceholder}
+            productId={productId}
+            productTitle={productTitle}
+            selectedVariantId={selectedVariantId}
+          />
+        ) : (
+          <DialogAskSomethingElse
+            client={client}
+            questions={suggestionData?.questions}
+            disabled={isFetchingSuggestions}
             productId={productId}
             productTitle={productTitle}
             selectedVariantId={selectedVariantId}

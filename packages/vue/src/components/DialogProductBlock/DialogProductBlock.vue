@@ -18,6 +18,15 @@
         :product-title="props.productTitle"
         :selected-variant-id="props?.selectedVariantId"
       />
+      <DialogAskSomethingElse
+        v-else
+        :client="props.client"
+        :questions="suggestionData?.questions"
+        :disabled="isFetchingSuggestions"
+        :product-id="props.productId"
+        :product-title="props.productTitle"
+        :selected-variant-id="props.selectedVariantId"
+      />
     </div>
   </ThemeProvider>
 </template>
@@ -30,6 +39,7 @@ import {
   resolveTextDirection,
   type Suggestion,
 } from "@askdialog/dialog-sdk";
+import DialogAskSomethingElse from "./DialogAskSomethingElse.vue";
 import DialogBlockHeader from "./DialogBlockHeader.vue";
 import DialogBlockSuggestionsContainer from "./DialogBlockSuggestionsContainer.vue";
 import DialogInput from "./DialogInput.vue";
@@ -37,6 +47,7 @@ import ThemeProvider from "./ThemeProvider.vue";
 import { computed, onMounted, ref, watch } from "vue";
 
 const BLOCK_QUESTIONS_LIMIT = 2;
+const PANEL_QUESTIONS_LIMIT = 5;
 
 interface Props {
   client: Dialog;
@@ -92,7 +103,9 @@ const handleFetchingSuggestions = async () => {
   isFetchingSuggestions.value = true;
   suggestionData.value = undefined;
   try {
-    const suggestion = await props.client.getSuggestions(props.productId);
+    const suggestion = await props.client.getSuggestions(props.productId, {
+      limit: PANEL_QUESTIONS_LIMIT,
+    });
     if (sequence === fetchSequence.value) {
       suggestionData.value = suggestion;
     }

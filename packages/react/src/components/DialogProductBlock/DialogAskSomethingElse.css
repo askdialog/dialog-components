@@ -1,0 +1,24 @@
+.dialog-ask-something-else {
+  padding: 12px 16px;
+  min-height: 50px;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  font-family: var(--dialog-theme-font-family);
+  font-size: var(--dialog-theme-content-font-size, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  border: unset;
+  border-radius: var(--dialog-theme-cta-border-type, 24px);
+  background-color: var(--dialog-theme-primary-color);
+  color: var(--dialog-theme-cta-text-color);
+}
+
+.dialog-ask-something-else:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.dialog-ask-something-else:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
