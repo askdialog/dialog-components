@@ -1,5 +1,11 @@
 # @askdialog/dialog-sdk
 
+## 2.15.1
+
+### Patch Changes
+
+- 1a4b27b: The product passed to `openAssistantWithSuggestions` no longer requires a `handle`.
+
 ## 2.15.0
 
 ### Minor Changes
