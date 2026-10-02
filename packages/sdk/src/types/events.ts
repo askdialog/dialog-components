@@ -39,7 +39,7 @@ export interface OpenAssistantPayload {
 export interface SuggestionsProduct {
   id: string;
   title: string;
-  handle: string;
+  handle?: string;
   selectedVariantId?: string;
 }
 
