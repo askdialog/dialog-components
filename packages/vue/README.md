@@ -62,14 +62,14 @@ const client = new Dialog({
 
 ### DialogProductBlock
 
-Full-featured dialog component with suggestions and input.
+Product block with up to 2 product questions and an "Ask something else" button that opens the assistant with up to 5 product questions about the product. The button label is in English, French or Spanish depending on the client locale (English otherwise).
 
 **Props:**
 - `client` (Dialog) - Dialog SDK client instance (required)
 - `productId` (string) - Product ID (required)
 - `productTitle` (string) - Product title (required)
 - `selectedVariantId` (string, optional) - Selected variant ID
-- `enableInput` (boolean, optional) - Enable input field (default: true)
+- `enableInput` (boolean, optional) - Deprecated. Shows the input field instead of the "Ask something else" button (default: false)
 
 **Example:**
 ```vue
@@ -78,7 +78,6 @@ Full-featured dialog component with suggestions and input.
   product-id="9403924119882"
   product-title="Blizzard King All-Mountain Snowboard"
   selected-variant-id="variant-123"
-  :enable-input="true"
 />
 ```
 
