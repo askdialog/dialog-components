@@ -205,7 +205,7 @@ client.openAssistantWithSuggestions({
   product: { // Optional
     id: 'PRODUCT_ID',
     title: 'PRODUCT_TITLE',
-    handle: 'PRODUCT_HANDLE',
+    handle: 'PRODUCT_HANDLE', // Optional
     selectedVariantId: 'CURRENT_VARIANT_ID', // Optional
   },
 });
