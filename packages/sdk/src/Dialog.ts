@@ -133,8 +133,17 @@ export class Dialog {
     return newUserId;
   }
 
-  public async getSuggestions(productId: string): Promise<Suggestion> {
-    return loadSuggestions(this._apiKey, this._locale, productId);
+  /** `limit` (1 to 5) defaults to 2 server-side. */
+  public async getSuggestions(
+    productId: string,
+    options?: { limit?: number },
+  ): Promise<Suggestion> {
+    return loadSuggestions(
+      this._apiKey,
+      this._locale,
+      productId,
+      options?.limit,
+    );
   }
 
   /**

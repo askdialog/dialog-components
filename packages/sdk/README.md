@@ -233,6 +233,8 @@ You can use this query to make your own integration and trigger `sendProductMess
 
 ```typescript
 const suggestions = await client.getSuggestions(productId);
+// Up to 5 questions (default 2):
+const moreSuggestions = await client.getSuggestions(productId, { limit: 5 });
 
 /*
 Example of expected result:
