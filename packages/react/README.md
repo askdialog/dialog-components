@@ -84,13 +84,13 @@ Full-featured dialog component with suggestions and input.
 
 ### DialogInput
 
-Standalone input component for asking questions.
+Standalone input component for asking questions. It shows the fixed "Ask the AI a question" text and an AI disclosure line, in English, French or Spanish depending on the client locale (English otherwise).
 
 **Props:**
 - `client` (Dialog) - Dialog SDK client instance (required)
 - `productId` (string) - Product ID (required)
 - `productTitle` (string) - Product title (required)
-- `placeholder` (string, optional) - Input placeholder text
+- `placeholder` (string, optional) - Deprecated, ignored
 - `selectedVariantId` (string, optional) - Selected variant ID
 
 **Example:**
@@ -99,7 +99,6 @@ Standalone input component for asking questions.
   client={client}
   productId="9403924119882"
   productTitle="Product Name"
-  placeholder="Ask something about this product..."
 />
 ```
 

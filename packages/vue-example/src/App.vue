@@ -113,7 +113,6 @@ const client = new Dialog({
       :client="client"
       product-id="9403924119882"
       product-title="Product Title"
-      placeholder="Ask something about this product..."
     />
   </div>
 </template>
