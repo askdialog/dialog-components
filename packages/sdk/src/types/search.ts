@@ -32,18 +32,6 @@ export interface SearchOptions {
   signal?: AbortSignal;
 }
 
-export interface SearchPrice {
-  /** Decimal string, e.g. "24.90". */
-  amount: string;
-  /** Currency code, if provided by the index. */
-  currencyCode?: string;
-}
-
-export interface SearchPriceRange {
-  min: SearchPrice;
-  max: SearchPrice;
-}
-
 /** A collection, article or page hit. */
 export interface SearchHit {
   objectID: string;
@@ -51,7 +39,6 @@ export interface SearchHit {
   url?: string;
   handle?: string;
   imageUrl?: string;
-  priceRange?: SearchPriceRange;
 }
 
 /**
