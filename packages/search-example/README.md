@@ -25,7 +25,8 @@ instead of the sources.
 The page searches in French for a shopper in France (`language: "fr"`,
 `country: "FR"`, index `products_fr_fr`); the country picks the market whose
 prices the hits carry. Each product hit is Algolia's Shopify record
-(`SearchProductHit`): the card shows its `image`, its `title`, its lowest
+(`SearchProductHit`): the card shows its `product_image`
+(the variant's `image` when absent), its `title`, its lowest
 variant price (`variants_min_price`, formatted with `currency`, the base
 currency of the shopper's market) and links to its `url`.
 

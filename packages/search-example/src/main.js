@@ -48,9 +48,11 @@ function renderProductCard(hit, index) {
 
   const image = document.createElement("div");
   image.className = "card-image";
-  if (hit.image !== undefined) {
+  // The product's image, as Algolia's cards in distinct mode; else the variant's.
+  const imageUrl = hit.product_image || hit.image;
+  if (imageUrl) {
     const img = document.createElement("img");
-    img.src = hit.image;
+    img.src = imageUrl;
     img.alt = hit.title ?? hit.objectID;
     img.loading = "lazy";
     image.appendChild(img);

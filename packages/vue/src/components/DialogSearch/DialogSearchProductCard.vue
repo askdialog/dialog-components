@@ -11,12 +11,7 @@
       "
     >
       <span class="dialog-search-product-thumb" aria-hidden="true">
-        <img
-          v-if="props.hit.image !== undefined && props.hit.image !== ''"
-          :src="props.hit.image"
-          alt=""
-          loading="lazy"
-        />
+        <img v-if="image !== undefined" :src="image" alt="" loading="lazy" />
       </span>
       <span class="dialog-search-product-title">
         <HighlightedTitle :title="hitTitle(props.hit)" :query="props.query" />
@@ -32,7 +27,12 @@
 import type { SearchController, SearchProductHit } from "@askdialog/dialog-sdk";
 import { computed, ref, watch } from "vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
-import { formatSearchPrice, hitHref, hitTitle } from "./searchDisplay";
+import {
+  formatSearchPrice,
+  hitHref,
+  hitImage,
+  hitTitle,
+} from "./searchDisplay";
 
 interface Props {
   controller: SearchController;
@@ -62,6 +62,7 @@ watch(
 );
 
 const href = computed(() => hitHref(props.hit));
+const image = computed(() => hitImage(props.hit));
 const price = computed(() => formatSearchPrice(props.hit, props.locale));
 
 // Preserve native modified clicks. Prevent default navigation only when the
