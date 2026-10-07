@@ -51,25 +51,26 @@ afterEach(() => {
 
 describe("searchIndexName", () => {
   it.each([
-    ["fr", "EUR", "products_fr_eur"],
-    ["pt", "BRL", "products_pt_brl"],
-    ["fr", "CAD", "products_fr_cad"],
-    ["en", "EUR", "products_en_eur"],
+    ["fr", "BE", "products_fr_be"],
+    ["pt", "br", "products_pt_br"],
+    ["fr", "CA", "products_fr_ca"],
   ])(
-    "builds an index name from language %s and currency",
-    (locale, currency, name) => {
-      expect(searchIndexName("products", locale, currency)).toBe(name);
+    "builds an index name from language %s and the shopper's country",
+    (language, country, name) => {
+      expect(searchIndexName("products", language, country)).toBe(name);
     },
   );
 
-  it("names every logical index", () => {
-    expect(searchIndexName("collections", "en", "USD")).toBe(
-      "collections_en_usd",
+  it("names every logical index and rejects invalid codes", () => {
+    expect(searchIndexName("collections", "en", "US")).toBe(
+      "collections_en_us",
     );
-    expect(() => searchIndexName("products", "fr-FR", "EUR")).toThrow(
+    expect(() => searchIndexName("products", "fr-FR", "FR")).toThrow(
       /ISO 639-1/,
     );
-    expect(() => searchIndexName("products", "fr", "")).toThrow(/ISO 4217/);
+    expect(() => searchIndexName("products", "fr", "EUR")).toThrow(
+      /ISO 3166-1/,
+    );
   });
 });
 

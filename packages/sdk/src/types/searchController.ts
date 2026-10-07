@@ -2,6 +2,7 @@ import {
   SearchHit,
   SearchIndex,
   SearchOptions,
+  SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
@@ -35,8 +36,8 @@ export interface SearchControllerState {
   /** Zero-based page of the last request. */
   page: number;
   /** Last products result; retained while loading and cleared on error or reset. */
-  response?: SearchResult;
-  sections?: Partial<Record<SearchIndex, SearchResult>>;
+  response?: SearchResult<SearchProductHit>;
+  sections?: Partial<Record<SearchIndex, SearchResult<SearchHit>>>;
   error?: unknown;
 }
 
@@ -57,11 +58,11 @@ export interface SearchControllerOptions {
   search: SearchFunction;
   /** Lowercase ISO 639-1 language code, e.g. `fr`. */
   language: string;
-  /** ISO 4217 currency, independent of language. */
-  currency: string;
+  /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`; prices follow its market. */
+  country: string;
   analytics: SearchControllerAnalytics;
   /** Navigate after recording selection. Omit to use native link navigation. */
-  navigate?: (url: string, hit: SearchHit) => void;
+  navigate?: (url: string, hit: SearchProductHit) => void;
   debounceMs?: number;
   hitsPerPage?: number;
   sections?: readonly SearchSection[] | (() => readonly SearchSection[]);

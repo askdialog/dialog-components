@@ -11,12 +11,7 @@
       "
     >
       <span class="dialog-search-product-thumb" aria-hidden="true">
-        <img
-          v-if="props.hit.imageUrl !== undefined && props.hit.imageUrl !== ''"
-          :src="props.hit.imageUrl"
-          alt=""
-          loading="lazy"
-        />
+        <img v-if="image !== undefined" :src="image" alt="" loading="lazy" />
       </span>
       <span class="dialog-search-product-title">
         <HighlightedTitle :title="hitTitle(props.hit)" :query="props.query" />
@@ -29,14 +24,19 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchController, SearchHit } from "@askdialog/dialog-sdk";
+import type { SearchController, SearchProductHit } from "@askdialog/dialog-sdk";
 import { computed, ref, watch } from "vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
-import { formatSearchPrice, hitHref, hitTitle } from "./searchDisplay";
+import {
+  formatSearchPrice,
+  hitHref,
+  hitImage,
+  hitTitle,
+} from "./searchDisplay";
 
 interface Props {
   controller: SearchController;
-  hit: SearchHit;
+  hit: SearchProductHit;
   index: number;
   locale?: string;
   /** Committed query, emphasized inside the title. */
@@ -62,9 +62,8 @@ watch(
 );
 
 const href = computed(() => hitHref(props.hit));
-const price = computed(() =>
-  formatSearchPrice(props.hit.priceRange, props.locale),
-);
+const image = computed(() => hitImage(props.hit));
+const price = computed(() => formatSearchPrice(props.hit, props.locale));
 
 // Preserve native modified clicks. Prevent default navigation only when the
 // adapter handles the click; record selection in both cases.

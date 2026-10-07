@@ -1,31 +1,30 @@
-import type { SearchHit, SearchPriceRange } from "@askdialog/dialog-sdk";
+import type { SearchHit, SearchProductHit } from "@askdialog/dialog-sdk";
 
-// Hide invalid prices; show a bare amount when currency is absent.
-const formatMoney = (
-  { amount, currencyCode }: SearchPriceRange["min"],
-  locale: string | undefined,
-): string =>
-  currencyCode === undefined
-    ? new Intl.NumberFormat(locale).format(Number(amount))
-    : new Intl.NumberFormat(locale, {
-        style: "currency",
-        currency: currencyCode,
-      }).format(Number(amount));
-
-/** The lowest price only, as on the Shopify storefront search. */
+/**
+ * The lowest variant price only, as on the Shopify storefront search.
+ * Hide a missing or invalid price; show a bare amount when currency is absent.
+ */
 export const formatSearchPrice = (
-  priceRange: SearchPriceRange | undefined,
+  { variants_min_price: amount, currency }: SearchProductHit,
   locale?: string,
 ): string => {
-  if (priceRange === undefined) {
+  if (amount === undefined) {
     return "";
   }
   try {
-    return formatMoney(priceRange.min, locale);
+    return currency === undefined
+      ? new Intl.NumberFormat(locale).format(amount)
+      : new Intl.NumberFormat(locale, { style: "currency", currency }).format(
+          amount,
+        );
   } catch {
     return "";
   }
 };
+
+/** The product's image, as Algolia's cards in distinct mode; else the variant's. */
+export const hitImage = (hit: SearchProductHit): string | undefined =>
+  hit.product_image || hit.image || undefined;
 
 // Allow only HTTP(S) links.
 export const safeHref = (url: string): string | undefined => {

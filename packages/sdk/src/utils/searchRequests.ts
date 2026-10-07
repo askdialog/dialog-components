@@ -1,6 +1,8 @@
 import { searchIndexName } from "../services/search";
 import {
+  SearchHit,
   SearchIndex,
+  SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
@@ -19,25 +21,25 @@ export const normalizeQuery = (rawQuery: string): string | undefined => {
 interface SearchRequestConfig {
   indexName: string;
   language: string;
-  currency: string;
+  country: string;
   hitsPerPage: number;
 }
 
 interface SearchResults {
-  response: SearchResult;
-  sections: Partial<Record<SearchIndex, SearchResult>> | undefined;
+  response: SearchResult<SearchProductHit>;
+  sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> | undefined;
 }
 
 export const buildSearchRequest = (
   query: string,
   page: number,
   sections: readonly SearchSection[],
-  { indexName, language, currency, hitsPerPage }: SearchRequestConfig,
+  { indexName, language, country, hitsPerPage }: SearchRequestConfig,
 ): SearchRequest => ({
   requests: [
     { indexName, query, page, hitsPerPage },
     ...sections.map((section) => ({
-      indexName: searchIndexName(section.index, language, currency),
+      indexName: searchIndexName(section.index, language, country),
       query,
       page: 0,
       hitsPerPage: section.hitsPerPage ?? hitsPerPage,
@@ -48,29 +50,30 @@ export const buildSearchRequest = (
 export const readSearchResults = (
   result: SearchResponse,
   requested: readonly SearchSection[],
-  { indexName, language, currency }: SearchRequestConfig,
+  { indexName, language, country }: SearchRequestConfig,
 ): SearchResults => {
   const response = result.results.find((entry) => entry.index === indexName);
   if (response === undefined) {
     throw new Error(`Dialog search returned no ${indexName} entry`);
   }
-  const sections: Partial<Record<SearchIndex, SearchResult>> = {};
+  const sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> = {};
   for (const section of requested) {
     const requestedIndexName = searchIndexName(
       section.index,
       language,
-      currency,
+      country,
     );
     const entry = result.results.find(
       (candidate) => candidate.index === requestedIndexName,
     );
     if (entry !== undefined) {
-      sections[section.index] = entry;
+      sections[section.index] = entry as SearchResult<SearchHit>;
     }
   }
 
   return {
-    response,
+    // The products index answers product records only.
+    response: response as SearchResult<SearchProductHit>,
     sections: requested.length === 0 ? undefined : sections,
   };
 };

@@ -10,20 +10,20 @@ import {
 const SEARCH_PATH = "/public/search/lexical";
 const API_KEY_HEADER = "x-dialog-api-key";
 
-/** Build an index name from an ISO 639-1 language and ISO 4217 currency. */
+/** Build an index name from an ISO 639-1 language and the shopper's ISO 3166-1 alpha-2 country. */
 export const searchIndexName = (
   index: SearchIndex,
   language: string,
-  currency: string,
+  country: string,
 ): string => {
   if (!/^[a-z]{2}$/.test(language)) {
     throw new Error("Search language must be a lowercase ISO 639-1 code.");
   }
-  if (!/^[A-Za-z]{3}$/.test(currency)) {
-    throw new Error("Search currency must be an ISO 4217 code.");
+  if (!/^[A-Za-z]{2}$/.test(country)) {
+    throw new Error("Search country must be an ISO 3166-1 alpha-2 code.");
   }
 
-  return `${index}_${language}_${currency.toLowerCase()}`;
+  return `${index}_${language}_${country.toLowerCase()}`;
 };
 
 const toSearchError = async (

@@ -23,7 +23,7 @@ const sections =
 const { controller, state, theme } = useDialogSearch({
   client: props.client,
   language: "fr",
-  currency: props.client.currency,
+  country: "FR",
   sections,
 });
 </script>

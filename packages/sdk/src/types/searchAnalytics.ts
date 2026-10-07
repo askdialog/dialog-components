@@ -15,7 +15,7 @@ export type SearchType = (typeof SEARCH_TYPES)[number];
 
 export interface SearchAnalyticsEnvelope {
   query_id: string;
-  /** Index returned by the API, e.g. `products_fr_eur`. */
+  /** Index returned by the API, e.g. `products_fr_be`. */
   index: string;
   /** UI surface displaying the results. */
   surface: SearchSurface;
