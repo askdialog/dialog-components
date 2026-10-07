@@ -1,5 +1,15 @@
 # @askdialog/dialog-vue
 
+## 3.10.0
+
+### Minor Changes
+
+- a69388e: Search follows the lexical search contract (DAT-1212). Index names carry the shopper's ISO 3166-1 alpha-2 country instead of the currency (`searchIndexName('products', 'fr', 'BE')` gives `products_fr_be`), and `createSearchController` and the React/Vue `useDialogSearch` take `country` in place of `currency`. Product hits are the exported `SearchProductHit`, Algolia's Shopify record plus `url` and `currency`, with `objectID` the variant id and `id` the product id; collection, article and page hits keep `SearchHit`. View and select events send the hit's `id` as `product_id`, and impressions are deduplicated on it.
+
+### Patch Changes
+
+- 3dc79ef: Search product cards read the record (DAT-1215): they show the hit's `image` and its lowest variant price, `variants_min_price` formatted with `currency`, again.
+
 ## 3.9.0
 
 ### Minor Changes
