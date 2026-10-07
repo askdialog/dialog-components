@@ -1,13 +1,12 @@
 import { type FC, type MouseEvent, useEffect, useRef } from "react";
-import type { SearchController, SearchProductHit } from "@askdialog/dialog-sdk";
-import { HighlightedTitle } from "./HighlightedTitle";
 import {
   formatSearchCompareAtPrice,
   formatSearchPrice,
-  hitHref,
-  hitImage,
-  hitTitle,
-} from "./searchDisplay";
+  type SearchController,
+  type SearchProductHit,
+} from "@askdialog/dialog-sdk";
+import { HighlightedTitle } from "./HighlightedTitle";
+import { hitHref, hitImage, hitTitle } from "./searchDisplay";
 import "./DialogSearchProductCard.css";
 
 interface DialogSearchProductCardProps {

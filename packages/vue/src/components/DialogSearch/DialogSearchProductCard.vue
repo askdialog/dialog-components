@@ -28,16 +28,15 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchController, SearchProductHit } from "@askdialog/dialog-sdk";
-import { computed, ref, watch } from "vue";
-import HighlightedTitle from "./HighlightedTitle.vue";
 import {
   formatSearchCompareAtPrice,
   formatSearchPrice,
-  hitHref,
-  hitImage,
-  hitTitle,
-} from "./searchDisplay";
+  type SearchController,
+  type SearchProductHit,
+} from "@askdialog/dialog-sdk";
+import { computed, ref, watch } from "vue";
+import HighlightedTitle from "./HighlightedTitle.vue";
+import { hitHref, hitImage, hitTitle } from "./searchDisplay";
 
 interface Props {
   controller: SearchController;
