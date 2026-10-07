@@ -1,12 +1,12 @@
 import { type FC, type MouseEvent, useEffect, useRef } from "react";
-import type { SearchController, SearchHit } from "@askdialog/dialog-sdk";
+import type { SearchController, SearchProductHit } from "@askdialog/dialog-sdk";
 import { HighlightedTitle } from "./HighlightedTitle";
 import { formatSearchPrice, hitHref, hitTitle } from "./searchDisplay";
 import "./DialogSearchProductCard.css";
 
 interface DialogSearchProductCardProps {
   controller: SearchController;
-  hit: SearchHit;
+  hit: SearchProductHit;
   index: number;
   locale?: string;
   /** Committed query, emphasized inside the title. */
@@ -46,14 +46,14 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
     }
   };
 
-  const price = formatSearchPrice(hit.priceRange, locale);
+  const price = formatSearchPrice(hit, locale);
   const href = hitHref(hit);
 
   const content = (
     <>
       <span className="dialog-search-product-thumb" aria-hidden>
-        {hit.imageUrl !== undefined && hit.imageUrl !== "" && (
-          <img src={hit.imageUrl} alt="" loading="lazy" />
+        {hit.image !== undefined && hit.image !== "" && (
+          <img src={hit.image} alt="" loading="lazy" />
         )}
       </span>
       <span className="dialog-search-product-title">

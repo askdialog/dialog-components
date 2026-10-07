@@ -34,13 +34,17 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchController, SearchResult } from "@askdialog/dialog-sdk";
+import type {
+  SearchController,
+  SearchProductHit,
+  SearchResult,
+} from "@askdialog/dialog-sdk";
 import DialogSearchProductCard from "./DialogSearchProductCard.vue";
 import type { SearchMessages } from "./searchMessages";
 
 const props = defineProps<{
   controller: SearchController;
-  response: SearchResult;
+  response: SearchResult<SearchProductHit>;
   locale: string | undefined;
   messages: SearchMessages;
 }>();

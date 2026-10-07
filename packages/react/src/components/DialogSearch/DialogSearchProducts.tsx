@@ -1,11 +1,15 @@
 import type { FC } from "react";
-import type { SearchController, SearchResult } from "@askdialog/dialog-sdk";
+import type {
+  SearchController,
+  SearchProductHit,
+  SearchResult,
+} from "@askdialog/dialog-sdk";
 import { DialogSearchProductCard } from "./DialogSearchProductCard";
 import type { SearchMessages } from "./searchMessages";
 
 interface DialogSearchProductsProps {
   controller: SearchController;
-  response: SearchResult;
+  response: SearchResult<SearchProductHit>;
   locale: string | undefined;
   messages: SearchMessages;
 }
