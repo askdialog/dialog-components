@@ -24,7 +24,7 @@ export const formatSearchPrice = (
 
 /** The product's image, as Algolia's cards in distinct mode; else the variant's. */
 export const hitImage = (hit: SearchProductHit): string | undefined =>
-  [hit.product_image, hit.image].find((url) => url !== undefined && url !== "");
+  hit.product_image || hit.image || undefined;
 
 // Allow only HTTP(S) links.
 export const safeHref = (url: string): string | undefined => {
@@ -37,10 +37,8 @@ export const safeHref = (url: string): string | undefined => {
   }
 };
 
-export const hitHref = (
-  hit: SearchHit | SearchProductHit,
-): string | undefined =>
+export const hitHref = (hit: SearchHit): string | undefined =>
   hit.url === undefined || hit.url === "" ? undefined : safeHref(hit.url);
 
-export const hitTitle = (hit: SearchHit | SearchProductHit): string =>
+export const hitTitle = (hit: SearchHit): string =>
   hit.title ?? hit.handle ?? hit.objectID;
