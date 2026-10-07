@@ -4,7 +4,7 @@ import {
   type Dialog,
   type SearchController,
   type SearchControllerState,
-  type SearchHit,
+  type SearchProductHit,
   type SearchSection,
   type SearchSurface,
   type Theme,
@@ -20,7 +20,7 @@ export interface UseDialogSearchOptions {
   /** UI surface used in search analytics. */
   surface?: SearchSurface;
   /** Navigate after recording selection; omit to use native links. */
-  navigate?: (url: string, hit: SearchHit) => void;
+  navigate?: (url: string, hit: SearchProductHit) => void;
   debounceMs?: number;
   hitsPerPage?: number;
   /**

@@ -1,6 +1,8 @@
 import { searchIndexName } from "../services/search";
 import {
+  SearchHit,
   SearchIndex,
+  SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
@@ -24,8 +26,8 @@ interface SearchRequestConfig {
 }
 
 interface SearchResults {
-  response: SearchResult;
-  sections: Partial<Record<SearchIndex, SearchResult>> | undefined;
+  response: SearchResult<SearchProductHit>;
+  sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> | undefined;
 }
 
 export const buildSearchRequest = (
@@ -54,7 +56,7 @@ export const readSearchResults = (
   if (response === undefined) {
     throw new Error(`Dialog search returned no ${indexName} entry`);
   }
-  const sections: Partial<Record<SearchIndex, SearchResult>> = {};
+  const sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> = {};
   for (const section of requested) {
     const requestedIndexName = searchIndexName(
       section.index,
@@ -65,12 +67,13 @@ export const readSearchResults = (
       (candidate) => candidate.index === requestedIndexName,
     );
     if (entry !== undefined) {
-      sections[section.index] = entry;
+      sections[section.index] = entry as SearchResult<SearchHit>;
     }
   }
 
   return {
-    response,
+    // The products index answers product records only.
+    response: response as SearchResult<SearchProductHit>,
     sections: requested.length === 0 ? undefined : sections,
   };
 };
