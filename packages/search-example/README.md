@@ -20,6 +20,16 @@ pnpm dev          # http://localhost:5175, SDK resolved from ../sdk sources
 `pnpm dev:test-dist` resolves `@askdialog/dialog-sdk` from its built `dist/`
 instead of the sources.
 
+## Product hits
+
+The page searches in French for a shopper in France (`language: "fr"`,
+`country: "FR"`, index `products_fr_fr`); the country picks the market whose
+prices the hits carry. Each product hit is Algolia's Shopify record
+(`SearchProductHit`): the card shows its `product_image`
+(the variant's `image` when absent), its `title`, its lowest
+variant price (`variants_min_price`, formatted with `currency`, the base
+currency of the shopper's market) and links to its `url`.
+
 ## Analytics
 
 The search analytics events (DEC-2448, snake_case end to end) are owned by the
