@@ -53,6 +53,12 @@ a.dialog-search-product:hover {
   white-space: nowrap;
 }
 
+.dialog-search-product-compare-at {
+  margin-inline-end: 6px;
+  font-weight: 400;
+  opacity: 0.55;
+}
+
 .dialog-search-match {
   font-weight: 600;
 }

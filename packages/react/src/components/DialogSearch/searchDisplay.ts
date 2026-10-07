@@ -1,14 +1,12 @@
 import type { SearchHit, SearchProductHit } from "@askdialog/dialog-sdk";
 
-/**
- * The lowest variant price only, as on the Shopify storefront search.
- * Hide a missing or invalid price; show a bare amount when currency is absent.
- */
-export const formatSearchPrice = (
-  { variants_min_price: amount, currency }: SearchProductHit,
+// Hide a missing or invalid amount; show a bare amount when currency is absent.
+const formatAmount = (
+  amount: number | undefined,
+  currency: string | undefined,
   locale?: string,
 ): string => {
-  if (amount === undefined) {
+  if (amount === undefined || !Number.isFinite(amount)) {
     return "";
   }
   try {
@@ -20,6 +18,36 @@ export const formatSearchPrice = (
   } catch {
     return "";
   }
+};
+
+/** The lowest variant price only, as on the Shopify storefront search. */
+export const formatSearchPrice = (
+  { variants_min_price: amount, currency }: SearchProductHit,
+  locale?: string,
+): string => formatAmount(amount, currency, locale);
+
+/**
+ * The lowest compare-at price, struck next to the price, only when it is
+ * higher than a shown price; it may belong to another variant.
+ */
+export const formatSearchCompareAtPrice = (
+  {
+    variants_min_price: price,
+    variants_compare_at_price_min: compareAt,
+    currency,
+  }: SearchProductHit,
+  locale?: string,
+): string => {
+  if (
+    price === undefined ||
+    compareAt === undefined ||
+    !(compareAt > price) ||
+    formatAmount(price, currency, locale) === ""
+  ) {
+    return "";
+  }
+
+  return formatAmount(compareAt, currency, locale);
 };
 
 /** The product's image, as Algolia's cards in distinct mode; else the variant's. */

@@ -2,6 +2,7 @@ import { type FC, type MouseEvent, useEffect, useRef } from "react";
 import type { SearchController, SearchProductHit } from "@askdialog/dialog-sdk";
 import { HighlightedTitle } from "./HighlightedTitle";
 import {
+  formatSearchCompareAtPrice,
   formatSearchPrice,
   hitHref,
   hitImage,
@@ -52,6 +53,7 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
   };
 
   const price = formatSearchPrice(hit, locale);
+  const compareAtPrice = formatSearchCompareAtPrice(hit, locale);
   const href = hitHref(hit);
   const image = hitImage(hit);
 
@@ -64,7 +66,12 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
         <HighlightedTitle title={hitTitle(hit)} query={query} />
       </span>
       {price !== "" && (
-        <span className="dialog-search-product-price">{price}</span>
+        <span className="dialog-search-product-price">
+          {compareAtPrice !== "" && (
+            <s className="dialog-search-product-compare-at">{compareAtPrice}</s>
+          )}
+          {price}
+        </span>
       )}
     </>
   );
