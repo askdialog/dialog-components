@@ -1,7 +1,11 @@
-/* eslint max-lines: ["error", 300] */
+/* eslint max-lines: ["error", 310] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../searchController";
-import { SearchResponse, SearchResult } from "../types/search";
+import {
+  SearchProductHit,
+  SearchResponse,
+  SearchResult,
+} from "../types/search";
 import { SearchController } from "../types/searchController";
 
 const tracker = vi.hoisted(() => ({
@@ -16,13 +20,28 @@ vi.mock("../utils/searchImpressions", () => ({
   createSearchImpressionTracker: () => tracker,
 }));
 
+// `objectID` is the variant id, `id` the product id the events carry.
+const productHit = (
+  objectID: string,
+  id: number,
+  url?: string,
+): SearchProductHit => ({
+  objectID,
+  id,
+  url,
+  tags: [],
+  options: {},
+  option_names: [],
+  inventory_available: true,
+});
+
 const response = (overrides: Partial<SearchResult> = {}): SearchResponse => ({
   results: [
     {
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       hits: [
-        { objectID: "p1", url: "https://shop.example/p1" },
-        { objectID: "p2" },
+        productHit("v11", 101, "https://shop.example/p1"),
+        productHit("v22", 102),
       ],
       nbHits: 30,
       page: 0,
@@ -45,7 +64,7 @@ const createController = (): SearchController =>
   createSearchController({
     search,
     language: "fr",
-    currency: "EUR",
+    country: "FR",
     analytics: {
       surface: "search_page",
       trackViewSearchResults,
@@ -93,7 +112,7 @@ describe("search controller attribution", () => {
 
     expect(tracker.setContext).toHaveBeenCalledWith({
       query_id: "qid-1",
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 2,
@@ -133,7 +152,7 @@ describe("search controller attribution", () => {
 
     expect(trackViewSearchResults).toHaveBeenCalledWith({
       query_id: "qid-1",
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 1,
@@ -153,7 +172,7 @@ describe("search controller attribution", () => {
     controller.observeResult(element, 1);
 
     expect(tracker.observe).toHaveBeenCalledWith(element, {
-      product_id: "p2",
+      product_id: "102",
       position: 2 * 12 + 2,
     });
   });
@@ -183,18 +202,18 @@ describe("search controller attribution", () => {
     controller.selectResult(0);
 
     expect(tracker.forceImpression).toHaveBeenCalledWith({
-      product_id: "p1",
+      product_id: "101",
       position: 1,
     });
     expect(trackSelectSearchResult).toHaveBeenCalledWith({
       query_id: "qid-1",
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 1,
       total_hits: 30,
       query_length: 5,
-      items: [{ product_id: "p1", position: 1 }],
+      items: [{ product_id: "101", position: 1 }],
     });
     expect(navigate).toHaveBeenCalledWith(
       "https://shop.example/p1",
@@ -212,7 +231,7 @@ describe("search controller attribution", () => {
     controller.selectResult(1);
 
     expect(trackSelectSearchResult).toHaveBeenCalledWith(
-      expect.objectContaining({ items: [{ product_id: "p2", position: 2 }] }),
+      expect.objectContaining({ items: [{ product_id: "102", position: 2 }] }),
     );
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -258,7 +277,7 @@ describe("search controller attribution", () => {
     const controller = createSearchController({
       search,
       language: "fr",
-      currency: "EUR",
+      country: "FR",
       analytics: {
         surface: "search_page",
         trackViewSearchResults,

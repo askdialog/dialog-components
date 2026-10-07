@@ -24,7 +24,7 @@ const INITIAL_STATE: SearchControllerState = {
 export function createSearchController({
   search,
   language,
-  currency,
+  country,
   analytics,
   navigate,
   debounceMs = 250,
@@ -32,9 +32,9 @@ export function createSearchController({
   sections = [],
 }: SearchControllerOptions): SearchController {
   const requestConfig = {
-    indexName: searchIndexName("products", language, currency),
+    indexName: searchIndexName("products", language, country),
     language,
-    currency,
+    country,
     hitsPerPage,
   };
   let state = INITIAL_STATE;

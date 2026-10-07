@@ -24,7 +24,7 @@ const DEBOUNCE_MS = 250;
 const response = (overrides: Partial<SearchResult> = {}): SearchResponse => ({
   results: [
     {
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       hits: [{ objectID: "p1" }, { objectID: "p2" }],
       nbHits: 2,
       page: 0,
@@ -73,7 +73,7 @@ const createController = (): ReturnType<typeof createSearchController> => {
   const controller = createSearchController({
     search,
     language: "fr",
-    currency: "EUR",
+    country: "FR",
     analytics: {
       surface: "search_page",
       trackViewSearchResults,
@@ -126,11 +126,11 @@ describe("createSearchController", () => {
     expect(controller.getState().status).toBe(SearchStatus.SUCCESS);
   });
 
-  it("sends one products entry with independent language and currency", async () => {
+  it("sends one products entry with the language and the shopper's country", async () => {
     const controller = createSearchController({
       search,
       language: "fr",
-      currency: "USD",
+      country: "US",
       analytics: {
         surface: "search_page",
         trackViewSearchResults,
@@ -138,7 +138,7 @@ describe("createSearchController", () => {
       },
     });
     search.mockResolvedValue(
-      response({ query: "shoes", index: "products_fr_usd" }),
+      response({ query: "shoes", index: "products_fr_us" }),
     );
 
     controller.submit("shoes");
@@ -147,7 +147,7 @@ describe("createSearchController", () => {
     expect(search.mock.calls[0][0]).toEqual({
       requests: [
         {
-          indexName: "products_fr_usd",
+          indexName: "products_fr_us",
           query: "shoes",
           page: 0,
           hitsPerPage: 12,
@@ -386,7 +386,7 @@ describe("createSearchController", () => {
     const controller = createSearchController({
       search,
       language: "fr",
-      currency: "USD",
+      country: "US",
       analytics: {
         surface: "search_page",
         trackViewSearchResults,
@@ -396,12 +396,12 @@ describe("createSearchController", () => {
     });
     const collections: SearchResult = {
       ...response().results[0],
-      index: "collections_fr_usd",
+      index: "collections_fr_us",
       hits: [{ objectID: "c1" }],
       nbHits: 1,
     };
     search.mockResolvedValueOnce({
-      results: [...response({ index: "products_fr_usd" }).results, collections],
+      results: [...response({ index: "products_fr_us" }).results, collections],
     });
 
     controller.submit("shoes");
@@ -409,19 +409,19 @@ describe("createSearchController", () => {
 
     expect(search.mock.calls[0][0].requests).toEqual([
       {
-        indexName: "products_fr_usd",
+        indexName: "products_fr_us",
         query: "shoes",
         page: 0,
         hitsPerPage: 12,
       },
       {
-        indexName: "collections_fr_usd",
+        indexName: "collections_fr_us",
         query: "shoes",
         page: 0,
         hitsPerPage: 5,
       },
     ]);
-    expect(controller.getState().response?.index).toBe("products_fr_usd");
+    expect(controller.getState().response?.index).toBe("products_fr_us");
     expect(controller.getState().sections).toEqual({ collections });
   });
 
@@ -430,7 +430,7 @@ describe("createSearchController", () => {
     const controller = createSearchController({
       search,
       language: "fr",
-      currency: "EUR",
+      country: "FR",
       analytics: {
         surface: "search_page",
         trackViewSearchResults,
@@ -449,7 +449,7 @@ describe("createSearchController", () => {
     expect(search.mock.calls[0][0].requests).toHaveLength(1);
     expect(search.mock.calls[1][0].requests).toHaveLength(2);
     expect(search.mock.calls[1][0].requests[1]).toMatchObject({
-      indexName: "collections_fr_eur",
+      indexName: "collections_fr_fr",
       hitsPerPage: 12,
     });
     expect(controller.getState().sections).toEqual({});
@@ -460,7 +460,7 @@ describe("createSearchController", () => {
     const controller = createSearchController({
       search,
       language: "fr",
-      currency: "EUR",
+      country: "FR",
       analytics: {
         surface: "search_page",
         trackViewSearchResults,

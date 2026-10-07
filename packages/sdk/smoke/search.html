@@ -8,6 +8,7 @@
       label { display: block; margin-top: 0.5rem; }
       input { width: 100%; }
       pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+      li { cursor: pointer; }
     </style>
   </head>
   <body>
@@ -15,35 +16,74 @@
     <p>
       Staging API key is read at click time and never persisted. The bundle is
       the development flavor (staging Nest), built by <code>pnpm smoke</code>.
+      Results go through <code>createSearchController</code>: impressions and
+      clicks are logged under Events. Clicking a result logs its navigation
+      instead of leaving the page.
     </p>
     <label>API key (staging) <input id="apiKey" type="password" /></label>
+    <label>Language (ISO 639-1) <input id="language" value="fr" /></label>
+    <label>Shopper's country (ISO 3166-1 alpha-2) <input id="country" value="FR" /></label>
     <label>Query <input id="query" value="shampoo" /></label>
-    <label>Page <input id="page" type="number" value="0" /></label>
     <label>Hits per page <input id="hitsPerPage" type="number" value="5" /></label>
     <button id="run">Search</button>
+    <h2>Results</h2>
+    <ol id="results"></ol>
+    <h2>Events</h2>
+    <pre id="events">—</pre>
+    <h2>Response</h2>
     <pre id="out">—</pre>
     <script src="./dialog-sdk.dev.js"></script>
     <script>
-      let dialog;
       const out = document.getElementById("out");
-      document.getElementById("run").addEventListener("click", async () => {
-        const apiKey = document.getElementById("apiKey").value;
+      const results = document.getElementById("results");
+      const events = document.getElementById("events");
+      const log = (name, payload) => {
+        const line = `${name} ${JSON.stringify(payload)}`;
+        events.textContent =
+          events.textContent === "—" ? line : `${events.textContent}\n${line}`;
+      };
+      let controller;
+      document.getElementById("run").addEventListener("click", () => {
+        controller?.dispose();
         // Search-only construction: no commerce callbacks.
-        dialog = dialog ?? new DialogSDK.Dialog({ apiKey, locale: "fr-FR", currency: "EUR" });
-        out.textContent = "…";
-        try {
-          const response = await dialog.search({
-            requests: [{
-              indexName: DialogSDK.searchIndexName("products", "fr", dialog.currency),
-              query: document.getElementById("query").value,
-              page: Number(document.getElementById("page").value),
-              hitsPerPage: Number(document.getElementById("hitsPerPage").value),
-            }],
+        const dialog = new DialogSDK.Dialog({
+          apiKey: document.getElementById("apiKey").value,
+          locale: "fr-FR",
+          currency: "EUR",
+        });
+        controller = DialogSDK.createSearchController({
+          search: (request, options) => dialog.search(request, options),
+          language: document.getElementById("language").value,
+          country: document.getElementById("country").value,
+          hitsPerPage: Number(document.getElementById("hitsPerPage").value),
+          analytics: {
+            surface: "search_page",
+            trackViewSearchResults: (params) => {
+              log("view_search_results", params);
+              dialog.trackViewSearchResults(params);
+            },
+            trackSelectSearchResult: (params) => {
+              log("select_search_result", params);
+              dialog.trackSelectSearchResult(params);
+            },
+          },
+          navigate: (url) => log("navigate", { url }),
+        });
+        controller.subscribe((state) => {
+          out.textContent = state.error
+            ? `${state.error.name} status=${state.error.status} code=${state.error.code}\n${state.error.message}`
+            : JSON.stringify(state.response ?? state.status, null, 2);
+          results.replaceChildren();
+          (state.response?.hits ?? []).forEach((hit, index) => {
+            const item = document.createElement("li");
+            item.textContent = `${hit.title} (product ${hit.id}, variant ${hit.objectID}) ${hit.variants_min_price ?? ""} ${hit.currency ?? ""}`;
+            item.onclick = () => controller.selectResult(index);
+            results.append(item);
+            controller.observeResult(item, index);
           });
-          out.textContent = JSON.stringify(response, null, 2);
-        } catch (error) {
-          out.textContent = `${error.name} status=${error.status} code=${error.code}\n${error.message}`;
-        }
+        });
+        events.textContent = "—";
+        controller.submit(document.getElementById("query").value);
       });
     </script>
   </body>

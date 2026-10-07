@@ -1,4 +1,4 @@
-import { SearchResult } from "../types/search";
+import { SearchProductHit, SearchResult } from "../types/search";
 import {
   SearchAnalyticsEnvelope,
   SearchResultItem,
@@ -11,14 +11,22 @@ import {
 
 /** Internal binding for search impressions and selections. */
 export interface ControllerAnalyticsBinding {
-  onResponse(result: SearchResult): void;
-  observeResult(element: Element, result: SearchResult, index: number): void;
-  select(result: SearchResult, index: number): void;
+  onResponse(result: SearchResult<SearchProductHit>): void;
+  observeResult(
+    element: Element,
+    result: SearchResult<SearchProductHit>,
+    index: number,
+  ): void;
+  select(result: SearchResult<SearchProductHit>, index: number): void;
   dispose(): void;
 }
 
-const resultItem = (result: SearchResult, index: number): SearchResultItem => ({
-  product_id: result.hits[index].objectID,
+const resultItem = (
+  result: SearchResult<SearchProductHit>,
+  index: number,
+): SearchResultItem => ({
+  // `objectID` is the variant id; analytics count products.
+  product_id: String(result.hits[index].id),
   // One-based position across all pages.
   position: result.page * result.hitsPerPage + index + 1,
 });

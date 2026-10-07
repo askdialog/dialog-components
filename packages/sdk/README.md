@@ -242,9 +242,9 @@ Example of expected result:
 
 - Search products
 
-`client.search()` sends a multi-index request to the public search API. Build names with `searchIndexName(index, language, currency)`: `<index>_<lang>_<currency>`, e.g. `products_fr_eur`. Supported indices: `products`, `collections`, `articles`, `pages`. Language must be a lowercase ISO 639-1 code (`fr`, `en`). Regional locales such as `fr-FR` are rejected. The ISO 4217 currency is lowercased in the index name.
+`client.search()` sends a multi-index request to the public search API. Build names with `searchIndexName(index, language, country)`: `<index>_<lang>_<country>`, e.g. `products_fr_be`. Supported indices: `products`, `collections`, `articles`, `pages`. Language must be a lowercase ISO 639-1 code (`fr`, `en`). Regional locales such as `fr-FR` are rejected. The country is the shopper's ISO 3166-1 alpha-2 code, lowercased in the index name.
 
-Currency is required and independent of language: `fr` with `USD` produces `products_fr_usd`. Names without a currency suffix return 404.
+The country is required and independent of language: `fr` with `CA` produces `products_fr_ca`. Product prices are in the base currency of the market that sells to that country. Names without a country suffix return 404.
 
 ```typescript
 import { Dialog, DialogSearchError, searchIndexName } from '@askdialog/dialog-sdk';
@@ -255,7 +255,7 @@ const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr-FR', currency: '
 const response: SearchResponse = await client.search({
   requests: [
     {
-      indexName: searchIndexName('products', 'fr', client.currency), // "products_fr_eur"
+      indexName: searchIndexName('products', 'fr', 'BE'), // "products_fr_be"
       query: 'shampoo',
       page: 0, // optional, zero-indexed (default 0)
       hitsPerPage: 20, // optional, 1-100 (default 20)
@@ -264,8 +264,11 @@ const response: SearchResponse = await client.search({
 });
 // response.results[n]: { index, hits, nbHits, page, nbPages, hitsPerPage,
 //                        processingTimeMS, query, queryID }
-// response.results[n].hits[m]: { objectID, title?, url?, handle?, imageUrl?,
-//                                priceRange? }
+// A products hit is Algolia's Shopify record (`SearchProductHit`), plus `url`
+// and `currency`: { objectID (variant id), id (product id), title?, handle?,
+// url?, image?, variants_min_price?, price?, compare_at_price?, ... }
+// Collection, article and page hits are `SearchHit`: { objectID, title?, url?,
+// handle?, imageUrl? }
 ```
 
 With the IIFE bundle the results are plain runtime JSON (same shape, no types):
@@ -275,7 +278,7 @@ With the IIFE bundle the results are plain runtime JSON (same shape, no types):
 <script>
   const client = new window.DialogSDK.Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr-FR', currency: 'EUR' });
   client
-    .search({ requests: [{ indexName: 'products_fr_eur', query: 'shampoo' }] })
+    .search({ requests: [{ indexName: 'products_fr_be', query: 'shampoo' }] })
     .then((response) => console.log(response.results[0].hits));
 </script>
 ```
@@ -298,7 +301,7 @@ const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr-FR', currency: '
 const controller = createSearchController({
   search: (request, options) => client.search(request, options),
   language: 'fr',
-  currency: client.currency,
+  country: 'BE', // shopper's country
   analytics: {
     surface: 'search_page', // where results are displayed
     trackViewSearchResults: (params) => client.trackViewSearchResults(params),
@@ -328,9 +331,11 @@ retryButton.onclick = () => controller.retry();
 controller.dispose();
 ```
 
-The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Search controllers and React/Vue hooks require explicit `language` (ISO 639-1) and `currency` (ISO 4217), independently of the client locale. Pass `client.currency` to reuse its configured currency.
+The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Search controllers and React/Vue hooks require explicit `language` (ISO 639-1) and `country` (the shopper's ISO 3166-1 alpha-2 country), independently of the client locale.
 
-For Shopify, use `window.Shopify.currency.active` as the currency. Controller options are fixed at creation; recreate the controller to change language or currency.
+For Shopify, use `window.Shopify.country` as the country. Controller options are fixed at creation; recreate the controller to change language or country.
+
+Analytics send each product hit's `id` (the product id) as `product_id`; `navigate` receives the hit's `url`.
 
 Framework integrations:
 
