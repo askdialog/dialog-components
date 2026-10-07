@@ -17,22 +17,16 @@ const pageIndicator = document.getElementById("page-indicator");
 
 let controller;
 
-function formatPrice(priceRange) {
-  if (priceRange === undefined) {
+// The lowest variant price, in the currency of the shopper's market.
+function formatPrice({ variants_min_price: amount, currency }) {
+  if (amount === undefined) {
     return "";
   }
-  const { min, max } = priceRange;
-  // A price indexed without a currency shows as a bare amount.
-  const format = ({ amount, currencyCode }) =>
-    currencyCode === undefined
-      ? new Intl.NumberFormat().format(Number(amount))
-      : new Intl.NumberFormat(undefined, {
-          style: "currency",
-          currency: currencyCode,
-        }).format(Number(amount));
-  return min.amount === max.amount
-    ? format(min)
-    : `${format(min)} – ${format(max)}`;
+  return currency === undefined
+    ? new Intl.NumberFormat().format(amount)
+    : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
+        amount,
+      );
 }
 
 /**
@@ -54,9 +48,9 @@ function renderProductCard(hit, index) {
 
   const image = document.createElement("div");
   image.className = "card-image";
-  if (hit.imageUrl !== undefined) {
+  if (hit.image !== undefined) {
     const img = document.createElement("img");
-    img.src = hit.imageUrl;
+    img.src = hit.image;
     img.alt = hit.title ?? hit.objectID;
     img.loading = "lazy";
     image.appendChild(img);
@@ -70,7 +64,7 @@ function renderProductCard(hit, index) {
 
   const meta = document.createElement("p");
   meta.className = "card-meta";
-  meta.textContent = formatPrice(hit.priceRange);
+  meta.textContent = formatPrice(hit);
   li.appendChild(meta);
 
   const href = hit.url === undefined ? undefined : safeProductHref(hit.url);
@@ -155,11 +149,11 @@ function render(state) {
 }
 
 function start(apiKey) {
-  const dialog = new Dialog({ apiKey, locale: "fr-FR", currency: "EUR" });
+  const dialog = new Dialog({ apiKey, locale: "fr-FR" });
   controller = createSearchController({
     search: (request, options) => dialog.search(request, options),
     language: "fr",
-    currency: dialog.currency,
+    country: "FR",
     analytics: {
       surface: "search_page",
       trackViewSearchResults: (params) => dialog.trackViewSearchResults(params),
