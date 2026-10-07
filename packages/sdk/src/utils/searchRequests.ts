@@ -19,7 +19,7 @@ export const normalizeQuery = (rawQuery: string): string | undefined => {
 interface SearchRequestConfig {
   indexName: string;
   language: string;
-  currency: string;
+  country: string;
   hitsPerPage: number;
 }
 
@@ -32,12 +32,12 @@ export const buildSearchRequest = (
   query: string,
   page: number,
   sections: readonly SearchSection[],
-  { indexName, language, currency, hitsPerPage }: SearchRequestConfig,
+  { indexName, language, country, hitsPerPage }: SearchRequestConfig,
 ): SearchRequest => ({
   requests: [
     { indexName, query, page, hitsPerPage },
     ...sections.map((section) => ({
-      indexName: searchIndexName(section.index, language, currency),
+      indexName: searchIndexName(section.index, language, country),
       query,
       page: 0,
       hitsPerPage: section.hitsPerPage ?? hitsPerPage,
@@ -48,7 +48,7 @@ export const buildSearchRequest = (
 export const readSearchResults = (
   result: SearchResponse,
   requested: readonly SearchSection[],
-  { indexName, language, currency }: SearchRequestConfig,
+  { indexName, language, country }: SearchRequestConfig,
 ): SearchResults => {
   const response = result.results.find((entry) => entry.index === indexName);
   if (response === undefined) {
@@ -59,7 +59,7 @@ export const readSearchResults = (
     const requestedIndexName = searchIndexName(
       section.index,
       language,
-      currency,
+      country,
     );
     const entry = result.results.find(
       (candidate) => candidate.index === requestedIndexName,

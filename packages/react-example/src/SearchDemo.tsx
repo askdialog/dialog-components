@@ -18,7 +18,7 @@ export const SearchDemo: FC<{ client: Dialog }> = ({ client }) => {
   const { controller, state, theme } = useDialogSearch({
     client,
     language: "fr",
-    currency: client.currency,
+    country: "FR",
     sections,
   });
 

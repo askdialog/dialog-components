@@ -57,8 +57,8 @@ export interface SearchControllerOptions {
   search: SearchFunction;
   /** Lowercase ISO 639-1 language code, e.g. `fr`. */
   language: string;
-  /** ISO 4217 currency, independent of language. */
-  currency: string;
+  /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`; prices follow its market. */
+  country: string;
   analytics: SearchControllerAnalytics;
   /** Navigate after recording selection. Omit to use native link navigation. */
   navigate?: (url: string, hit: SearchHit) => void;

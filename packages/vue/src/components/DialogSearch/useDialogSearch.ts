@@ -15,8 +15,8 @@ export interface UseDialogSearchOptions {
   client: Dialog;
   /** Lowercase ISO 639-1 language code, e.g. `fr`. */
   language: string;
-  /** ISO 4217 currency, independent of language. */
-  currency: string;
+  /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`; prices follow its market. */
+  country: string;
   /** UI surface used in search analytics. */
   surface?: SearchSurface;
   /** Navigate after recording selection; omit to use native links. */

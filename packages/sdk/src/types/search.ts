@@ -1,4 +1,4 @@
-/** Supported indices before adding language and currency. */
+/** Supported indices before adding language and country. */
 export const SEARCH_INDICES = [
   "products",
   "collections",
@@ -10,8 +10,8 @@ export type SearchIndex = (typeof SEARCH_INDICES)[number];
 
 export interface SearchQuery {
   /**
-   * `<index>_<lang>_<currency>`, e.g. `products_fr_eur`.
-   * Use the same language and lowercase ISO 4217 currency for every entry.
+   * `<index>_<lang>_<country>`, e.g. `products_fr_be`.
+   * Use the same language and lowercase ISO 3166-1 alpha-2 country for every entry.
    * Unsupported index names return 404.
    */
   indexName: string;

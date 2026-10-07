@@ -19,7 +19,7 @@ vi.mock("../utils/searchImpressions", () => ({
 const response = (overrides: Partial<SearchResult> = {}): SearchResponse => ({
   results: [
     {
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       hits: [
         { objectID: "p1", url: "https://shop.example/p1" },
         { objectID: "p2" },
@@ -45,7 +45,7 @@ const createController = (): SearchController =>
   createSearchController({
     search,
     language: "fr",
-    currency: "EUR",
+    country: "FR",
     analytics: {
       surface: "search_page",
       trackViewSearchResults,
@@ -93,7 +93,7 @@ describe("search controller attribution", () => {
 
     expect(tracker.setContext).toHaveBeenCalledWith({
       query_id: "qid-1",
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 2,
@@ -133,7 +133,7 @@ describe("search controller attribution", () => {
 
     expect(trackViewSearchResults).toHaveBeenCalledWith({
       query_id: "qid-1",
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 1,
@@ -188,7 +188,7 @@ describe("search controller attribution", () => {
     });
     expect(trackSelectSearchResult).toHaveBeenCalledWith({
       query_id: "qid-1",
-      index: "products_fr_eur",
+      index: "products_fr_fr",
       surface: "search_page",
       search_type: "lexical",
       page: 1,
@@ -258,7 +258,7 @@ describe("search controller attribution", () => {
     const controller = createSearchController({
       search,
       language: "fr",
-      currency: "EUR",
+      country: "FR",
       analytics: {
         surface: "search_page",
         trackViewSearchResults,
