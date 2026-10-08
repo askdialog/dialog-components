@@ -85,9 +85,8 @@ export const readSearchResults = (
   }
 
   return {
-    // The products index answers product records only.
+    // Each index answers its own record type.
     response: response as SearchResult<SearchProductHit>,
-    // Each index answers its own record.
     sections: requested.length === 0 ? undefined : (sections as SearchSections),
   };
 };

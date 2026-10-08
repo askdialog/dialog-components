@@ -36,9 +36,9 @@ export const DialogSearchCollections: FC<DialogSearchCollectionsProps> = ({
           <li key={collection.objectID}>
             <a className="dialog-search-collection" href={href}>
               <span className="dialog-search-collection-thumb" aria-hidden>
-                {collection.image !== undefined && collection.image !== "" && (
+                {collection.image ? (
                   <img src={collection.image} alt="" loading="lazy" />
-                )}
+                ) : null}
               </span>
               <span className="dialog-search-collection-title">
                 <HighlightedTitle title={hitTitle(collection)} query={query} />

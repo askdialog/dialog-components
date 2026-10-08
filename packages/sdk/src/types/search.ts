@@ -101,10 +101,15 @@ export interface SearchProductHit {
   published_at?: string;
 }
 
-/** Products results carry `SearchProductHit`, collections `SearchCollectionHit`, other indices `SearchHit`. */
-export interface SearchResult<
-  THit = SearchProductHit | SearchCollectionHit | SearchHit,
-> {
+/** The hit each index answers. */
+export interface SearchHitByIndex {
+  products: SearchProductHit;
+  collections: SearchCollectionHit;
+  articles: SearchHit;
+  pages: SearchHit;
+}
+
+export interface SearchResult<THit = SearchHitByIndex[SearchIndex]> {
   index: string;
   hits: THit[];
   nbHits: number;
@@ -118,8 +123,8 @@ export interface SearchResult<
 
 /** Results of the sections searched next to products, keyed by index. */
 export type SearchSections = {
-  [Index in SearchIndex]?: SearchResult<
-    Index extends "collections" ? SearchCollectionHit : SearchHit
+  [Index in Exclude<SearchIndex, "products">]?: SearchResult<
+    SearchHitByIndex[Index]
   >;
 };
 

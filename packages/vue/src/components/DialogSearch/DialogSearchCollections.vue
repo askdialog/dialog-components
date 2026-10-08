@@ -11,7 +11,7 @@
         <a class="dialog-search-collection" :href="href">
           <span class="dialog-search-collection-thumb" aria-hidden="true">
             <img
-              v-if="collection.image !== undefined && collection.image !== ''"
+              v-if="collection.image"
               :src="collection.image"
               alt=""
               loading="lazy"
