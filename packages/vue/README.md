@@ -138,6 +138,7 @@ Creates one search controller per composable instance and disposes it on unmount
 - `country` (string, required) - Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`; prices follow its market
 - `surface` (SearchSurface, optional) - Where results are displayed, for analytics (default: `'search_page'`)
 - `navigate` ((url, hit: SearchProductHit) => void, optional) - Router adapter called after selection attribution (e.g. `(url) => router.push(url)`). Omit it to let the cards' plain `<a href>` links navigate natively.
+- `buildProductUrl` ((hit: SearchProductHit) => string | undefined, optional) - Builds a card's link when its hit has no `url`, e.g. ``(hit) => `/products/${hit.handle}` ``. With neither, the card has no link.
 - `debounceMs` (number, optional) - Keystroke debounce (default: 250)
 - `hitsPerPage` (number, optional) - Results per page (default: 12)
 - `sections` (SearchSection[], optional) - Extra indices searched alongside the products; `collections` fills the collections column of `DialogSearchResults`. Only request an index the catalog exposes: a missing one fails the whole search.
