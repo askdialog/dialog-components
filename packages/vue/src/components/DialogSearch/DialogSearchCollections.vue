@@ -11,10 +11,8 @@
         <a class="dialog-search-collection" :href="href">
           <span class="dialog-search-collection-thumb" aria-hidden="true">
             <img
-              v-if="
-                collection.imageUrl !== undefined && collection.imageUrl !== ''
-              "
-              :src="collection.imageUrl"
+              v-if="collection.image !== undefined && collection.image !== ''"
+              :src="collection.image"
               alt=""
               loading="lazy"
             />
@@ -35,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchHit } from "@askdialog/dialog-sdk";
+import type { SearchCollectionHit } from "@askdialog/dialog-sdk";
 import { computed } from "vue";
 import CaretRightIcon from "../../icons/CaretRightIcon.vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
@@ -44,7 +42,7 @@ import { navigableCollections } from "./searchCollections";
 import type { SearchMessages } from "./searchMessages";
 
 const props = defineProps<{
-  collections: SearchHit[];
+  collections: SearchCollectionHit[];
   query: string;
   messages: SearchMessages;
 }>();

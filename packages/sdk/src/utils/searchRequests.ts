@@ -1,11 +1,11 @@
 import { searchIndexName } from "../services/search";
 import {
-  SearchHit,
   SearchIndex,
   SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
+  SearchSections,
 } from "../types/search";
 import {
   SearchControllerState,
@@ -40,7 +40,7 @@ interface SearchRequestConfig {
 
 interface SearchResults {
   response: SearchResult<SearchProductHit>;
-  sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> | undefined;
+  sections: SearchSections | undefined;
 }
 
 export const buildSearchRequest = (
@@ -69,7 +69,7 @@ export const readSearchResults = (
   if (response === undefined) {
     throw new Error(`Dialog search returned no ${indexName} entry`);
   }
-  const sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> = {};
+  const sections: Partial<Record<SearchIndex, SearchResult>> = {};
   for (const section of requested) {
     const requestedIndexName = searchIndexName(
       section.index,
@@ -80,13 +80,14 @@ export const readSearchResults = (
       (candidate) => candidate.index === requestedIndexName,
     );
     if (entry !== undefined) {
-      sections[section.index] = entry as SearchResult<SearchHit>;
+      sections[section.index] = entry;
     }
   }
 
   return {
     // The products index answers product records only.
     response: response as SearchResult<SearchProductHit>,
-    sections: requested.length === 0 ? undefined : sections,
+    // Each index answers its own record.
+    sections: requested.length === 0 ? undefined : (sections as SearchSections),
   };
 };

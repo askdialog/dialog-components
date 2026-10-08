@@ -32,7 +32,22 @@ export interface SearchOptions {
   signal?: AbortSignal;
 }
 
-/** A collection, article or page hit. */
+/** Algolia's collection record, plus `url`. */
+export interface SearchCollectionHit {
+  /** Collection id, the last segment of the Shopify GID. */
+  objectID: string;
+  title?: string;
+  handle?: string;
+  url?: string;
+  body_html?: string;
+  body_html_safe?: string;
+  image?: string;
+  products_count?: number;
+  template_suffix?: string;
+  updated_at?: string;
+}
+
+/** An article or page hit. */
 export interface SearchHit {
   objectID: string;
   title?: string;
@@ -86,8 +101,10 @@ export interface SearchProductHit {
   published_at?: string;
 }
 
-/** Products results carry `SearchProductHit`, other indices `SearchHit`. */
-export interface SearchResult<THit = SearchProductHit | SearchHit> {
+/** Products results carry `SearchProductHit`, collections `SearchCollectionHit`, other indices `SearchHit`. */
+export interface SearchResult<
+  THit = SearchProductHit | SearchCollectionHit | SearchHit,
+> {
   index: string;
   hits: THit[];
   nbHits: number;
@@ -98,6 +115,13 @@ export interface SearchResult<THit = SearchProductHit | SearchHit> {
   query: string;
   queryID: string;
 }
+
+/** Results of the sections searched next to products, keyed by index. */
+export type SearchSections = {
+  [Index in SearchIndex]?: SearchResult<
+    Index extends "collections" ? SearchCollectionHit : SearchHit
+  >;
+};
 
 /** Results in request order. */
 export interface SearchResponse {
