@@ -36,7 +36,7 @@ import {
 } from "@askdialog/dialog-sdk";
 import { computed, ref, watch } from "vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
-import { hitHref, hitImage, hitTitle } from "./searchDisplay";
+import { hitImage, hitTitle, safeHref } from "./searchDisplay";
 
 interface Props {
   controller: SearchController;
@@ -65,7 +65,7 @@ watch(
   { immediate: true, flush: "post" },
 );
 
-const href = computed(() => hitHref(props.hit));
+const href = computed(() => safeHref(props.controller.productUrl(props.hit)));
 const image = computed(() => hitImage(props.hit));
 const price = computed(() => formatSearchPrice(props.hit, props.locale));
 const compareAtPrice = computed(() =>

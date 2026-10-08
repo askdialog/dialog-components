@@ -5,7 +5,11 @@ export const hitImage = (hit: SearchProductHit): string | undefined =>
   hit.product_image || hit.image || undefined;
 
 // Allow only HTTP(S) links.
-export const safeHref = (url: string): string | undefined => {
+export const safeHref = (url: string | undefined): string | undefined => {
+  if (url === undefined || url === "") {
+    return undefined;
+  }
+
   try {
     const { protocol } = new URL(url, window.location.href);
 
@@ -16,7 +20,7 @@ export const safeHref = (url: string): string | undefined => {
 };
 
 export const hitHref = (hit: SearchHit): string | undefined =>
-  hit.url === undefined || hit.url === "" ? undefined : safeHref(hit.url);
+  safeHref(hit.url);
 
 export const hitTitle = (hit: SearchHit): string =>
   hit.title ?? hit.handle ?? hit.objectID;

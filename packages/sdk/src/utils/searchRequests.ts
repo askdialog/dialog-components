@@ -7,7 +7,20 @@ import {
   SearchResponse,
   SearchResult,
 } from "../types/search";
-import { SearchSection } from "../types/searchController";
+import {
+  SearchControllerState,
+  SearchSection,
+  SearchStatus,
+} from "../types/searchController";
+
+export const INITIAL_SEARCH_STATE: SearchControllerState = {
+  status: SearchStatus.IDLE,
+  query: "",
+  page: 0,
+  response: undefined,
+  sections: undefined,
+  error: undefined,
+};
 
 // Match the API minimum query length.
 const MIN_QUERY_CODE_POINTS = 2;

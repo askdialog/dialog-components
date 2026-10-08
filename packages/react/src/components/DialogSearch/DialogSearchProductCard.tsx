@@ -6,7 +6,7 @@ import {
   type SearchProductHit,
 } from "@askdialog/dialog-sdk";
 import { HighlightedTitle } from "./HighlightedTitle";
-import { hitHref, hitImage, hitTitle } from "./searchDisplay";
+import { hitImage, hitTitle, safeHref } from "./searchDisplay";
 import "./DialogSearchProductCard.css";
 
 interface DialogSearchProductCardProps {
@@ -53,7 +53,7 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
 
   const price = formatSearchPrice(hit, locale);
   const compareAtPrice = formatSearchCompareAtPrice(hit, locale);
-  const href = hitHref(hit);
+  const href = safeHref(controller.productUrl(hit));
   const image = hitImage(hit);
 
   const content = (

@@ -1,4 +1,5 @@
 import { searchIndexName } from "./services/search";
+import { SearchProductHit } from "./types/search";
 import {
   SearchController,
   SearchControllerOptions,
@@ -8,18 +9,10 @@ import {
 import { createControllerAnalytics } from "./utils/searchControllerAnalytics";
 import {
   buildSearchRequest,
+  INITIAL_SEARCH_STATE,
   normalizeQuery,
   readSearchResults,
 } from "./utils/searchRequests";
-
-const INITIAL_STATE: SearchControllerState = {
-  status: SearchStatus.IDLE,
-  query: "",
-  page: 0,
-  response: undefined,
-  sections: undefined,
-  error: undefined,
-};
 
 export function createSearchController({
   search,
@@ -27,6 +20,7 @@ export function createSearchController({
   country,
   analytics,
   navigate,
+  buildProductUrl,
   debounceMs = 250,
   hitsPerPage = 12,
   sections = [],
@@ -37,7 +31,7 @@ export function createSearchController({
     country,
     hitsPerPage,
   };
-  let state = INITIAL_STATE;
+  let state = INITIAL_SEARCH_STATE;
   const listeners = new Set<(next: SearchControllerState) => void>();
   const controllerAnalytics = createControllerAnalytics(analytics);
 
@@ -53,6 +47,9 @@ export function createSearchController({
       listener(state);
     }
   };
+
+  const productUrl = (hit: SearchProductHit): string | undefined =>
+    hit.url !== undefined && hit.url !== "" ? hit.url : buildProductUrl?.(hit);
 
   const cancelPendingSearch = (): void => {
     clearTimeout(debounceTimer);
@@ -111,7 +108,7 @@ export function createSearchController({
       cancelPendingSearch();
       const query = normalizeQuery(rawQuery);
       if (query === undefined) {
-        setState(INITIAL_STATE);
+        setState(INITIAL_SEARCH_STATE);
 
         return;
       }
@@ -126,7 +123,7 @@ export function createSearchController({
       cancelPendingSearch();
       const query = normalizeQuery(rawQuery);
       if (query === undefined) {
-        setState(INITIAL_STATE);
+        setState(INITIAL_SEARCH_STATE);
 
         return;
       }
@@ -169,7 +166,7 @@ export function createSearchController({
         return false;
       }
       controllerAnalytics.select(response, index);
-      const url = response.hits[index].url;
+      const url = productUrl(response.hits[index]);
       const runAdapter = options?.navigate ?? true;
       if (runAdapter && navigate !== undefined && url !== undefined) {
         navigate(url, response.hits[index]);
@@ -179,6 +176,8 @@ export function createSearchController({
 
       return false;
     },
+
+    productUrl,
 
     subscribe(listener) {
       listeners.add(listener);

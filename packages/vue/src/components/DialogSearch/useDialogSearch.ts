@@ -21,6 +21,8 @@ export interface UseDialogSearchOptions {
   surface?: SearchSurface;
   /** Navigate after recording selection; omit to use native links. */
   navigate?: (url: string, hit: SearchProductHit) => void;
+  /** Build a product's link when its hit has no `url`, e.g. `/products/${hit.handle}`. */
+  buildProductUrl?: (hit: SearchProductHit) => string | undefined;
   debounceMs?: number;
   hitsPerPage?: number;
   /**
