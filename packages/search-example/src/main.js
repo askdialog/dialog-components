@@ -69,7 +69,9 @@ function renderProductCard(hit, index) {
   meta.textContent = formatPrice(hit);
   li.appendChild(meta);
 
-  const href = hit.url === undefined ? undefined : safeProductHref(hit.url);
+  const productUrl = controller.productUrl(hit);
+  const href =
+    productUrl === undefined ? undefined : safeProductHref(productUrl);
   if (href !== undefined) {
     const link = document.createElement("a");
     link.className = "card-link";
@@ -162,6 +164,9 @@ function start(apiKey) {
       trackSelectSearchResult: (params) =>
         dialog.trackSelectSearchResult(params),
     },
+    // Link for a hit without `url`: here a Shopify-style product page.
+    buildProductUrl: (hit) =>
+      hit.handle === undefined ? undefined : `/products/${hit.handle}`,
     // No `navigate` adapter: the demo renders plain `<a href>` links and
     // suppresses navigation above; a real integration passes its router here.
   });
