@@ -267,8 +267,9 @@ const response: SearchResponse = await client.search({
 // A products hit is Algolia's Shopify record (`SearchProductHit`), plus `url`
 // and `currency`: { objectID (variant id), id (product id), title?, handle?,
 // url?, image?, variants_min_price?, price?, compare_at_price?, ... }
-// Collection, article and page hits are `SearchHit`: { objectID, title?, url?,
-// handle?, imageUrl? }
+// Collection hits are `SearchCollectionHit`, Algolia's collection record:
+// { objectID, title?, handle?, url?, body_html_safe?, image?, products_count?, ... }
+// Article and page hits are `SearchHit`: { objectID, title?, url?, handle?, imageUrl? }
 ```
 
 With the IIFE bundle the results are plain runtime JSON (same shape, no types):

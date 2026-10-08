@@ -1,10 +1,10 @@
-import type { SearchHit } from "@askdialog/dialog-sdk";
+import type { SearchCollectionHit } from "@askdialog/dialog-sdk";
 import { hitHref } from "./searchDisplay";
 
 /** Collections without a link cannot navigate on selection and are not rendered. */
 export const navigableCollections = (
-  collections: SearchHit[] | undefined,
-): { collection: SearchHit; href: string }[] =>
+  collections: SearchCollectionHit[] | undefined,
+): { collection: SearchCollectionHit; href: string }[] =>
   (collections ?? []).flatMap((collection) => {
     const href = hitHref(collection);
 

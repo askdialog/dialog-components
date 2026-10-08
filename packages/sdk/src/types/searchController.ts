@@ -1,11 +1,11 @@
 import {
-  SearchHit,
   SearchIndex,
   SearchOptions,
   SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
+  SearchSections,
 } from "./search";
 import {
   SearchSurface,
@@ -37,7 +37,7 @@ export interface SearchControllerState {
   page: number;
   /** Last products result; retained while loading and cleared on error or reset. */
   response?: SearchResult<SearchProductHit>;
-  sections?: Partial<Record<SearchIndex, SearchResult<SearchHit>>>;
+  sections?: SearchSections;
   error?: unknown;
 }
 
