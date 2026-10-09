@@ -28,7 +28,8 @@ prices the hits carry. Each product hit is Algolia's Shopify record
 (`SearchProductHit`): the card shows its `product_image`
 (the variant's `image` when absent), its `title`, its lowest
 variant price (`variants_min_price`, formatted with `currency`, the base
-currency of the shopper's market) and links to its `url`.
+currency of the shopper's market) and links to its `url`, else to
+`/products/<handle>` through the controller's `buildProductUrl`.
 
 ## Analytics
 

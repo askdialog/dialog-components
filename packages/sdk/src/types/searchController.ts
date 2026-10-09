@@ -1,11 +1,11 @@
 import {
-  SearchHit,
   SearchIndex,
   SearchOptions,
   SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
+  SearchSections,
 } from "./search";
 import {
   SearchSurface,
@@ -37,7 +37,7 @@ export interface SearchControllerState {
   page: number;
   /** Last products result; retained while loading and cleared on error or reset. */
   response?: SearchResult<SearchProductHit>;
-  sections?: Partial<Record<SearchIndex, SearchResult<SearchHit>>>;
+  sections?: SearchSections;
   error?: unknown;
 }
 
@@ -63,6 +63,8 @@ export interface SearchControllerOptions {
   analytics: SearchControllerAnalytics;
   /** Navigate after recording selection. Omit to use native link navigation. */
   navigate?: (url: string, hit: SearchProductHit) => void;
+  /** Build a product's link when its hit has no `url`, e.g. `/products/${hit.handle}`. */
+  buildProductUrl?: (hit: SearchProductHit) => string | undefined;
   debounceMs?: number;
   hitsPerPage?: number;
   sections?: readonly SearchSection[] | (() => readonly SearchSection[]);
@@ -86,6 +88,8 @@ export interface SearchController {
    * Returns true if the navigation adapter ran; call `preventDefault()` then.
    */
   selectResult(index: number, options?: { navigate?: boolean }): boolean;
+  /** The hit's `url`, else `buildProductUrl`'s result; undefined when neither gives one. */
+  productUrl(hit: SearchProductHit): string | undefined;
   /** Subscribe to state changes; returns an unsubscribe function. */
   subscribe(listener: (state: SearchControllerState) => void): () => void;
   getState(): SearchControllerState;

@@ -16,23 +16,27 @@
       <span class="dialog-search-product-title">
         <HighlightedTitle :title="hitTitle(props.hit)" :query="props.query" />
       </span>
-      <span v-if="price !== ''" class="dialog-search-product-price">{{
-        price
-      }}</span>
+      <span v-if="price !== ''" class="dialog-search-product-price"
+        ><s
+          v-if="compareAtPrice !== ''"
+          class="dialog-search-product-compare-at"
+          >{{ compareAtPrice }}</s
+        >{{ price }}</span
+      >
     </component>
   </li>
 </template>
 
 <script setup lang="ts">
-import type { SearchController, SearchProductHit } from "@askdialog/dialog-sdk";
+import {
+  formatSearchCompareAtPrice,
+  formatSearchPrice,
+  type SearchController,
+  type SearchProductHit,
+} from "@askdialog/dialog-sdk";
 import { computed, ref, watch } from "vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
-import {
-  formatSearchPrice,
-  hitHref,
-  hitImage,
-  hitTitle,
-} from "./searchDisplay";
+import { hitImage, hitTitle, safeHref } from "./searchDisplay";
 
 interface Props {
   controller: SearchController;
@@ -61,9 +65,12 @@ watch(
   { immediate: true, flush: "post" },
 );
 
-const href = computed(() => hitHref(props.hit));
+const href = computed(() => safeHref(props.controller.productUrl(props.hit)));
 const image = computed(() => hitImage(props.hit));
 const price = computed(() => formatSearchPrice(props.hit, props.locale));
+const compareAtPrice = computed(() =>
+  formatSearchCompareAtPrice(props.hit, props.locale),
+);
 
 // Preserve native modified clicks. Prevent default navigation only when the
 // adapter handles the click; record selection in both cases.
@@ -139,6 +146,12 @@ a.dialog-search-product:hover {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.dialog-search-product-compare-at {
+  margin-inline-end: 6px;
+  font-weight: 400;
+  opacity: 0.55;
 }
 
 @media (min-width: 768px) {

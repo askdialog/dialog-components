@@ -1,13 +1,26 @@
 import { searchIndexName } from "../services/search";
 import {
-  SearchHit,
   SearchIndex,
   SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
+  SearchSections,
 } from "../types/search";
-import { SearchSection } from "../types/searchController";
+import {
+  SearchControllerState,
+  SearchSection,
+  SearchStatus,
+} from "../types/searchController";
+
+export const INITIAL_SEARCH_STATE: SearchControllerState = {
+  status: SearchStatus.IDLE,
+  query: "",
+  page: 0,
+  response: undefined,
+  sections: undefined,
+  error: undefined,
+};
 
 // Match the API minimum query length.
 const MIN_QUERY_CODE_POINTS = 2;
@@ -27,7 +40,7 @@ interface SearchRequestConfig {
 
 interface SearchResults {
   response: SearchResult<SearchProductHit>;
-  sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> | undefined;
+  sections: SearchSections | undefined;
 }
 
 export const buildSearchRequest = (
@@ -56,7 +69,7 @@ export const readSearchResults = (
   if (response === undefined) {
     throw new Error(`Dialog search returned no ${indexName} entry`);
   }
-  const sections: Partial<Record<SearchIndex, SearchResult<SearchHit>>> = {};
+  const sections: Partial<Record<SearchIndex, SearchResult>> = {};
   for (const section of requested) {
     const requestedIndexName = searchIndexName(
       section.index,
@@ -67,13 +80,13 @@ export const readSearchResults = (
       (candidate) => candidate.index === requestedIndexName,
     );
     if (entry !== undefined) {
-      sections[section.index] = entry as SearchResult<SearchHit>;
+      sections[section.index] = entry;
     }
   }
 
   return {
-    // The products index answers product records only.
+    // Each index answers its own record type.
     response: response as SearchResult<SearchProductHit>,
-    sections: requested.length === 0 ? undefined : sections,
+    sections: requested.length === 0 ? undefined : (sections as SearchSections),
   };
 };

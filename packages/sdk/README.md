@@ -285,8 +285,9 @@ const response: SearchResponse = await client.search({
 // A products hit is Algolia's Shopify record (`SearchProductHit`), plus `url`
 // and `currency`: { objectID (variant id), id (product id), title?, handle?,
 // url?, image?, variants_min_price?, price?, compare_at_price?, ... }
-// Collection, article and page hits are `SearchHit`: { objectID, title?, url?,
-// handle?, imageUrl? }
+// Collection hits are `SearchCollectionHit`, Algolia's collection record:
+// { objectID, title?, handle?, url?, body_html_safe?, image?, products_count?, ... }
+// Article and page hits are `SearchHit`: { objectID, title?, url?, handle?, imageUrl? }
 ```
 
 With the IIFE bundle the results are plain runtime JSON (same shape, no types):
@@ -326,6 +327,7 @@ const controller = createSearchController({
     trackSelectSearchResult: (params) => client.trackSelectSearchResult(params),
   },
   navigate: (url) => router.push(url), // optional platform routing adapter
+  buildProductUrl: (hit) => `/products/${hit.handle}`, // optional, for hits without `url`
   debounceMs: 250, // optional (default 250)
   hitsPerPage: 12, // optional (default 12)
   sections: [{ index: 'collections', hitsPerPage: 5 }], // optional, first page only; a function is resolved per request
@@ -353,7 +355,7 @@ The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Se
 
 For Shopify, use `window.Shopify.country` as the country. Controller options are fixed at creation; recreate the controller to change language or country.
 
-Analytics send each product hit's `id` (the product id) as `product_id`; `navigate` receives the hit's `url`.
+Analytics send each product hit's `id` (the product id) as `product_id`; `navigate` receives `controller.productUrl(hit)`: the hit's `url`, else `buildProductUrl`'s result.
 
 Framework integrations:
 

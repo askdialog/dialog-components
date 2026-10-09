@@ -22,6 +22,8 @@ export interface UseDialogSearchOptions {
   surface?: SearchSurface;
   /** Navigate after recording selection; omit to use native links. */
   navigate?: (url: string, hit: SearchProductHit) => void;
+  /** Build a product's link when its hit has no `url`, e.g. `/products/${hit.handle}`. */
+  buildProductUrl?: (hit: SearchProductHit) => string | undefined;
   debounceMs?: number;
   hitsPerPage?: number;
   /**
@@ -83,6 +85,7 @@ export const useDialogSearch = (
       getController().observeResult(element, index),
     selectResult: (index, options) =>
       getController().selectResult(index, options),
+    productUrl: (hit) => getController().productUrl(hit),
     subscribe: (listener) => getController().subscribe(listener),
     getState: () => getController().getState(),
     // Create a replacement on next access after disposal.
