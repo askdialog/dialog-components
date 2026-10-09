@@ -47,7 +47,40 @@ export interface SearchCollectionHit {
   updated_at?: string;
 }
 
-/** An article or page hit. */
+/** Algolia's article record, plus `url`. */
+export interface SearchArticleHit {
+  /** Article id, the last segment of the Shopify GID. */
+  objectID: string;
+  title?: string;
+  handle?: string;
+  tags: string[];
+  blog?: {
+    title?: string;
+    handle?: string;
+  };
+  author?: {
+    name: string;
+  };
+  image?: string;
+  published_at?: string;
+  updated_at?: string;
+  body_html_safe?: string;
+  url?: string;
+}
+
+/** Algolia's page record, plus `url`. */
+export interface SearchPageHit {
+  /** Page id, the last segment of the Shopify GID. */
+  objectID: string;
+  title?: string;
+  handle?: string;
+  author?: string;
+  updated_at?: string;
+  body_html_safe?: string;
+  url?: string;
+}
+
+/** @deprecated No index answers it: article hits are `SearchArticleHit`, page hits `SearchPageHit`. */
 export interface SearchHit {
   objectID: string;
   title?: string;
@@ -105,8 +138,8 @@ export interface SearchProductHit {
 export interface SearchHitByIndex {
   products: SearchProductHit;
   collections: SearchCollectionHit;
-  articles: SearchHit;
-  pages: SearchHit;
+  articles: SearchArticleHit;
+  pages: SearchPageHit;
 }
 
 export interface SearchResult<THit = SearchHitByIndex[SearchIndex]> {
