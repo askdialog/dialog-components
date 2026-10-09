@@ -1,5 +1,16 @@
 # @askdialog/dialog-react
 
+## 2.10.0
+
+### Minor Changes
+
+- a28f541: Search product cards show the compare-at price (DAT-1282): `variants_compare_at_price_min`, struck through next to the price and formatted like it, when it is higher than `variants_min_price`; otherwise the price shows alone.
+- 86ab252: Search takes an optional `buildProductUrl(hit)` (DAT-1332): React and Vue cards link to the hit's `url`, else to the builder's result, and have no link with neither. `controller.productUrl(hit)` gives that link, and `navigate` receives it.
+
+### Patch Changes
+
+- da430c9: Collection hits are the exported `SearchCollectionHit`, Algolia's collection record plus `url` (DAT-1404): `SearchControllerState.sections.collections` carries it, and the React and Vue search panels show the collection's `image` as its thumbnail again. Article and page hits keep `SearchHit`.
+
 ## 2.9.0
 
 ### Minor Changes
