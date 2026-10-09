@@ -1,4 +1,10 @@
-import type { SearchHit, SearchProductHit } from "@askdialog/dialog-sdk";
+import type {
+  SearchHitByIndex,
+  SearchIndex,
+  SearchProductHit,
+} from "@askdialog/dialog-sdk";
+
+type SearchHit = SearchHitByIndex[SearchIndex];
 
 /** The product's image, as Algolia's cards in distinct mode; else the variant's. */
 export const hitImage = (hit: SearchProductHit): string | undefined =>
