@@ -163,6 +163,10 @@ function start(apiKey) {
       trackViewSearchResults: (params) => dialog.trackViewSearchResults(params),
       trackSelectSearchResult: (params) =>
         dialog.trackSelectSearchResult(params),
+      trackOpenedSearch: (params) => {
+        console.log("[search] opened", params);
+        dialog.trackOpenedSearch(params);
+      },
     },
     // Link for a hit without `url`: here a Shopify-style product page.
     buildProductUrl: (hit) =>
@@ -183,6 +187,11 @@ function start(apiKey) {
   searchInput.focus();
   render(controller.getState());
 }
+
+// Focusing the input opens search; every focus emits, dedup happens downstream.
+searchInput.addEventListener("focus", () => {
+  controller.open();
+});
 
 searchInput.addEventListener("input", () => {
   controller.setQuery(searchInput.value);
