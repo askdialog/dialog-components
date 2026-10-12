@@ -8,6 +8,7 @@ import {
   SearchSections,
 } from "./search";
 import {
+  OpenedSearchParams,
   SearchSurface,
   SelectSearchResultParams,
   ViewSearchResultsParams,
@@ -51,6 +52,8 @@ export interface SearchControllerAnalytics {
   surface: SearchSurface;
   trackViewSearchResults: (params: ViewSearchResultsParams) => void;
   trackSelectSearchResult: (params: SelectSearchResultParams) => void;
+  /** Called by `open()`; optional so existing custom adapters keep compiling. */
+  trackOpenedSearch?: (params: OpenedSearchParams) => void;
 }
 
 export interface SearchControllerOptions {
@@ -72,6 +75,8 @@ export interface SearchControllerOptions {
 
 /** Manage search requests, pagination and analytics independently of rendering. */
 export interface SearchController {
+  /** Record that the shopper opened search; call it when the search input gets focus. */
+  open(): void;
   /** Submit after the debounce delay. */
   setQuery(rawQuery: string): void;
   /** Submit immediately. */

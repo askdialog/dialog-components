@@ -29,6 +29,16 @@ export interface SearchAnalyticsEnvelope {
   query_length: number;
 }
 
+/**
+ * The shopper opened search (focused the search input); no results exist yet.
+ * `query_id` is set only when results from an earlier query are on screen.
+ */
+export interface OpenedSearchParams {
+  query_id?: string;
+  surface: SearchSurface;
+  search_type: SearchType;
+}
+
 /** Position is one-based across pages: page 2 at 20 hits/page starts at 21. */
 export interface SearchResultItem {
   product_id: string;
@@ -55,5 +65,9 @@ export interface ViewSearchResultsEventPayload extends ViewSearchResultsParams {
 
 export interface SelectSearchResultEventPayload
   extends SelectSearchResultParams {
+  userId?: string;
+}
+
+export interface OpenedSearchEventPayload extends OpenedSearchParams {
   userId?: string;
 }

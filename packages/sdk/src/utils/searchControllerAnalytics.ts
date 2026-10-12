@@ -11,6 +11,8 @@ import {
 
 /** Internal binding for search impressions and selections. */
 export interface ControllerAnalyticsBinding {
+  /** `queryId` is set when results from an earlier query are still on screen. */
+  open(queryId: string | undefined): void;
   onResponse(result: SearchResult<SearchProductHit>): void;
   observeResult(
     element: Element,
@@ -47,6 +49,13 @@ export function createControllerAnalytics(
   };
 
   return {
+    open(queryId) {
+      analytics.trackOpenedSearch?.({
+        query_id: queryId,
+        surface: analytics.surface,
+        search_type: "lexical",
+      });
+    },
     onResponse(result) {
       envelope = {
         query_id: result.queryID,

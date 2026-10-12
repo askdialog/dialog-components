@@ -1,4 +1,5 @@
 import {
+  OpenedSearchEventPayload,
   SelectSearchResultEventPayload,
   ViewSearchResultsEventPayload,
 } from "./searchAnalytics";
@@ -12,6 +13,7 @@ export enum DialogEvents {
   SEND_GENERIC_QUESTION = "GENERIC_QUESTION",
   TRACK_ADD_TO_CART = "TRACK_ADD_TO_CART",
   TRACK_SUBMIT_CHECKOUT = "TRACK_SUBMIT_CHECKOUT",
+  TRACK_OPENED_SEARCH = "TRACK_OPENED_SEARCH",
   TRACK_VIEW_SEARCH_RESULTS = "TRACK_VIEW_SEARCH_RESULTS",
   TRACK_SELECT_SEARCH_RESULT = "TRACK_SELECT_SEARCH_RESULT",
 }
@@ -143,6 +145,7 @@ export type DialogEventPayload =
   | OpenAssistantPayload
   | TrackEventPayload
   | SubmitCheckoutEventPayload
+  | OpenedSearchEventPayload
   | ViewSearchResultsEventPayload
   | SelectSearchResultEventPayload;
 
