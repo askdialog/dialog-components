@@ -21,7 +21,7 @@ export function createSearchController({
   analytics,
   navigate,
   buildProductUrl,
-  debounceMs = 250,
+  debounceMs = 100,
   hitsPerPage = 12,
   sections = [],
 }: SearchControllerOptions): SearchController {
