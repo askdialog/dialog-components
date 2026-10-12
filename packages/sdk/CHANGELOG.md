@@ -1,5 +1,11 @@
 # @askdialog/dialog-sdk
 
+## 2.18.1
+
+### Patch Changes
+
+- 038deb5: `createSearchController()` and `useDialogSearch` debounce keystrokes for 100 ms by default instead of 250 ms. Pass `debounceMs` to keep the previous delay.
+
 ## 2.18.0
 
 ### Minor Changes
