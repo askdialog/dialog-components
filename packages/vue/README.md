@@ -162,7 +162,7 @@ const { controller, state, theme } = useDialogSearch({
 
 #### DialogSearchBar
 
-Search input: typing runs a debounced search, submitting (Enter) searches immediately.
+Search input: typing runs a debounced search, submitting (Enter) searches immediately. Focusing the input calls `controller.open()`, which emits the `TRACK_OPENED_SEARCH` analytics event.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)

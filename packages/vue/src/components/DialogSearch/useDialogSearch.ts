@@ -51,6 +51,7 @@ export const useDialogSearch = (
       trackViewSearchResults: (params) => client.trackViewSearchResults(params),
       trackSelectSearchResult: (params) =>
         client.trackSelectSearchResult(params),
+      trackOpenedSearch: (params) => client.trackOpenedSearch(params),
     },
     ...rest,
   });

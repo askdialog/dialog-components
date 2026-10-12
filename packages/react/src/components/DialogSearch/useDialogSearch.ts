@@ -66,6 +66,7 @@ export const useDialogSearch = (
             client.trackViewSearchResults(params),
           trackSelectSearchResult: (params) =>
             client.trackSelectSearchResult(params),
+          trackOpenedSearch: (params) => client.trackOpenedSearch(params),
         },
         ...rest,
       });
@@ -77,6 +78,7 @@ export const useDialogSearch = (
   // Resolve the current controller after StrictMode disposes the initial instance.
   const facadeRef = useRef<SearchController | undefined>(undefined);
   facadeRef.current ??= {
+    open: () => getController().open(),
     setQuery: (rawQuery) => getController().setQuery(rawQuery),
     submit: (rawQuery) => getController().submit(rawQuery),
     setPage: (page) => getController().setPage(page),
