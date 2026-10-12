@@ -338,6 +338,7 @@ const controller = createSearchController({
     surface: 'search_page', // where results are displayed
     trackViewSearchResults: (params) => client.trackViewSearchResults(params),
     trackSelectSearchResult: (params) => client.trackSelectSearchResult(params),
+    trackOpenedSearch: (params) => client.trackOpenedSearch(params),
   },
   navigate: (url) => router.push(url), // optional platform routing adapter
   buildProductUrl: (hit) => `/products/${hit.handle}`, // optional, for hits without `url`
@@ -356,6 +357,7 @@ const unsubscribe = controller.subscribe((state) => {
   }
 });
 
+input.onfocus = () => controller.open(); // search opened
 input.oninput = () => controller.setQuery(input.value); // debounced
 form.onsubmit = () => controller.submit(input.value); // immediate
 nextButton.onclick = () => controller.setPage(controller.getState().page + 1);
@@ -373,6 +375,7 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 Framework integrations:
 
 - Subscribe to state changes and render results.
+- Call `open()` when the search input gets focus. It emits `TRACK_OPENED_SEARCH` (`surface`, `search_type`, `userId`, and `query_id` when earlier results are on screen) on every focus; deduplication happens downstream.
 - Call `observeResult(element, index)` for each result and `selectResult(index)` on selection. Use `{ navigate: false }` for middle-clicks and modified clicks. Call `preventDefault()` only when `selectResult` returns true.
 - Pass `navigate` for router navigation. The integration owns URL synchronization.
 - Create one controller per search surface and call `dispose()` on unmount.

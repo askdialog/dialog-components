@@ -28,6 +28,7 @@ import {
 } from "./types/events";
 import { SimplifiedProduct } from "./types/product";
 import {
+  OpenedSearchParams,
   SelectSearchResultParams,
   ViewSearchResultsParams,
 } from "./types/searchAnalytics";
@@ -338,6 +339,14 @@ export class Dialog {
       quantity: params.quantity,
       price: params.price,
       currency: params.currency,
+    });
+  }
+
+  /** Emit when the shopper opens search, e.g. focuses the search input. */
+  public trackOpenedSearch(params: OpenedSearchParams): void {
+    this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_OPENED_SEARCH, {
+      userId: this._userId,
+      ...params,
     });
   }
 
