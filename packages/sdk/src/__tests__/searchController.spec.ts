@@ -19,7 +19,7 @@ vi.mock("../utils/searchImpressions", () => ({
   }),
 }));
 
-const DEBOUNCE_MS = 250;
+const DEBOUNCE_MS = 100;
 
 const response = (overrides: Partial<SearchResult> = {}): SearchResponse => ({
   results: [

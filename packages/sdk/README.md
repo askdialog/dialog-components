@@ -314,7 +314,7 @@ const controller = createSearchController({
   },
   navigate: (url) => router.push(url), // optional platform routing adapter
   buildProductUrl: (hit) => `/products/${hit.handle}`, // optional, for hits without `url`
-  debounceMs: 250, // optional (default 250)
+  debounceMs: 100, // optional (default 100)
   hitsPerPage: 12, // optional (default 12)
   sections: [{ index: 'collections', hitsPerPage: 5 }], // optional, first page only; a function is resolved per request
 });
