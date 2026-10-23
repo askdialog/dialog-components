@@ -188,7 +188,7 @@ export function createSearchController({
     },
 
     getState: () => state,
-    open: () => controllerAnalytics.open(state.response?.queryID),
+    open: () => controllerAnalytics.open(),
 
     dispose() {
       disposed = true;

@@ -164,7 +164,8 @@ function start(apiKey) {
       trackSelectSearchResult: (params) =>
         dialog.trackSelectSearchResult(params),
       trackOpenedSearch: (params) => {
-        console.log("[search] opened", params);
+        // Same payload as the TRACK_OPENED_SEARCH event the Dialog instance emits.
+        console.log("[search] opened", { user_id: dialog.userId, ...params });
         dialog.trackOpenedSearch(params);
       },
     },

@@ -375,7 +375,8 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 Framework integrations:
 
 - Subscribe to state changes and render results.
-- Call `open()` when the search input gets focus. It emits `TRACK_OPENED_SEARCH` (`surface`, `search_type`, `userId`, and `query_id` when earlier results are on screen) on every focus; deduplication happens downstream.
+- Call `open()` when the search input gets focus. It emits `TRACK_OPENED_SEARCH` (`user_id`, `surface`, `search_type`) on every focus; deduplication happens downstream.
+- `TRACK_VIEW_SEARCH_RESULTS` and `TRACK_SELECT_SEARCH_RESULT` carry `user_id`. Their `userId` is deprecated and is removed in the next version.
 - Call `observeResult(element, index)` for each result and `selectResult(index)` on selection. Use `{ navigate: false }` for middle-clicks and modified clicks. Call `preventDefault()` only when `selectResult` returns true.
 - Pass `navigate` for router navigation. The integration owns URL synchronization.
 - Create one controller per search surface and call `dispose()` on unmount.

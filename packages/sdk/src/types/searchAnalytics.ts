@@ -29,12 +29,8 @@ export interface SearchAnalyticsEnvelope {
   query_length: number;
 }
 
-/**
- * The shopper opened search (focused the search input); no results exist yet.
- * `query_id` is set only when results from an earlier query are on screen.
- */
+/** The shopper opened search (focused the search input). */
 export interface OpenedSearchParams {
-  query_id?: string;
   surface: SearchSurface;
   search_type: SearchType;
 }
@@ -58,16 +54,20 @@ export interface SelectSearchResultParams extends SearchAnalyticsEnvelope {
   items: [SearchResultItem];
 }
 
-// The host replaces this transport userId with its own analytics identity.
-export interface ViewSearchResultsEventPayload extends ViewSearchResultsParams {
+interface SearchEventUser {
+  user_id?: string;
+  /** @deprecated Use `user_id`; `userId` is removed in the next version. */
   userId?: string;
 }
+
+export interface ViewSearchResultsEventPayload
+  extends ViewSearchResultsParams,
+    SearchEventUser {}
 
 export interface SelectSearchResultEventPayload
-  extends SelectSearchResultParams {
-  userId?: string;
-}
+  extends SelectSearchResultParams,
+    SearchEventUser {}
 
 export interface OpenedSearchEventPayload extends OpenedSearchParams {
-  userId?: string;
+  user_id?: string;
 }
