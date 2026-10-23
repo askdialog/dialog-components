@@ -1,4 +1,8 @@
-import { AddToCartInput, ChangeCartQuantityInput } from "./events";
+import {
+  AddToCartInput,
+  CartSnapshot,
+  ChangeCartQuantityInput,
+} from "./events";
 import { SimplifiedProduct } from "./product";
 import { Theme } from "./theme";
 
@@ -9,6 +13,8 @@ export interface DialogCallbacks {
     variantId?: string,
   ) => Promise<SimplifiedProduct>;
   changeCartQuantity?: (input: ChangeCartQuantityInput) => Promise<void>;
+  /** Resolves the shopper's current cart, or `null` when there is none. */
+  getCart?: () => Promise<CartSnapshot | null>;
 }
 
 export interface CurrentProduct {
@@ -33,10 +39,11 @@ export interface DialogConstructor {
   countryCode?: string;
   /**
    * Commerce callbacks. Optional: a search-only integration can omit them —
-   * the assistant runtime still loads, and `getProduct()`, `addToCart()` and
-   * `changeCartQuantity()` throw a configuration error when their callback is
-   * absent. `changeCartQuantity` is optional within the set: check
-   * `canChangeCartQuantity()` before calling it.
+   * the assistant runtime still loads, and `getProduct()`, `addToCart()`,
+   * `changeCartQuantity()` and `getCart()` throw a configuration error when
+   * their callback is absent. `changeCartQuantity` and `getCart` are optional
+   * within the set: check `canChangeCartQuantity()` / `canReadCart()` before
+   * calling them.
    */
   callbacks?: DialogCallbacks;
   theme?: Partial<Theme>;

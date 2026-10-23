@@ -77,6 +77,23 @@ export interface ChangeCartQuantityInput {
   quantity: number;
 }
 
+// Returned by the merchant `callbacks.getCart`. Ids may be Shopify GIDs or raw
+// ids. Amounts are in currency units (e.g. `12.5`, not cents).
+export interface CartSnapshotLine {
+  productId: string;
+  variantId: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface CartSnapshot {
+  lines: CartSnapshotLine[];
+  /** Line items after cart discounts, excluding shipping. */
+  totalAmount: number;
+  /** ISO 4217. */
+  currency: string;
+}
+
 // Forwarded to the host app (e.g. shopify-assistant) so it can capture the
 // event through its own PostHog instance instead of the SDK instantiating a
 // second one. Field names are part of the cross-repo contract consumed by the
