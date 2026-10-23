@@ -39,7 +39,7 @@ afterEach(() => {
 });
 
 describe("Dialog search analytics", () => {
-  it("emits TRACK_VIEW_SEARCH_RESULTS with the snake_case envelope, items, user_id and the deprecated userId", () => {
+  it("emits TRACK_VIEW_SEARCH_RESULTS with the snake_case envelope, items and userId", () => {
     const { dialog, emitExternalEvent } = buildDialog();
     const items = [
       { product_id: "product-1", position: 21 },
@@ -50,7 +50,7 @@ describe("Dialog search analytics", () => {
 
     expect(emitExternalEvent).toHaveBeenCalledWith(
       DialogEvents.TRACK_VIEW_SEARCH_RESULTS,
-      { user_id: "user-1", userId: "user-1", ...envelope, items },
+      { userId: "user-1", ...envelope, items },
     );
   });
 
@@ -61,13 +61,7 @@ describe("Dialog search analytics", () => {
 
     expect(emitExternalEvent).toHaveBeenCalledWith(
       DialogEvents.TRACK_VIEW_SEARCH_RESULTS,
-      {
-        user_id: "user-1",
-        userId: "user-1",
-        ...envelope,
-        total_hits: 0,
-        items: [],
-      },
+      { userId: "user-1", ...envelope, total_hits: 0, items: [] },
     );
   });
 
@@ -79,7 +73,7 @@ describe("Dialog search analytics", () => {
 
     expect(emitExternalEvent).toHaveBeenCalledWith(
       DialogEvents.TRACK_SELECT_SEARCH_RESULT,
-      { user_id: "user-1", userId: "user-1", ...envelope, items: [item] },
+      { userId: "user-1", ...envelope, items: [item] },
     );
   });
 });

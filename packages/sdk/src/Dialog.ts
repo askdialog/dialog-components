@@ -345,7 +345,7 @@ export class Dialog {
   /** Emit when the shopper opens search, e.g. focuses the search input. */
   public trackOpenedSearch(params: OpenedSearchParams): void {
     this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_OPENED_SEARCH, {
-      user_id: this._userId,
+      userId: this._userId,
       ...params,
     });
   }
@@ -358,7 +358,6 @@ export class Dialog {
     this._eventsHandler.emitExternalEvent(
       DialogEvents.TRACK_VIEW_SEARCH_RESULTS,
       {
-        user_id: this._userId,
         userId: this._userId,
         ...params,
       },
@@ -370,7 +369,6 @@ export class Dialog {
     this._eventsHandler.emitExternalEvent(
       DialogEvents.TRACK_SELECT_SEARCH_RESULT,
       {
-        user_id: this._userId,
         userId: this._userId,
         ...params,
       },

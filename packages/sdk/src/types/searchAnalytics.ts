@@ -54,20 +54,16 @@ export interface SelectSearchResultParams extends SearchAnalyticsEnvelope {
   items: [SearchResultItem];
 }
 
-interface SearchEventUser {
-  user_id?: string;
-  /** @deprecated Use `user_id`; `userId` is removed in the next version. */
+// The host replaces this transport userId with its own analytics identity.
+export interface ViewSearchResultsEventPayload extends ViewSearchResultsParams {
   userId?: string;
 }
 
-export interface ViewSearchResultsEventPayload
-  extends ViewSearchResultsParams,
-    SearchEventUser {}
-
 export interface SelectSearchResultEventPayload
-  extends SelectSearchResultParams,
-    SearchEventUser {}
+  extends SelectSearchResultParams {
+  userId?: string;
+}
 
 export interface OpenedSearchEventPayload extends OpenedSearchParams {
-  user_id?: string;
+  userId?: string;
 }

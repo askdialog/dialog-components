@@ -39,7 +39,7 @@ track methods of the `Dialog` instance:
 
 - `opened_search` — `controller.open()` on every focus of the search input
   (`TRACK_OPENED_SEARCH`, logged as `[search] opened` in the console). It
-  carries `user_id`, `surface` and `search_type`; deduplication happens
+  carries `userId`, `surface` and `search_type`; deduplication happens
   downstream.
 
 - `view_search_results` — viewport impressions (≥50% visible for ≥500ms,
