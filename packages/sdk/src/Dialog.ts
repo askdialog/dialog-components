@@ -17,6 +17,7 @@ import { ANONYMOUS_CUSTOMER_ID, CUSTOMER_ID } from "./constants/user";
 import { Suggestion } from "./types/suggestion";
 import {
   AddToCartInput,
+  CartSnapshot,
   ChangeCartQuantityInput,
   DialogEvents,
   GenericQuestionPayload,
@@ -267,6 +268,15 @@ export class Dialog {
     await this._getCallbacksOrThrow("changeCartQuantity").changeCartQuantity(
       input,
     );
+  }
+
+  // A read, not a write: `disableAddToCart` does not gate it.
+  public canReadCart(): boolean {
+    return this._callbacks?.getCart !== undefined;
+  }
+
+  public async getCart(): Promise<CartSnapshot | null> {
+    return this._getCallbacksOrThrow("getCart").getCart();
   }
 
   private _isCartWriteDisabled(
