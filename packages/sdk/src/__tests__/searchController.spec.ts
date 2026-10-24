@@ -1,4 +1,4 @@
-/* eslint max-lines: ["error", 490] */
+/* eslint max-lines: ["error", 530] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../searchController";
 import {
@@ -286,18 +286,45 @@ describe("createSearchController", () => {
     expect(controller.getState().status).toBe(SearchStatus.EMPTY);
   });
 
-  it("resets to idle and invalidates in-flight work when the query gets too short", async () => {
-    const controller = createController();
-    const inFlight = deferred();
-    search.mockReturnValueOnce(inFlight.promise);
+  it("runs the empty-query products search on open and tracks it with query_length 0", async () => {
+    const controller = createSearchController({
+      search,
+      language: "fr",
+      country: "FR",
+      sections: [{ index: "collections" }],
+      analytics: {
+        surface: "autocomplete",
+        trackViewSearchResults,
+        trackSelectSearchResult,
+      },
+    });
+    search.mockResolvedValue(response({ query: "" }));
 
-    controller.submit("shoes");
+    controller.open();
+    await settle();
+    controller.selectResult(0, { navigate: false });
+
+    expect(search.mock.calls[0][0].requests).toEqual([
+      { indexName: "products_fr_fr", query: "", page: 0, hitsPerPage: 12 },
+    ]);
+    expect(controller.getState()).toMatchObject({
+      status: SearchStatus.SUCCESS,
+      query: "",
+    });
+    expect(trackSelectSearchResult).toHaveBeenCalledWith(
+      expect.objectContaining({ query_length: 0 }),
+    );
+  });
+
+  it("searches from the first character after the debounce", async () => {
+    const controller = createController();
+    search.mockResolvedValue(response({ query: "s" }));
+
     controller.setQuery("s");
-    inFlight.resolve(response());
+    vi.advanceTimersByTime(DEBOUNCE_MS);
     await settle();
 
-    expect(search).toHaveBeenCalledTimes(1);
-    expect(controller.getState().status).toBe(SearchStatus.IDLE);
+    expect(search.mock.calls[0][0].requests[0]).toMatchObject({ query: "s" });
   });
 
   it("resets pagination when a new query is submitted", async () => {

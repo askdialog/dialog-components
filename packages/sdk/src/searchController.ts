@@ -10,8 +10,8 @@ import { createControllerAnalytics } from "./utils/searchControllerAnalytics";
 import {
   buildSearchRequest,
   INITIAL_SEARCH_STATE,
-  normalizeQuery,
   readSearchResults,
+  requestedSections,
 } from "./utils/searchRequests";
 
 export function createSearchController({
@@ -66,7 +66,7 @@ export function createSearchController({
 
     setState({ status: SearchStatus.LOADING, query, page });
     try {
-      const requested = typeof sections === "function" ? sections() : sections;
+      const requested = requestedSections(query, sections);
       const request = buildSearchRequest(query, page, requested, requestConfig);
       const response = await search(request, {
         signal: abortController.signal,
@@ -106,12 +106,7 @@ export function createSearchController({
         return;
       }
       cancelPendingSearch();
-      const query = normalizeQuery(rawQuery);
-      if (query === undefined) {
-        setState(INITIAL_SEARCH_STATE);
-
-        return;
-      }
+      const query = rawQuery.trim();
       pendingQuery = query;
       debounceTimer = setTimeout(() => void run(query, 0), debounceMs);
     },
@@ -121,12 +116,7 @@ export function createSearchController({
         return;
       }
       cancelPendingSearch();
-      const query = normalizeQuery(rawQuery);
-      if (query === undefined) {
-        setState(INITIAL_SEARCH_STATE);
-
-        return;
-      }
+      const query = rawQuery.trim();
       void run(query, 0);
     },
 
@@ -140,8 +130,8 @@ export function createSearchController({
 
         return;
       }
-      if (state.query === "") {
-        return; // No query to paginate.
+      if (state.status === SearchStatus.IDLE) {
+        return; // No search to paginate.
       }
       void run(state.query, page);
     },
@@ -188,7 +178,15 @@ export function createSearchController({
     },
 
     getState: () => state,
-    open: () => controllerAnalytics.open(),
+    open() {
+      if (disposed) {
+        return;
+      }
+      controllerAnalytics.open();
+      if (state.query === "" && pendingQuery === undefined) {
+        void run("", 0);
+      }
+    },
 
     dispose() {
       disposed = true;

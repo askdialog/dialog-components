@@ -8,6 +8,7 @@ import {
   SearchSections,
 } from "../types/search";
 import {
+  SearchControllerOptions,
   SearchControllerState,
   SearchSection,
   SearchStatus,
@@ -22,13 +23,15 @@ export const INITIAL_SEARCH_STATE: SearchControllerState = {
   error: undefined,
 };
 
-// Match the API minimum query length.
-const MIN_QUERY_CODE_POINTS = 2;
+export const requestedSections = (
+  query: string,
+  sections: SearchControllerOptions["sections"] = [],
+): readonly SearchSection[] => {
+  if (query === "") {
+    return []; // The empty query only lists products.
+  }
 
-export const normalizeQuery = (rawQuery: string): string | undefined => {
-  const query = rawQuery.trim();
-
-  return [...query].length >= MIN_QUERY_CODE_POINTS ? query : undefined;
+  return typeof sections === "function" ? sections() : sections;
 };
 
 interface SearchRequestConfig {
