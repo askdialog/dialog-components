@@ -183,7 +183,9 @@ export function createSearchController({
         return;
       }
       controllerAnalytics.open();
-      if (state.query === "" && pendingQuery === undefined) {
+      const { status, query } = state;
+      const nothingShown = status === "idle" || status === "error";
+      if (nothingShown && query === "" && pendingQuery === undefined) {
         void run("", 0);
       }
     },

@@ -302,8 +302,10 @@ describe("createSearchController", () => {
 
     controller.open();
     await settle();
+    controller.open();
     controller.selectResult(0, { navigate: false });
 
+    expect(search).toHaveBeenCalledTimes(1);
     expect(search.mock.calls[0][0].requests).toEqual([
       { indexName: "products_fr_fr", query: "", page: 0, hitsPerPage: 12 },
     ]);
