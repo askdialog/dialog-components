@@ -38,6 +38,7 @@ export const DialogSearchBar: FC<DialogSearchBarProps> = ({
           aria-label={placeholder}
           placeholder={placeholder}
           autoFocus={autoFocus}
+          onFocus={() => controller.open()}
           onChange={(event) => {
             setValue(event.target.value);
             controller.setQuery(event.target.value);

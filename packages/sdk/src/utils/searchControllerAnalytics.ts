@@ -11,6 +11,7 @@ import {
 
 /** Internal binding for search impressions and selections. */
 export interface ControllerAnalyticsBinding {
+  open(): void;
   onResponse(result: SearchResult<SearchProductHit>): void;
   observeResult(
     element: Element,
@@ -47,6 +48,12 @@ export function createControllerAnalytics(
   };
 
   return {
+    open() {
+      analytics.trackOpenedSearch?.({
+        surface: analytics.surface,
+        search_type: "lexical",
+      });
+    },
     onResponse(result) {
       envelope = {
         query_id: result.queryID,
