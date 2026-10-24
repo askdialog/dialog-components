@@ -115,9 +115,7 @@ export function createSearchController({
       if (disposed) {
         return;
       }
-      cancelPendingSearch();
-      const query = rawQuery.trim();
-      void run(query, 0);
+      void run(rawQuery.trim(), 0);
     },
 
     setPage(page) {
@@ -179,13 +177,14 @@ export function createSearchController({
 
     getState: () => state,
     open() {
-      if (disposed) {
-        return;
-      }
       controllerAnalytics.open();
-      const { status, query } = state;
-      const nothingShown = status === "idle" || status === "error";
-      if (nothingShown && query === "" && pendingQuery === undefined) {
+      if (
+        !disposed &&
+        (state.status === SearchStatus.IDLE ||
+          state.status === SearchStatus.ERROR) &&
+        state.query === "" &&
+        pendingQuery === undefined
+      ) {
         void run("", 0);
       }
     },
