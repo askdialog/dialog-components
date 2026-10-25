@@ -80,6 +80,11 @@ export interface SearchController {
    * With no query yet, it runs the empty-query products search.
    */
   open(): void;
+  /**
+   * Close search without a request: cancel pending and in-flight searches,
+   * flush qualified impressions and reset the state to idle with an empty query.
+   */
+  close(): void;
   /** Submit after the debounce delay; an empty query runs the empty-query search. */
   setQuery(rawQuery: string): void;
   /** Submit immediately. */

@@ -92,6 +92,7 @@ export const useDialogSearch = (
   const facadeRef = useRef<SearchController | undefined>(undefined);
   facadeRef.current ??= {
     open: () => getController().open(),
+    close: () => getController().close(),
     setQuery: (rawQuery) => getController().setQuery(rawQuery),
     submit: (rawQuery) => getController().submit(rawQuery),
     setPage: (page) => getController().setPage(page),
