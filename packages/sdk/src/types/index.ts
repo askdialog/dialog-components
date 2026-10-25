@@ -7,3 +7,4 @@ export * from "./search";
 export * from "./searchAnalytics";
 export * from "./searchController";
 export * from "./assistantEvent";
+export * from "./dialogConfig";
