@@ -29,6 +29,12 @@ export interface SearchAnalyticsEnvelope {
   query_length: number;
 }
 
+/** The shopper opened search (focused the search input). */
+export interface OpenedSearchParams {
+  surface: SearchSurface;
+  search_type: SearchType;
+}
+
 /** Position is one-based across pages: page 2 at 20 hits/page starts at 21. */
 export interface SearchResultItem {
   product_id: string;
@@ -55,5 +61,9 @@ export interface ViewSearchResultsEventPayload extends ViewSearchResultsParams {
 
 export interface SelectSearchResultEventPayload
   extends SelectSearchResultParams {
+  userId?: string;
+}
+
+export interface OpenedSearchEventPayload extends OpenedSearchParams {
   userId?: string;
 }

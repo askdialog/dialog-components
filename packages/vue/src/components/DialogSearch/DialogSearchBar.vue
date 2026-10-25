@@ -12,6 +12,7 @@
         :aria-label="props.placeholder"
         :placeholder="props.placeholder"
         :autofocus="props.autoFocus"
+        @focus="props.controller.open()"
         @input="handleInput"
       />
     </div>

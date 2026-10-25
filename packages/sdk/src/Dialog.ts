@@ -15,8 +15,10 @@ import {
 } from "./utils/localization";
 import { ANONYMOUS_CUSTOMER_ID, CUSTOMER_ID } from "./constants/user";
 import { Suggestion } from "./types/suggestion";
+import { DialogConfig } from "./types/dialogConfig";
 import {
   AddToCartInput,
+  CartSnapshot,
   ChangeCartQuantityInput,
   DialogEvents,
   GenericQuestionPayload,
@@ -28,10 +30,12 @@ import {
 } from "./types/events";
 import { SimplifiedProduct } from "./types/product";
 import {
+  OpenedSearchParams,
   SelectSearchResultParams,
   ViewSearchResultsParams,
 } from "./types/searchAnalytics";
 import { EventsHandler } from "./EventsHandler";
+import { loadDialogConfig } from "./services/dialogConfig";
 import { loadSuggestions } from "./services/suggestions";
 import { searchLexical } from "./services/search";
 import { SearchOptions, SearchRequest, SearchResponse } from "./types/search";
@@ -144,6 +148,11 @@ export class Dialog {
       productId,
       options?.limit,
     );
+  }
+
+  /** The widget dialog config for this client's locale. */
+  public getDialogConfig(): Promise<DialogConfig> {
+    return loadDialogConfig(this._apiKey, this._locale);
   }
 
   /**
@@ -294,6 +303,15 @@ export class Dialog {
     );
   }
 
+  // A read, not a write: `disableAddToCart` does not gate it.
+  public canReadCart(): boolean {
+    return this._callbacks?.getCart !== undefined;
+  }
+
+  public async getCart(): Promise<CartSnapshot | null> {
+    return this._getCallbacksOrThrow("getCart").getCart();
+  }
+
   private _isCartWriteDisabled(
     operation: "addToCart" | "changeCartQuantity",
   ): boolean {
@@ -353,6 +371,14 @@ export class Dialog {
       quantity: params.quantity,
       price: params.price,
       currency: params.currency,
+    });
+  }
+
+  /** Emit when the shopper opens search, e.g. focuses the search input. */
+  public trackOpenedSearch(params: OpenedSearchParams): void {
+    this._eventsHandler.emitExternalEvent(DialogEvents.TRACK_OPENED_SEARCH, {
+      userId: this._userId,
+      ...params,
     });
   }
 

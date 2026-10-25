@@ -18,6 +18,7 @@ interface BufferedEvent {
 const BUFFERED_EVENT_TYPES: ReadonlySet<DialogEvent["type"]> = new Set([
   DialogEvents.TRACK_ADD_TO_CART,
   DialogEvents.TRACK_SUBMIT_CHECKOUT,
+  DialogEvents.TRACK_OPENED_SEARCH,
   DialogEvents.TRACK_VIEW_SEARCH_RESULTS,
   DialogEvents.TRACK_SELECT_SEARCH_RESULT,
 ]);

@@ -3,6 +3,7 @@ import {
   registerDialogInstallation,
   SearchStatus,
   type Dialog,
+  type SearchBusinessRanking,
   type SearchController,
   type SearchControllerState,
   type SearchProductHit,
@@ -10,7 +11,14 @@ import {
   type SearchSurface,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 export interface UseDialogSearchOptions {
   client: Dialog;
@@ -33,9 +41,14 @@ export interface UseDialogSearchOptions {
   sections?: readonly SearchSection[];
 }
 
+/** The controller state plus the merchant's business ranking, read from the dialog config. */
+export type DialogSearchState = SearchControllerState & {
+  businessRanking?: SearchBusinessRanking;
+};
+
 export interface DialogSearch {
   controller: SearchController;
-  state: SearchControllerState;
+  state: DialogSearchState;
   /** The client's theme, for `DialogSearchResults`. */
   theme: Theme;
 }
@@ -66,6 +79,7 @@ export const useDialogSearch = (
             client.trackViewSearchResults(params),
           trackSelectSearchResult: (params) =>
             client.trackSelectSearchResult(params),
+          trackOpenedSearch: (params) => client.trackOpenedSearch(params),
         },
         ...rest,
       });
@@ -77,6 +91,7 @@ export const useDialogSearch = (
   // Resolve the current controller after StrictMode disposes the initial instance.
   const facadeRef = useRef<SearchController | undefined>(undefined);
   facadeRef.current ??= {
+    open: () => getController().open(),
     setQuery: (rawQuery) => getController().setQuery(rawQuery),
     submit: (rawQuery) => getController().submit(rawQuery),
     setPage: (page) => getController().setPage(page),
@@ -113,6 +128,23 @@ export const useDialogSearch = (
     };
   }, [getController]);
 
+  const [businessRanking, setBusinessRanking] = useState<
+    SearchBusinessRanking | undefined
+  >(undefined);
+  // The ref survives StrictMode's effect replay, so the config is read once.
+  const configRequestedRef = useRef(false);
+  useEffect(() => {
+    if (configRequestedRef.current) {
+      return;
+    }
+    configRequestedRef.current = true;
+    optionsRef.current.client
+      .getDialogConfig()
+      .then((config) => setBusinessRanking(config.searchBusinessRanking))
+      // Without the config the empty-query products keep the default title.
+      .catch(() => undefined);
+  }, []);
+
   const subscribe = useCallback(
     (listener: () => void) => getController().subscribe(listener),
     [getController],
@@ -127,5 +159,14 @@ export const useDialogSearch = (
     () => SERVER_SNAPSHOT,
   );
 
-  return { controller: facadeRef.current, state, theme: options.client.theme };
+  const stateWithRanking = useMemo(
+    () => ({ ...state, businessRanking }),
+    [state, businessRanking],
+  );
+
+  return {
+    controller: facadeRef.current,
+    state: stateWithRanking,
+    theme: options.client.theme,
+  };
 };

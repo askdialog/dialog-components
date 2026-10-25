@@ -2,6 +2,7 @@
 // `tsc` (test-type), the runtime test only anchors the file in the suite.
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
+  CartSnapshot,
   Dialog,
   DialogCallbacks,
   DialogConstructor,
@@ -52,6 +53,19 @@ describe("public API types", () => {
     >().parameters.toMatchTypeOf<
       [{ productId: string; variantId?: string; quantity: number }]
     >();
+    expectTypeOf<
+      NonNullable<DialogCallbacks["getCart"]>
+    >().returns.toEqualTypeOf<Promise<CartSnapshot | null>>();
+    expectTypeOf<CartSnapshot>().toEqualTypeOf<{
+      lines: {
+        productId: string;
+        variantId: string;
+        quantity: number;
+        unitPrice: number;
+      }[];
+      totalAmount: number;
+      currency: string;
+    }>();
 
     expectTypeOf<Dialog["currency"]>().toEqualTypeOf<string>();
 

@@ -1,4 +1,5 @@
 import {
+  OpenedSearchEventPayload,
   SelectSearchResultEventPayload,
   ViewSearchResultsEventPayload,
 } from "./searchAnalytics";
@@ -13,6 +14,7 @@ export enum DialogEvents {
   SEND_GENERIC_QUESTION = "GENERIC_QUESTION",
   TRACK_ADD_TO_CART = "TRACK_ADD_TO_CART",
   TRACK_SUBMIT_CHECKOUT = "TRACK_SUBMIT_CHECKOUT",
+  TRACK_OPENED_SEARCH = "TRACK_OPENED_SEARCH",
   TRACK_VIEW_SEARCH_RESULTS = "TRACK_VIEW_SEARCH_RESULTS",
   TRACK_SELECT_SEARCH_RESULT = "TRACK_SELECT_SEARCH_RESULT",
 }
@@ -98,6 +100,23 @@ export interface ChangeCartQuantityInput {
   quantity: number;
 }
 
+// Returned by the merchant `callbacks.getCart`. Ids may be Shopify GIDs or raw
+// ids. Amounts are in currency units (e.g. `12.5`, not cents).
+export interface CartSnapshotLine {
+  productId: string;
+  variantId: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface CartSnapshot {
+  lines: CartSnapshotLine[];
+  /** Line items after cart discounts, excluding shipping. */
+  totalAmount: number;
+  /** ISO 4217. */
+  currency: string;
+}
+
 // Forwarded to the host app (e.g. shopify-assistant) so it can capture the
 // event through its own PostHog instance instead of the SDK instantiating a
 // second one. Field names are part of the cross-repo contract consumed by the
@@ -165,6 +184,7 @@ export type DialogEventPayload =
   | OpenWithSuggestionsPayload
   | TrackEventPayload
   | SubmitCheckoutEventPayload
+  | OpenedSearchEventPayload
   | ViewSearchResultsEventPayload
   | SelectSearchResultEventPayload;
 

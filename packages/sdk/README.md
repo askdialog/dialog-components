@@ -88,7 +88,7 @@ The optional `countryCode` (ISO 3166 alpha-2, e.g. `'FR'`, `'US'`) sets the regi
 The addToCart function is triggered when a user clicks the AddToCart button.
 The getProduct function is used to display product information in the assistant.
 
-`callbacks` is **optional**: a search-only integration can construct the client with just `apiKey` and `locale`. Only `getProduct()` and `addToCart()` require their callback — they throw an explicit configuration error when it is absent; every other feature works without callbacks.
+`callbacks` is **optional**: a search-only integration can construct the client with just `apiKey` and `locale`. Only `getProduct()`, `addToCart()`, `changeCartQuantity()` and `getCart()` require their callback — they throw an explicit configuration error when it is absent; every other feature works without callbacks.
 
 When the client is instantiated, it will automatically insert into the DOM the Dialog Assistant script, so you can interact with the assistant using `sendProductMessage` or `sendGenericMessage`. This assistant runtime always loads — it owns the shopper identity, consent handling and analytics bridge — while the heavy assistant UI stays lazy-loaded and is not fetched eagerly.
 
@@ -165,6 +165,33 @@ When set:
 - product links and recommendation browsing are unaffected.
 
 Omit the flag (or set it to `false`) to keep the default behavior — the add-to-cart CTA and analytics are unchanged.
+
+### Reading the cart
+
+The assistant reads the shopper's cart (lines, total, currency) to suggest products that go with it. On storefronts where it cannot read the cart itself — for example a headless storefront — pass the optional `callbacks.getCart`:
+
+```ts
+new Dialog({
+  apiKey: 'YOUR_API_KEY',
+  locale: 'fr-FR', currency: 'EUR',
+  callbacks: {
+    addToCart, getProduct,
+    getCart: async (): Promise<CartSnapshot | null> => ({
+      lines: [
+        { productId: 'gid://shopify/Product/42', variantId: 'gid://shopify/ProductVariant/4242', quantity: 2, unitPrice: 12.5 },
+      ],
+      totalAmount: 25, // line items after cart discounts, excluding shipping
+      currency: 'EUR', // ISO 4217
+    }),
+  },
+});
+```
+
+- Amounts are in currency units (`12.5`, not cents); ids may be Shopify GIDs or raw ids, matching your product feed. Resolve `null` when the shopper has no cart.
+- `client.canReadCart()` tells whether the callback was provided; `client.getCart()` resolves your snapshot, and rejects with a configuration error when the callback is absent.
+- `getCart` is a read: `disableAddToCart` does not affect it.
+
+Omit it to keep the default behavior.
 
 ### Getters
 
@@ -329,6 +356,7 @@ const controller = createSearchController({
     surface: 'search_page', // where results are displayed
     trackViewSearchResults: (params) => client.trackViewSearchResults(params),
     trackSelectSearchResult: (params) => client.trackSelectSearchResult(params),
+    trackOpenedSearch: (params) => client.trackOpenedSearch(params),
   },
   navigate: (url) => router.push(url), // optional platform routing adapter
   buildProductUrl: (hit) => `/products/${hit.handle}`, // optional, for hits without `url`
@@ -347,6 +375,7 @@ const unsubscribe = controller.subscribe((state) => {
   }
 });
 
+input.onfocus = () => controller.open(); // search opened
 input.oninput = () => controller.setQuery(input.value); // debounced
 form.onsubmit = () => controller.submit(input.value); // immediate
 nextButton.onclick = () => controller.setPage(controller.getState().page + 1);
@@ -364,6 +393,7 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 Framework integrations:
 
 - Subscribe to state changes and render results.
+- Call `open()` when the search input gets focus. It emits `TRACK_OPENED_SEARCH` (`userId`, `surface`, `search_type`) on every focus; deduplication happens downstream.
 - Call `observeResult(element, index)` for each result and `selectResult(index)` on selection. Use `{ navigate: false }` for middle-clicks and modified clicks. Call `preventDefault()` only when `selectResult` returns true.
 - Pass `navigate` for router navigation. The integration owns URL synchronization.
 - Create one controller per search surface and call `dispose()` on unmount.
