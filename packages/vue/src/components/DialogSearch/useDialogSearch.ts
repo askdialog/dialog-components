@@ -2,6 +2,7 @@ import {
   createSearchController,
   registerDialogInstallation,
   type Dialog,
+  type SearchBusinessRanking,
   type SearchController,
   type SearchControllerState,
   type SearchProductHit,
@@ -37,6 +38,8 @@ export interface DialogSearch {
   state: Readonly<ShallowRef<SearchControllerState>>;
   /** The client's theme, for `DialogSearchResults`. */
   theme: Theme;
+  /** The merchant's business ranking, for `DialogSearchResults`; undefined until loaded or when none. */
+  businessRanking: Readonly<ShallowRef<SearchBusinessRanking | undefined>>;
 }
 
 /** Options are fixed when the controller is created. */
@@ -61,7 +64,19 @@ export const useDialogSearch = (
     state.value = controller.getState();
   });
 
+  const businessRanking = shallowRef<SearchBusinessRanking | undefined>();
+  let active = true;
+
   onMounted(() => {
+    client
+      .getDialogConfig()
+      .then((config) => {
+        if (active) {
+          businessRanking.value = config.searchBusinessRanking;
+        }
+      })
+      // Without the config the empty-query products keep the default title.
+      .catch(() => undefined);
     registerDialogInstallation({
       method: "vue",
       version:
@@ -72,9 +87,10 @@ export const useDialogSearch = (
   });
 
   onUnmounted(() => {
+    active = false;
     unsubscribe();
     controller.dispose();
   });
 
-  return { controller, state, theme: client.theme };
+  return { controller, state, theme: client.theme, businessRanking };
 };

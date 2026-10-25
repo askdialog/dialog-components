@@ -15,7 +15,7 @@ const sections =
 
 export const SearchDemo: FC<{ client: Dialog }> = ({ client }) => {
   const [layout, setLayout] = useState<SearchProductsLayout>("list");
-  const { controller, state, theme } = useDialogSearch({
+  const { controller, state, theme, businessRanking } = useDialogSearch({
     client,
     language: "fr",
     country: "FR",
@@ -45,6 +45,7 @@ export const SearchDemo: FC<{ client: Dialog }> = ({ client }) => {
         state={state}
         locale="fr-FR"
         theme={theme}
+        businessRanking={businessRanking}
         layout={layout}
       />
     </section>

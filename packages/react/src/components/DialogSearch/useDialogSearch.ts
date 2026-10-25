@@ -3,6 +3,7 @@ import {
   registerDialogInstallation,
   SearchStatus,
   type Dialog,
+  type SearchBusinessRanking,
   type SearchController,
   type SearchControllerState,
   type SearchProductHit,
@@ -10,7 +11,13 @@ import {
   type SearchSurface,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 export interface UseDialogSearchOptions {
   client: Dialog;
@@ -38,6 +45,8 @@ export interface DialogSearch {
   state: SearchControllerState;
   /** The client's theme, for `DialogSearchResults`. */
   theme: Theme;
+  /** The merchant's business ranking, for `DialogSearchResults`; undefined until loaded or when none. */
+  businessRanking: SearchBusinessRanking | undefined;
 }
 
 const SERVER_SNAPSHOT: SearchControllerState = {
@@ -115,6 +124,23 @@ export const useDialogSearch = (
     };
   }, [getController]);
 
+  const [businessRanking, setBusinessRanking] = useState<
+    SearchBusinessRanking | undefined
+  >(undefined);
+  // The ref survives StrictMode's effect replay, so the config is read once.
+  const configRequestedRef = useRef(false);
+  useEffect(() => {
+    if (configRequestedRef.current) {
+      return;
+    }
+    configRequestedRef.current = true;
+    optionsRef.current.client
+      .getDialogConfig()
+      .then((config) => setBusinessRanking(config.searchBusinessRanking))
+      // Without the config the empty-query products keep the default title.
+      .catch(() => undefined);
+  }, []);
+
   const subscribe = useCallback(
     (listener: () => void) => getController().subscribe(listener),
     [getController],
@@ -129,5 +155,10 @@ export const useDialogSearch = (
     () => SERVER_SNAPSHOT,
   );
 
-  return { controller: facadeRef.current, state, theme: options.client.theme };
+  return {
+    controller: facadeRef.current,
+    state,
+    theme: options.client.theme,
+    businessRanking,
+  };
 };

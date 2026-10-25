@@ -47,6 +47,7 @@
             :response="response"
             :locale="props.locale"
             :messages="messages"
+            :business-ranking="props.businessRanking"
           />
         </div>
         <div v-if="hasSeeAll || hasPages" class="dialog-search-footer">
@@ -70,6 +71,7 @@
 import {
   DialogSearchError,
   SearchStatus,
+  type SearchBusinessRanking,
   type SearchController,
   type SearchControllerState,
   type Theme,
@@ -95,6 +97,8 @@ interface Props {
   locale?: string;
   /** Usually `client.theme`, as returned by `useDialogSearch`. */
   theme?: Theme;
+  /** Titles the empty-query products; as returned by `useDialogSearch`. */
+  businessRanking?: SearchBusinessRanking;
   layout?: SearchProductsLayout;
   /** Link of the "See all results" footer; omitted, the panel paginates instead. */
   seeAllHref?: (query: string) => string;
@@ -103,6 +107,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   locale: undefined,
   theme: undefined,
+  businessRanking: undefined,
   layout: "list",
   seeAllHref: undefined,
 });
