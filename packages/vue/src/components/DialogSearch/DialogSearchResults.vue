@@ -72,7 +72,6 @@ import {
   DialogSearchError,
   SearchStatus,
   type SearchController,
-  type SearchControllerState,
   type Theme,
 } from "@askdialog/dialog-sdk";
 import { computed } from "vue";
@@ -87,11 +86,12 @@ import type { SearchProductsLayout } from "./searchLayout";
 import { getSearchMessages } from "./searchMessages";
 import { resolveSearchPanelVariables } from "./searchTheme";
 import { useAnchorRect } from "./useAnchorRect";
+import type { DialogSearchState } from "./useDialogSearch";
 import { useOutsideDismiss } from "./useOutsideDismiss";
 
 interface Props {
   controller: SearchController;
-  state: SearchControllerState;
+  state: DialogSearchState;
   /** BCP 47 locale for prices, counts and labels. */
   locale?: string;
   /** Usually `client.theme`, as returned by `useDialogSearch`. */

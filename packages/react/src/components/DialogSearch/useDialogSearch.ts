@@ -41,9 +41,14 @@ export interface UseDialogSearchOptions {
   sections?: readonly SearchSection[];
 }
 
+/** The controller state plus the merchant's business ranking, read from the dialog config. */
+export type DialogSearchState = SearchControllerState & {
+  businessRanking?: SearchBusinessRanking;
+};
+
 export interface DialogSearch {
   controller: SearchController;
-  state: SearchControllerState;
+  state: DialogSearchState;
   /** The client's theme, for `DialogSearchResults`. */
   theme: Theme;
 }

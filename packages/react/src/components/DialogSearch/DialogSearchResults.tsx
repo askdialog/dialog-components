@@ -4,7 +4,6 @@ import {
   DialogSearchError,
   SearchStatus,
   type SearchController,
-  type SearchControllerState,
   type Theme,
 } from "@askdialog/dialog-sdk";
 import { ArrowRightIcon } from "../../icons/ArrowRightIcon";
@@ -19,6 +18,7 @@ import { navigableCollections } from "./searchCollections";
 import { getSearchMessages, type SearchMessages } from "./searchMessages";
 import { resolveSearchPanelVariables } from "./searchTheme";
 import { useAnchorRect } from "./useAnchorRect";
+import type { DialogSearchState } from "./useDialogSearch";
 import { useOutsideDismiss } from "./useOutsideDismiss";
 import "./DialogSearchResults.css";
 
@@ -26,7 +26,7 @@ export type SearchProductsLayout = "list" | "grid";
 
 interface DialogSearchResultsProps {
   controller: SearchController;
-  state: SearchControllerState;
+  state: DialogSearchState;
   /** BCP 47 locale for prices, counts and labels. */
   locale?: string;
   /** Usually `client.theme`, as returned by `useDialogSearch`. */

@@ -17,5 +17,6 @@ export type { SearchProductsLayout } from "./DialogSearch/searchLayout";
 export {
   useDialogSearch,
   type DialogSearch,
+  type DialogSearchState,
   type UseDialogSearchOptions,
 } from "./DialogSearch/useDialogSearch";

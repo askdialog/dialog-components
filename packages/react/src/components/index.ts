@@ -10,5 +10,6 @@ export {
 export {
   useDialogSearch,
   type DialogSearch,
+  type DialogSearchState,
   type UseDialogSearchOptions,
 } from "./DialogSearch/useDialogSearch";
