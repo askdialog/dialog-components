@@ -7,6 +7,7 @@ import {
   SearchResult,
   SearchSections,
 } from "./search";
+import { SearchBusinessRanking } from "./dialogConfig";
 import {
   OpenedSearchParams,
   SearchSurface,
@@ -40,6 +41,8 @@ export interface SearchControllerState {
   response?: SearchResult<SearchProductHit>;
   sections?: SearchSections;
   error?: unknown;
+  /** The merchant's business ranking from the dialog config; set by the React and Vue search hooks. */
+  businessRanking?: SearchBusinessRanking;
 }
 
 export type SearchFunction = (

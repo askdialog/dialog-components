@@ -119,12 +119,12 @@ import '@askdialog/dialog-vue/style.css';
 
 const client = new Dialog({ apiKey: 'your-api-key', locale: 'en-US', currency: 'USD' });
 
-const { controller, state, theme, businessRanking } = useDialogSearch({ client, language: 'en', country: 'US' });
+const { controller, state, theme } = useDialogSearch({ client, language: 'en', country: 'US' });
 </script>
 
 <template>
   <DialogSearchBar :controller="controller" placeholder="Search products..." />
-  <DialogSearchResults :controller="controller" :state="state" :theme="theme" :business-ranking="businessRanking" />
+  <DialogSearchResults :controller="controller" :state="state" :theme="theme" />
 </template>
 ```
 
@@ -147,7 +147,7 @@ Search language and country are explicit and independent of `client.locale`, whi
 
 Options are read once during setup — later changes don't rebind the live controller.
 
-**Returns:** `{ controller, state, theme, businessRanking }` — pass them to the components below; `theme` is the client's theme and `businessRanking` the merchant's business ranking criterion (read once from the widget dialog config), both for `DialogSearchResults`. `state` is a `ShallowRef`; `state.value.status` is `idle` / `loading` / `success` / `empty` / `error`.
+**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `state` is a `ShallowRef`; `state.value.status` is `idle` / `loading` / `success` / `empty` / `error`.
 
 With the collections column, for a catalog that exposes a collections index:
 
@@ -179,7 +179,6 @@ Floating results panel overlaying the page content: portaled to `document.body` 
 - `state` (SearchControllerState) - From `useDialogSearch` (required)
 - `locale` (string, optional) - BCP 47 locale for prices, counts and labels (English labels and browser number format when omitted)
 - `theme` (Theme, optional) - The client's theme, as returned by `useDialogSearch`; styles the panel (palette, radii, font)
-- `businessRanking` (SearchBusinessRanking, optional) - As returned by `useDialogSearch`; titles the products shown before any query is typed ("Best sellers", "New arrivals", "Low prices", "High prices", or "Our products" when absent)
 - `layout` (`'list' | 'grid'`, optional) - Products layout (default: `'list'`)
 - `seeAllHref` ((query) => string, optional) - Link of the "See all results" footer button; omitted, the panel paginates instead
 

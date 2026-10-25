@@ -20,7 +20,7 @@ const sections =
     ? [{ index: "collections" as const, hitsPerPage: 5 }]
     : [];
 
-const { controller, state, theme, businessRanking } = useDialogSearch({
+const { controller, state, theme } = useDialogSearch({
   client: props.client,
   language: "fr",
   country: "FR",
@@ -46,7 +46,6 @@ const { controller, state, theme, businessRanking } = useDialogSearch({
       :state="state"
       locale="fr-FR"
       :theme="theme"
-      :business-ranking="businessRanking"
       :layout="layout"
     />
   </section>

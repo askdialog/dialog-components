@@ -14,6 +14,7 @@ import {
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -45,8 +46,6 @@ export interface DialogSearch {
   state: SearchControllerState;
   /** The client's theme, for `DialogSearchResults`. */
   theme: Theme;
-  /** The merchant's business ranking, for `DialogSearchResults`; undefined until loaded or when none. */
-  businessRanking: SearchBusinessRanking | undefined;
 }
 
 const SERVER_SNAPSHOT: SearchControllerState = {
@@ -155,10 +154,14 @@ export const useDialogSearch = (
     () => SERVER_SNAPSHOT,
   );
 
+  const stateWithRanking = useMemo(
+    () => ({ ...state, businessRanking }),
+    [state, businessRanking],
+  );
+
   return {
     controller: facadeRef.current,
-    state,
+    state: stateWithRanking,
     theme: options.client.theme,
-    businessRanking,
   };
 };

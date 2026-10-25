@@ -38,8 +38,6 @@ export interface DialogSearch {
   state: Readonly<ShallowRef<SearchControllerState>>;
   /** The client's theme, for `DialogSearchResults`. */
   theme: Theme;
-  /** The merchant's business ranking, for `DialogSearchResults`; undefined until loaded or when none. */
-  businessRanking: Readonly<ShallowRef<SearchBusinessRanking | undefined>>;
 }
 
 /** Options are fixed when the controller is created. */
@@ -59,12 +57,12 @@ export const useDialogSearch = (
     ...rest,
   });
 
+  let businessRanking: SearchBusinessRanking | undefined;
   const state = shallowRef(controller.getState());
   const unsubscribe = controller.subscribe(() => {
-    state.value = controller.getState();
+    state.value = { ...controller.getState(), businessRanking };
   });
 
-  const businessRanking = shallowRef<SearchBusinessRanking | undefined>();
   let active = true;
 
   onMounted(() => {
@@ -72,7 +70,8 @@ export const useDialogSearch = (
       .getDialogConfig()
       .then((config) => {
         if (active) {
-          businessRanking.value = config.searchBusinessRanking;
+          businessRanking = config.searchBusinessRanking;
+          state.value = { ...state.value, businessRanking };
         }
       })
       // Without the config the empty-query products keep the default title.
@@ -92,5 +91,5 @@ export const useDialogSearch = (
     controller.dispose();
   });
 
-  return { controller, state, theme: client.theme, businessRanking };
+  return { controller, state, theme: client.theme };
 };

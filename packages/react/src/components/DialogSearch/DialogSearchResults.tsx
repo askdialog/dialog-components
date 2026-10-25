@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import {
   DialogSearchError,
   SearchStatus,
-  type SearchBusinessRanking,
   type SearchController,
   type SearchControllerState,
   type Theme,
@@ -32,8 +31,6 @@ interface DialogSearchResultsProps {
   locale?: string;
   /** Usually `client.theme`, as returned by `useDialogSearch`. */
   theme?: Theme;
-  /** Titles the empty-query products; as returned by `useDialogSearch`. */
-  businessRanking?: SearchBusinessRanking;
   layout?: SearchProductsLayout;
   /** Link of the "See all results" footer; omitted, the panel paginates instead. */
   seeAllHref?: (query: string) => string;
@@ -51,7 +48,7 @@ const panelContent = (
   props: DialogSearchResultsProps,
   messages: SearchMessages,
 ): ReactNode => {
-  const { controller, state, locale, businessRanking, seeAllHref } = props;
+  const { controller, state, locale, seeAllHref } = props;
   const { status, response } = state;
 
   if (status === SearchStatus.ERROR) {
@@ -103,7 +100,7 @@ const panelContent = (
           response={response}
           locale={locale}
           messages={messages}
-          businessRanking={businessRanking}
+          businessRanking={state.businessRanking}
         />
       </div>
       {(hasSeeAll || hasPages) && (
