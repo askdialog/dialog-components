@@ -1,9 +1,13 @@
+import type { SearchBusinessRanking } from "@askdialog/dialog-sdk";
+
 export interface SearchMessages {
   searching: (query: string) => string;
   noResults: string;
   retry: string;
   collectionsLabel: string;
   productsLabel: string;
+  /** Title of the empty-query products, after the merchant's business ranking. */
+  rankingLabel: (ranking: SearchBusinessRanking | undefined) => string;
   collectionsCount: (count: number) => string;
   resultsCount: (count: number) => string;
   seeAllLabel: (count: number) => string;
@@ -29,6 +33,15 @@ const MESSAGES: Record<string, MessagesFactory> = {
     retry: "Retry",
     collectionsLabel: "Collections",
     productsLabel: "Products",
+    rankingLabel: (ranking) =>
+      ranking === undefined
+        ? "Our products"
+        : {
+            best_sellers: "Best sellers",
+            newest: "New arrivals",
+            price_asc: "Low prices",
+            price_desc: "High prices",
+          }[ranking],
     collectionsCount: (count) =>
       count === 1 ? "1 collection" : `${n(count)} collections`,
     resultsCount: (count) => (count === 1 ? "1 result" : `${n(count)} results`),
@@ -44,6 +57,15 @@ const MESSAGES: Record<string, MessagesFactory> = {
     retry: "Réessayer",
     collectionsLabel: "Collections",
     productsLabel: "Produits",
+    rankingLabel: (ranking) =>
+      ranking === undefined
+        ? "Nos produits"
+        : {
+            best_sellers: "Meilleures ventes",
+            newest: "Nouveautés",
+            price_asc: "Petits prix",
+            price_desc: "Prix décroissants",
+          }[ranking],
     collectionsCount: (count) =>
       count === 1 ? "1 collection" : `${n(count)} collections`,
     resultsCount: (count) =>
@@ -60,6 +82,15 @@ const MESSAGES: Record<string, MessagesFactory> = {
     retry: "Erneut versuchen",
     collectionsLabel: "Kollektionen",
     productsLabel: "Produkte",
+    rankingLabel: (ranking) =>
+      ranking === undefined
+        ? "Unsere Produkte"
+        : {
+            best_sellers: "Bestseller",
+            newest: "Neuheiten",
+            price_asc: "Niedrige Preise",
+            price_desc: "Hohe Preise",
+          }[ranking],
     collectionsCount: (count) =>
       count === 1 ? "1 Kollektion" : `${n(count)} Kollektionen`,
     resultsCount: (count) =>
@@ -78,6 +109,15 @@ const MESSAGES: Record<string, MessagesFactory> = {
     retry: "Reintentar",
     collectionsLabel: "Colecciones",
     productsLabel: "Productos",
+    rankingLabel: (ranking) =>
+      ranking === undefined
+        ? "Nuestros productos"
+        : {
+            best_sellers: "Más vendidos",
+            newest: "Novedades",
+            price_asc: "Precios bajos",
+            price_desc: "Precios altos",
+          }[ranking],
     collectionsCount: (count) =>
       count === 1 ? "1 colección" : `${n(count)} colecciones`,
     resultsCount: (count) =>
@@ -94,6 +134,15 @@ const MESSAGES: Record<string, MessagesFactory> = {
     retry: "Riprova",
     collectionsLabel: "Collezioni",
     productsLabel: "Prodotti",
+    rankingLabel: (ranking) =>
+      ranking === undefined
+        ? "I nostri prodotti"
+        : {
+            best_sellers: "Più venduti",
+            newest: "Novità",
+            price_asc: "Prezzi bassi",
+            price_desc: "Prezzi alti",
+          }[ranking],
     collectionsCount: (count) =>
       count === 1 ? "1 collezione" : `${n(count)} collezioni`,
     resultsCount: (count) =>

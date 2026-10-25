@@ -15,6 +15,7 @@ import {
 } from "./utils/localization";
 import { ANONYMOUS_CUSTOMER_ID, CUSTOMER_ID } from "./constants/user";
 import { Suggestion } from "./types/suggestion";
+import { DialogConfig } from "./types/dialogConfig";
 import {
   AddToCartInput,
   CartSnapshot,
@@ -33,6 +34,7 @@ import {
   ViewSearchResultsParams,
 } from "./types/searchAnalytics";
 import { EventsHandler } from "./EventsHandler";
+import { loadDialogConfig } from "./services/dialogConfig";
 import { loadSuggestions } from "./services/suggestions";
 import { searchLexical } from "./services/search";
 import { SearchOptions, SearchRequest, SearchResponse } from "./types/search";
@@ -136,6 +138,11 @@ export class Dialog {
 
   public async getSuggestions(productId: string): Promise<Suggestion> {
     return loadSuggestions(this._apiKey, this._locale, productId);
+  }
+
+  /** The widget dialog config for this client's locale. */
+  public getDialogConfig(): Promise<DialogConfig> {
+    return loadDialogConfig(this._apiKey, this._locale);
   }
 
   /**

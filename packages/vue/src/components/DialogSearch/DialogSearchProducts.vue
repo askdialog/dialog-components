@@ -2,7 +2,10 @@
   <section class="dialog-search-products">
     <div class="dialog-search-section-head">
       <p class="dialog-search-label">
-        {{ props.messages.productsLabel
+        {{
+          props.response.query === ""
+            ? props.messages.rankingLabel(props.businessRanking)
+            : props.messages.productsLabel
         }}<span
           v-if="props.response.nbHits > 0"
           class="dialog-search-label-count"
@@ -35,6 +38,7 @@
 
 <script setup lang="ts">
 import type {
+  SearchBusinessRanking,
   SearchController,
   SearchProductHit,
   SearchResult,
@@ -47,6 +51,7 @@ const props = defineProps<{
   response: SearchResult<SearchProductHit>;
   locale: string | undefined;
   messages: SearchMessages;
+  businessRanking: SearchBusinessRanking | undefined;
 }>();
 </script>
 

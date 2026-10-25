@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import type {
+  SearchBusinessRanking,
   SearchController,
   SearchProductHit,
   SearchResult,
@@ -12,6 +13,7 @@ interface DialogSearchProductsProps {
   response: SearchResult<SearchProductHit>;
   locale: string | undefined;
   messages: SearchMessages;
+  businessRanking: SearchBusinessRanking | undefined;
 }
 
 export const DialogSearchProducts: FC<DialogSearchProductsProps> = ({
@@ -19,11 +21,14 @@ export const DialogSearchProducts: FC<DialogSearchProductsProps> = ({
   response,
   locale,
   messages,
+  businessRanking,
 }) => (
   <section className="dialog-search-products">
     <div className="dialog-search-section-head">
       <p className="dialog-search-label">
-        {messages.productsLabel}
+        {response.query === ""
+          ? messages.rankingLabel(businessRanking)
+          : messages.productsLabel}
         {response.nbHits > 0 && (
           <span className="dialog-search-label-count">
             {` · ${messages.resultsCount(response.nbHits)}`}
