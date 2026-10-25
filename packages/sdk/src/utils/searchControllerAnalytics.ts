@@ -19,6 +19,7 @@ export interface ControllerAnalyticsBinding {
     index: number,
   ): void;
   select(result: SearchResult<SearchProductHit>, index: number): void;
+  close(): void;
   dispose(): void;
 }
 
@@ -83,6 +84,12 @@ export function createControllerAnalytics(
       // Count the impression before recording the selection.
       tracker().forceImpression(item);
       analytics.trackSelectSearchResult({ ...envelope, items: [item] });
+    },
+    close() {
+      // Emit qualified impressions, drop the rest; the next response starts a new tracker.
+      impressions?.disconnect();
+      impressions = undefined;
+      envelope = undefined;
     },
     dispose() {
       impressions?.disconnect();

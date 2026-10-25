@@ -376,6 +376,7 @@ const unsubscribe = controller.subscribe((state) => {
 });
 
 input.onfocus = () => controller.open(); // search opened
+closeButton.onclick = () => controller.close(); // reset without a request
 input.oninput = () => controller.setQuery(input.value); // debounced
 form.onsubmit = () => controller.submit(input.value); // immediate
 nextButton.onclick = () => controller.setPage(controller.getState().page + 1);
@@ -394,6 +395,7 @@ Framework integrations:
 
 - Subscribe to state changes and render results.
 - Call `open()` when the search input gets focus. It emits `TRACK_OPENED_SEARCH` (`userId`, `surface`, `search_type`) on every focus; deduplication happens downstream.
+- Call `close()` when the shopper dismisses search, instead of `setQuery('')`, which runs the empty-query search. It cancels pending requests, emits impressions already qualified and resets the state to idle; the next `open()` runs the empty-query search again.
 - Call `observeResult(element, index)` for each result and `selectResult(index)` on selection. Use `{ navigate: false }` for middle-clicks and modified clicks. Call `preventDefault()` only when `selectResult` returns true.
 - Pass `navigate` for router navigation. The integration owns URL synchronization.
 - Create one controller per search surface and call `dispose()` on unmount.

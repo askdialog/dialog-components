@@ -60,6 +60,9 @@ export function createSearchController({
   };
 
   const run = async (query: string, page: number): Promise<void> => {
+    if (disposed) {
+      return;
+    }
     cancelPendingSearch();
     abortController = new AbortController();
     const id = requestId;
@@ -85,11 +88,10 @@ export function createSearchController({
         error: undefined,
       });
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        return; // Cancellation is not a search error.
-      }
-      if (id !== requestId) {
-        return;
+      const aborted =
+        error instanceof DOMException && error.name === "AbortError";
+      if (aborted || id !== requestId) {
+        return; // Cancellation and superseded requests are not search errors.
       }
       setState({
         status: SearchStatus.ERROR,
@@ -112,16 +114,10 @@ export function createSearchController({
     },
 
     submit(rawQuery) {
-      if (disposed) {
-        return;
-      }
       void run(rawQuery.trim(), 0);
     },
 
     setPage(page) {
-      if (disposed) {
-        return;
-      }
       if (pendingQuery !== undefined) {
         // Submit pending input on page zero before allowing pagination.
         void run(pendingQuery, 0);
@@ -179,7 +175,6 @@ export function createSearchController({
     open() {
       controllerAnalytics.open();
       if (
-        !disposed &&
         (state.status === SearchStatus.IDLE ||
           state.status === SearchStatus.ERROR) &&
         state.query === "" &&
@@ -187,6 +182,12 @@ export function createSearchController({
       ) {
         void run("", 0);
       }
+    },
+
+    close() {
+      cancelPendingSearch();
+      controllerAnalytics.close();
+      setState(INITIAL_SEARCH_STATE);
     },
 
     dispose() {
