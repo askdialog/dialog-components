@@ -1,5 +1,48 @@
 # @askdialog/dialog-sdk
 
+## 2.19.0
+
+### Minor Changes
+
+- 4fb36cc: feat(sdk): search opened signal (DAT-1558)
+
+  The search controller gets `open()`, which emits a new `DialogEvents.TRACK_OPENED_SEARCH` Dialog event carrying `userId`, `surface` and `search_type`, like the other search events. Call it when the search input gets focus; it fires on every focus, deduplication happens downstream.
+
+  New: `Dialog.trackOpenedSearch(params)`, the optional `trackOpenedSearch` callback on `SearchControllerAnalytics` (existing custom adapters keep compiling), and the `OpenedSearchParams` / `OpenedSearchEventPayload` types. The React and Vue `DialogSearchBar` and the raw JavaScript demo (`packages/search-example`) call `open()` on input focus.
+
+- ed29ef8: feat(sdk): empty-query search on open (DAT-1922)
+
+  `open()` on the search controller now runs a products-only search with `query: ""` when no query was typed yet; its results land in the state with `query: ""`, which tells them apart from typed-query results. Queries no longer need two characters: one character searches after the usual debounce, and clearing the input runs the empty-query search again instead of resetting to `idle`. Impressions and clicks of the empty-query results are tracked like typed results, with `query_length: 0`. The React and Vue search bars therefore show the empty-query products as soon as the input gets focus.
+
+- d282957: feat: title the empty-query products after the business ranking (DAT-1932)
+
+  The SDK gets `client.getDialogConfig()`, which reads the widget dialog config; its `searchBusinessRanking` is the merchant's business ranking criterion (`best_sellers`, `newest`, `price_asc`, `price_desc`, absent when none). `useDialogSearch` in React and Vue reads it once per search bar and adds it to the state it returns, as `businessRanking` (typed `DialogSearchState`: the controller state plus that field); `DialogSearchResults` then titles the products shown before any query is typed "Best sellers", "New arrivals", "Low prices", "High prices", or "Our products" without a criterion, in every locale the bars support, with no change to the integration. Typed-query results keep the "Products" title.
+
+- cb56853: New optional merchant callback `callbacks.getCart()`, through which the assistant reads the shopper's cart on storefronts it cannot read itself (e.g. headless). It resolves a `CartSnapshot` (exported) — `{ lines: { productId, variantId, quantity, unitPrice }[], totalAmount, currency }`, amounts in currency units, `totalAmount` after cart discounts and excluding shipping, ISO 4217 `currency` — or `null` when there is no cart. `Dialog.getCart()` forwards to it and `Dialog.canReadCart()` tells whether the callback was provided; without it existing integrations are unchanged. Being a read, it is not affected by `disableAddToCart`.
+
+  ```ts
+  new Dialog({
+    apiKey,
+    locale,
+    currency,
+    callbacks: {
+      addToCart,
+      getProduct,
+      getCart: async () => ({
+        lines: [
+          { productId: "42", variantId: "4242", quantity: 2, unitPrice: 12.5 },
+        ],
+        totalAmount: 25,
+        currency: "EUR",
+      }),
+    },
+  });
+  ```
+
+### Patch Changes
+
+- 4946a82: `createSearchController()` and `useDialogSearch` debounce keystrokes for 100 ms by default instead of 250 ms. Pass `debounceMs` to keep the previous delay.
+
 ## 2.18.1
 
 ### Patch Changes

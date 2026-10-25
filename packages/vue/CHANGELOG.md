@@ -1,5 +1,23 @@
 # @askdialog/dialog-vue
 
+## 3.12.0
+
+### Minor Changes
+
+- 4fb36cc: feat(sdk): search opened signal (DAT-1558)
+
+  The search controller gets `open()`, which emits a new `DialogEvents.TRACK_OPENED_SEARCH` Dialog event carrying `userId`, `surface` and `search_type`, like the other search events. Call it when the search input gets focus; it fires on every focus, deduplication happens downstream.
+
+  New: `Dialog.trackOpenedSearch(params)`, the optional `trackOpenedSearch` callback on `SearchControllerAnalytics` (existing custom adapters keep compiling), and the `OpenedSearchParams` / `OpenedSearchEventPayload` types. The React and Vue `DialogSearchBar` and the raw JavaScript demo (`packages/search-example`) call `open()` on input focus.
+
+- d282957: feat: title the empty-query products after the business ranking (DAT-1932)
+
+  The SDK gets `client.getDialogConfig()`, which reads the widget dialog config; its `searchBusinessRanking` is the merchant's business ranking criterion (`best_sellers`, `newest`, `price_asc`, `price_desc`, absent when none). `useDialogSearch` in React and Vue reads it once per search bar and adds it to the state it returns, as `businessRanking` (typed `DialogSearchState`: the controller state plus that field); `DialogSearchResults` then titles the products shown before any query is typed "Best sellers", "New arrivals", "Low prices", "High prices", or "Our products" without a criterion, in every locale the bars support, with no change to the integration. Typed-query results keep the "Products" title.
+
+### Patch Changes
+
+- 4946a82: `createSearchController()` and `useDialogSearch` debounce keystrokes for 100 ms by default instead of 250 ms. Pass `debounceMs` to keep the previous delay.
+
 ## 3.11.2
 
 ### Patch Changes
