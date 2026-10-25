@@ -32,7 +32,7 @@ export interface SearchSection {
 
 export interface SearchControllerState {
   status: SearchStatus;
-  /** Last submitted query, excluding pending input. */
+  /** Last submitted query, excluding pending input; `""` once the empty-query results run. */
   query: string;
   /** Zero-based page of the last request. */
   page: number;
@@ -75,9 +75,12 @@ export interface SearchControllerOptions {
 
 /** Manage search requests, pagination and analytics independently of rendering. */
 export interface SearchController {
-  /** Record that the shopper opened search; call it when the search input gets focus. */
+  /**
+   * Record that the shopper opened search; call it when the search input gets focus.
+   * With no query yet, it runs the empty-query products search.
+   */
   open(): void;
-  /** Submit after the debounce delay. */
+  /** Submit after the debounce delay; an empty query runs the empty-query search. */
   setQuery(rawQuery: string): void;
   /** Submit immediately. */
   submit(rawQuery: string): void;
