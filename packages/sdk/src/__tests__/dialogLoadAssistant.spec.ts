@@ -145,3 +145,21 @@ describe("Dialog._loadAssistant analytics consent", () => {
     expect(div.dataset.analyticsConsent).toBeUndefined();
   });
 });
+
+describe("Dialog._loadAssistant mount node dataset", () => {
+  it("declares the shop, user and locale on the injected div, like the Shopify theme", () => {
+    vi.useFakeTimers();
+    const { div } = stubDocument();
+
+    loadAssistant(buildDialog());
+
+    expect(div.dataset).toEqual({
+      shopIsoCode: "fr",
+      apiKey: "api-key-1",
+      userId: "user-1",
+      countryCode: "FR",
+      language: "French (France)",
+      locale: "fr",
+    });
+  });
+});
