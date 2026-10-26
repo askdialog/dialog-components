@@ -1,5 +1,11 @@
 # @askdialog/dialog-sdk
 
+## 2.20.1
+
+### Patch Changes
+
+- e5d0888: Mount the assistant with `data-locale` set to the language iso code (`fr` for `fr-FR`), as the Shopify theme extension does, so every widget version reads the same locale (DEC-3458).
+
 ## 2.20.0
 
 ### Minor Changes
