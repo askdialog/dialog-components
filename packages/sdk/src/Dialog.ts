@@ -398,6 +398,8 @@ export class Dialog {
     div.dataset.userId = this._userId;
     div.dataset.countryCode = localeInfo.countryCode;
     div.dataset.language = localeInfo.language;
+    // The Shopify theme extension sets data-locale to the language iso code.
+    div.dataset.locale = localeInfo.languageCode;
     if (this._disableAddToCart) {
       // Hide the add-to-cart button in the assistant.
       div.dataset.disableAddToCart = "true";
