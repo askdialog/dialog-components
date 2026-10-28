@@ -16,6 +16,11 @@ export default defineConfig({
       useDistForTesting || isProduction
         ? []
         : [
+            // Before the root alias, which would also match this subpath.
+            {
+              find: "@askdialog/dialog-sdk/search",
+              replacement: resolve(__dirname, "../sdk/src/search/index.ts"),
+            },
             {
               find: "@askdialog/dialog-sdk",
               replacement: resolve(__dirname, "../sdk/src/index.ts"),

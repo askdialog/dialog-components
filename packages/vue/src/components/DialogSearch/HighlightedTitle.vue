@@ -1,23 +1,19 @@
 <template>
-  <span v-if="parts.before !== ''" class="dialog-search-muted">{{
-    parts.before
+  <span v-if="props.parts.before !== ''" class="dialog-search-muted">{{
+    props.parts.before
   }}</span>
-  <span class="dialog-search-match">{{ parts.match }}</span>
-  <span v-if="parts.after !== ''" class="dialog-search-muted">{{
-    parts.after
+  <span class="dialog-search-match">{{ props.parts.match }}</span>
+  <span v-if="props.parts.after !== ''" class="dialog-search-muted">{{
+    props.parts.after
   }}</span>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { splitTitleMatch } from "./titleHighlight";
+import type { TitleParts } from "@askdialog/dialog-sdk/search";
 
 const props = defineProps<{
-  title: string;
-  query: string;
+  parts: TitleParts;
 }>();
-
-const parts = computed(() => splitTitleMatch(props.title, props.query));
 </script>
 
 <style>

@@ -1,24 +1,18 @@
 import {
-  createSearchController,
   registerDialogInstallation,
-  SearchStatus,
   type Dialog,
-  type SearchBusinessRanking,
-  type SearchController,
-  type SearchControllerState,
-  type SearchProductHit,
-  type SearchSection,
   type SearchSurface,
-  type Theme,
 } from "@askdialog/dialog-sdk";
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+  createSearchController,
+  type SearchController,
+  type SearchProductHit,
+  type SearchSection,
+  type SearchSnapshot,
+  type Theme,
+} from "@askdialog/dialog-sdk/search";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createRecreatableController } from "./recreatableController";
 
 export interface UseDialogSearchOptions {
   client: Dialog;
@@ -41,10 +35,8 @@ export interface UseDialogSearchOptions {
   sections?: readonly SearchSection[];
 }
 
-/** The controller state plus the merchant's business ranking, read from the dialog config. */
-export type DialogSearchState = SearchControllerState & {
-  businessRanking?: SearchBusinessRanking;
-};
+/** The controller's snapshot: search state, results and context. */
+export type DialogSearchState = SearchSnapshot;
 
 export interface DialogSearch {
   controller: SearchController;
@@ -53,11 +45,25 @@ export interface DialogSearch {
   theme: Theme;
 }
 
-const SERVER_SNAPSHOT: SearchControllerState = {
-  status: SearchStatus.IDLE,
-  query: "",
-  page: 0,
-};
+const createController = ({
+  client,
+  surface = "search_page",
+  ...rest
+}: UseDialogSearchOptions): SearchController =>
+  createSearchController({
+    transport: (request, requestOptions) =>
+      client.search(request, requestOptions),
+    // The controller loads the merchant's config at the first open or search.
+    apiKey: client.apiKey,
+    analytics: {
+      surface,
+      trackViewSearchResults: (params) => client.trackViewSearchResults(params),
+      trackSelectSearchResult: (params) =>
+        client.trackSelectSearchResult(params),
+      trackOpenedSearch: (params) => client.trackOpenedSearch(params),
+    },
+    ...rest,
+  });
 
 /** Options are fixed when the controller is created. */
 export const useDialogSearch = (
@@ -65,53 +71,12 @@ export const useDialogSearch = (
 ): DialogSearch => {
   const optionsRef = useRef(options);
   optionsRef.current = options;
-  const controllerRef = useRef<SearchController | undefined>(undefined);
-
-  const getController = useCallback((): SearchController => {
-    if (controllerRef.current === undefined) {
-      const { client, surface = "search_page", ...rest } = optionsRef.current;
-      controllerRef.current = createSearchController({
-        search: (request, requestOptions) =>
-          client.search(request, requestOptions),
-        analytics: {
-          surface,
-          trackViewSearchResults: (params) =>
-            client.trackViewSearchResults(params),
-          trackSelectSearchResult: (params) =>
-            client.trackSelectSearchResult(params),
-          trackOpenedSearch: (params) => client.trackOpenedSearch(params),
-        },
-        ...rest,
-      });
-    }
-
-    return controllerRef.current;
-  }, []);
-
-  // Resolve the current controller after StrictMode disposes the initial instance.
-  const facadeRef = useRef<SearchController | undefined>(undefined);
-  facadeRef.current ??= {
-    open: () => getController().open(),
-    close: () => getController().close(),
-    setQuery: (rawQuery) => getController().setQuery(rawQuery),
-    submit: (rawQuery) => getController().submit(rawQuery),
-    setPage: (page) => getController().setPage(page),
-    retry: () => getController().retry(),
-    observeResult: (element, index) =>
-      getController().observeResult(element, index),
-    selectResult: (index, options) =>
-      getController().selectResult(index, options),
-    productUrl: (hit) => getController().productUrl(hit),
-    subscribe: (listener) => getController().subscribe(listener),
-    getState: () => getController().getState(),
-    // Create a replacement on next access after disposal.
-    dispose: () => {
-      controllerRef.current?.dispose();
-      controllerRef.current = undefined;
-    },
-  };
+  const [controller] = useState(() =>
+    createRecreatableController(() => createController(optionsRef.current)),
+  );
 
   useEffect(() => {
+    controller.revive();
     registerDialogInstallation({
       method: "react",
       version:
@@ -119,55 +84,15 @@ export const useDialogSearch = (
           ? undefined
           : __DIALOG_REACT_VERSION__,
     });
-    const controller = getController();
 
-    return () => {
-      controller.dispose();
-      if (controllerRef.current === controller) {
-        controllerRef.current = undefined;
-      }
-    };
-  }, [getController]);
+    return () => controller.dispose();
+  }, [controller]);
 
-  const [businessRanking, setBusinessRanking] = useState<
-    SearchBusinessRanking | undefined
-  >(undefined);
-  // The ref survives StrictMode's effect replay, so the config is read once.
-  const configRequestedRef = useRef(false);
-  useEffect(() => {
-    if (configRequestedRef.current) {
-      return;
-    }
-    configRequestedRef.current = true;
-    optionsRef.current.client
-      .getDialogConfig()
-      .then((config) => setBusinessRanking(config.searchBusinessRanking))
-      // Without the config the empty-query products keep the default title.
-      .catch(() => undefined);
-  }, []);
-
-  const subscribe = useCallback(
-    (listener: () => void) => getController().subscribe(listener),
-    [getController],
-  );
-  const getState = useCallback(
-    () => getController().getState(),
-    [getController],
-  );
   const state = useSyncExternalStore(
-    subscribe,
-    getState,
-    () => SERVER_SNAPSHOT,
+    controller.subscribe,
+    controller.getSnapshot,
+    controller.getSnapshot,
   );
 
-  const stateWithRanking = useMemo(
-    () => ({ ...state, businessRanking }),
-    [state, businessRanking],
-  );
-
-  return {
-    controller: facadeRef.current,
-    state: stateWithRanking,
-    theme: options.client.theme,
-  };
+  return { controller, state, theme: options.client.theme };
 };

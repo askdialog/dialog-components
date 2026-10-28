@@ -9,6 +9,9 @@
       "dependsOn": ["^build"],
       "outputs": ["{projectRoot}/dist"]
     },
+    "test": {
+      "dependsOn": ["^build"]
+    },
     "nx-release-publish": {
       "options": {
         "packageRoot": "dist/{projectRoot}"

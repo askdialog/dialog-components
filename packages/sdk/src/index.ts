@@ -1,7 +1,7 @@
 export * from "./Dialog";
 export * from "./DialogSearchError";
 export * from "./EventsHandler";
-export * from "./searchController";
+export * from "./search";
 export * from "./services/search";
 export * from "./types";
 export {

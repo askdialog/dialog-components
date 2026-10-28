@@ -1,4 +1,4 @@
-import type { Theme } from "@askdialog/dialog-sdk";
+import type { Theme } from "../types/theme";
 import { relativeLuminance } from "./cssColor";
 
 type PanelMode = "light" | "dark";
@@ -84,19 +84,19 @@ export type SearchPanelVariables = Record<`--dso-${string}`, string>;
 export const resolveSearchPanelVariables = (
   theme: Theme | undefined,
 ): SearchPanelVariables => {
-  const mode = resolveMode(nonEmpty(theme?.backgroundColor));
+  const { backgroundColor, ctaBorderType, primaryColor, ctaTextColor } =
+    theme ?? {};
+  const mode = resolveMode(nonEmpty(backgroundColor));
   const shape: PanelShape =
-    theme?.ctaBorderType === STRAIGHT_BORDER_TYPE
-      ? "rectangle"
-      : "rectangle-rounded";
-  const primary = nonEmpty(theme?.primaryColor) ?? DEFAULT_PRIMARY_COLOR;
+    ctaBorderType === STRAIGHT_BORDER_TYPE ? "rectangle" : "rectangle-rounded";
+  const primary = nonEmpty(primaryColor) ?? DEFAULT_PRIMARY_COLOR;
   const fontFamily = nonEmpty(theme?.fontFamily);
   const variables: Record<string, string> = {
     ...PALETTES[mode],
     ...RADII[shape],
     primary,
     accent: resolveAccentTextColor(primary, mode),
-    "cta-text": nonEmpty(theme?.ctaTextColor) ?? DEFAULT_CTA_TEXT_COLOR,
+    "cta-text": nonEmpty(ctaTextColor) ?? DEFAULT_CTA_TEXT_COLOR,
     ...(fontFamily === undefined ? {} : { font: fontFamily }),
   };
 

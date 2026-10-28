@@ -22,10 +22,11 @@
     "clean": "rm -rf dist",
     "build": "pnpm run clean && vue-tsc -b && vite build",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run"
   },
   "peerDependencies": {
-    "@askdialog/dialog-sdk": "^2.15.0",
+    "@askdialog/dialog-sdk": "^3.0.0",
     "vue": "^3.0.0"
   },
   "devDependencies": {
@@ -34,7 +35,9 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
     "eslint-plugin-vue": "^10.0.0",
+    "jsdom": "~22.1.0",
     "vite-plugin-eslint": "^1.8.1",
+    "vitest": "^3.0.0",
     "vue-tsc": "^2.2.4"
   },
   "author": "Dialog",

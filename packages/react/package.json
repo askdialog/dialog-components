@@ -22,17 +22,19 @@
     "clean": "rm -rf dist",
     "build": "pnpm run clean && vite build",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run"
   },
   "peerDependencies": {
-    "@askdialog/dialog-sdk": "^2.15.0",
+    "@askdialog/dialog-sdk": "^3.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@askdialog/dialog-sdk": "workspace:*",
     "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "vitest": "^3.0.0"
   },
   "author": "Dialog",
   "publishConfig": {

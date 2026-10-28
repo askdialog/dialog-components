@@ -14,6 +14,7 @@ Vue 3 component library for Dialog AI-powered product assistance.
     - [DialogSearchBar](#dialogsearchbar)
     - [DialogSearchResults](#dialogsearchresults)
     - [DialogSearchPagination](#dialogsearchpagination)
+    - [DialogSearchProductCard](#dialogsearchproductcard)
 - [Theming](#theming)
 - [Development](#development)
 - [TypeScript](#typescript)
@@ -103,7 +104,7 @@ Standalone input component for asking questions. It shows the fixed "Ask the AI 
 
 ### Storefront search
 
-`useDialogSearch` binds the SDK controller to component state. The controller manages requests and analytics; components handle rendering and navigation.
+`useDialogSearch` binds the SDK search controller (`createSearchController` from `@askdialog/dialog-sdk/search`) to component state. The controller manages requests, the merchant's configuration and analytics; the components read its connectors (`connectSearchBox`, `connectHits`, `connectSections`, `connectPagination`) and only handle rendering. Texts, display rules, title highlight, prices and theme come from the SDK.
 
 ```vue
 <script setup lang="ts">
@@ -128,7 +129,7 @@ const { controller, state, theme } = useDialogSearch({ client, language: 'en', c
 
 #### useDialogSearch
 
-Creates one search controller per composable instance and disposes it on unmount.
+Creates one search controller per composable instance and disposes it on unmount. The controller loads the merchant's business ranking with the client's API key at the first focus or search, for the title of the empty-query products.
 
 **Options:**
 - `client` (Dialog) - Dialog SDK client instance (required)
@@ -145,7 +146,7 @@ Search language and country are explicit and independent of `client.locale`, whi
 
 Options are read once during setup — later changes don't rebind the live controller.
 
-**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `state` is a `ShallowRef`; `state.value.status` is `idle` / `loading` / `success` / `empty` / `error`.
+**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `controller` is the SDK's `SearchController`, which you can also pass to the connectors of `@askdialog/dialog-sdk/search` for a custom UI. `state` is a `ShallowRef` of the controller's snapshot: `state.value.searchState` (what the shopper asks for), `state.value.results` (`status` is `idle` / `loading` / `success` / `empty` / `error`, `products`, `sections`, `error`) and `state.value.context` (language, country, business ranking, texts).
 
 With the collections column, for a catalog that exposes a collections index:
 
@@ -160,7 +161,7 @@ const { controller, state, theme } = useDialogSearch({
 
 #### DialogSearchBar
 
-Search input: typing runs a debounced search, submitting (Enter) searches immediately. Focusing the input calls `controller.open()`, which emits the `TRACK_OPENED_SEARCH` analytics event.
+Search input, on `connectSearchBox`: typing runs a debounced search, submitting (Enter) searches immediately. Focusing the input opens the search, which emits the `TRACK_OPENED_SEARCH` analytics event and, with no query yet, shows the empty-query products.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
@@ -170,24 +171,36 @@ Search input: typing runs a debounced search, submitting (Enter) searches immedi
 
 #### DialogSearchResults
 
-Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, centered on the bar (up to 1440px wide, filling the viewport) and anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. It shows the same layout as the Shopify search overlay: a collections column on the left when `sections` requests them, the products on the right as a list or a 3-column grid, the query match emphasized in every title, and either a "See all results" button or the pagination controls. Below 768px the panel stacks, collections in a horizontal rail above the products. Colors, radii and font follow the SDK theme (dark palette when `backgroundColor` is dark, straight or rounded corners from `ctaBorderType`). Each product card reads the hit, Algolia's Shopify record: its `product_image` (the variant's `image` when absent), its `title`, its lowest variant price (`variants_min_price`, formatted with `currency`, the base currency of the shopper's market), struck through next to it the lowest compare-at price (`variants_compare_at_price_min`, formatted the same way) when it is higher, and its `url`; a hit without a price shows none. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically. Clicking outside the panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept.
+Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, centered on the bar (up to 1440px wide, filling the viewport) and anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. It shows the same layout as the Shopify search overlay: a collections column on the left when `sections` requests them, the products on the right as a list or a 3-column grid, the query match emphasized in every title, and, when `seeAllHref` is set, a "See all results" button; without it, the panel shows the first page of hits only and does not paginate. Below 768px the panel stacks, collections in a horizontal rail above the products. Colors, radii and font follow the SDK theme (dark palette when `backgroundColor` is dark, straight or rounded corners from `ctaBorderType`). Each product card reads the hit, Algolia's Shopify record: its `product_image` (the variant's `image` when absent), its `title`, its lowest variant price (`variants_min_price`, formatted with `currency`, the base currency of the shopper's market), struck through next to it the lowest compare-at price (`variants_compare_at_price_min`, formatted the same way) when it is higher, and its `url`; a hit without a price shows none. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically. Clicking outside the panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
-- `state` (SearchControllerState) - From `useDialogSearch` (required)
-- `locale` (string, optional) - BCP 47 locale for prices, counts and labels (English labels and browser number format when omitted)
+- `state` (SearchSnapshot) - From `useDialogSearch` (required)
+- `locale` (string, optional) - BCP 47 locale for prices, counts and labels, formatted with the SDK's helpers. Omitted, they follow the controller's `language` and `country`.
 - `theme` (Theme, optional) - The client's theme, as returned by `useDialogSearch`; styles the panel (palette, radii, font)
 - `layout` (`'list' | 'grid'`, optional) - Products layout (default: `'list'`)
-- `seeAllHref` ((query) => string, optional) - Link of the "See all results" footer button; omitted, the panel paginates instead
+- `seeAllHref` ((query) => string, optional) - Link of the "See all results" footer button; omitted, the panel shows the first page of hits only, with no pagination
 
 #### DialogSearchPagination
 
-Previous/next controls with a page indicator; hidden while there is a single page. Rendered by `DialogSearchResults` — exported only for custom layouts.
+Previous/next controls with a page indicator, on `connectPagination`; hidden while loading, while a typed query is pending, or while there is a single page. Not rendered by `DialogSearchResults`, which does not paginate: use it on a results page of your own.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
-- `state` (SearchControllerState) - From `useDialogSearch` (required)
-- `locale` (string, optional) - Locale of the button labels
+- `state` (SearchSnapshot) - From `useDialogSearch` (required)
+- `locale` (string, optional) - Locale of the button labels; omitted, the controller's `language`
+
+#### DialogSearchProductCard
+
+One product of the results, with its image, highlighted title, price and link, and its search attribution (viewport impressions, select on click and middle-click). Rendered by `DialogSearchResults` — exported only for custom layouts.
+
+**Props:**
+- `controller` (SearchController) - From `useDialogSearch` (required)
+- `hit` (SearchProductHit) - The product hit (required)
+- `index` (number) - Its position in `state.results.products.hits`, for attribution (required)
+- `locale` (string, optional) - Locale of the prices; omitted, the controller's `language` and `country`
+- `query` (string, optional) - The query emphasized in the title
+- `display` (ProductHitDisplay, optional) - The hit's display from `connectHits`; built from the hit when omitted
 
 ## Theming
 
@@ -285,6 +298,9 @@ pnpm build
 
 # Clean dist folder
 pnpm --filter @askdialog/dialog-vue clean
+
+# Run the specs (builds the SDK first)
+pnpm nx test @askdialog/dialog-vue
 
 # Lint code
 pnpm --filter @askdialog/dialog-vue lint

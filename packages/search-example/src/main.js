@@ -1,9 +1,13 @@
+import { Dialog } from "@askdialog/dialog-sdk";
 import {
+  connectHits,
+  connectPagination,
+  connectSearchBox,
+  connectStats,
   createSearchController,
-  Dialog,
   DialogSearchError,
   SearchStatus,
-} from "@askdialog/dialog-sdk";
+} from "@askdialog/dialog-sdk/search";
 
 const apiKeySection = document.getElementById("api-key-section");
 const apiKeyInput = document.getElementById("api-key-input");
@@ -15,45 +19,18 @@ const prevButton = document.getElementById("prev-page");
 const nextButton = document.getElementById("next-page");
 const pageIndicator = document.getElementById("page-indicator");
 
-let controller;
-
-// The lowest variant price, in the currency of the shopper's market.
-function formatPrice({ variants_min_price: amount, currency }) {
-  if (amount === undefined) {
-    return "";
-  }
-  return currency === undefined
-    ? new Intl.NumberFormat().format(amount)
-    : new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
-        amount,
-      );
-}
-
-/**
- * Catalog data is untrusted: only allow http(s) links so a `javascript:` URL
- * cannot execute script. Relative URLs resolve against the page and pass.
- */
-function safeProductHref(url) {
-  try {
-    const { protocol } = new URL(url, window.location.href);
-    return protocol === "http:" || protocol === "https:" ? url : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function renderProductCard(hit, index) {
+// The connectors carry the display rules: each hit comes with a `display`
+// (title, http(s) `href`, image, price formatted in the shopper's market).
+function renderProductCard({ display }, index, hits) {
   const li = document.createElement("li");
   li.className = "card";
 
   const image = document.createElement("div");
   image.className = "card-image";
-  // The product's image, as Algolia's cards in distinct mode; else the variant's.
-  const imageUrl = hit.product_image || hit.image;
-  if (imageUrl) {
+  if (display.image !== undefined) {
     const img = document.createElement("img");
-    img.src = imageUrl;
-    img.alt = hit.title ?? hit.objectID;
+    img.src = display.image;
+    img.alt = display.title;
     img.loading = "lazy";
     image.appendChild(img);
   }
@@ -61,37 +38,35 @@ function renderProductCard(hit, index) {
 
   const title = document.createElement("p");
   title.className = "card-title";
-  title.textContent = hit.title ?? hit.objectID;
+  title.textContent = display.title;
   li.appendChild(title);
 
   const meta = document.createElement("p");
   meta.className = "card-meta";
-  meta.textContent = formatPrice(hit);
+  meta.textContent = display.price;
   li.appendChild(meta);
 
-  const productUrl = controller.productUrl(hit);
-  const href =
-    productUrl === undefined ? undefined : safeProductHref(productUrl);
-  if (href !== undefined) {
+  if (display.href !== undefined) {
     const link = document.createElement("a");
     link.className = "card-link";
-    link.href = href;
+    link.href = display.href;
     link.textContent = "View product";
-    // `selectResult` records attribution (forced impression + select event,
+    // `select` records attribution (forced impression + select event,
     // so CTR by position stays ≤ 100%) — also on auxclick: a middle-click /
     // new-tab open is a selection too.
     // Demo-only: seed URLs are fake, so same-tab navigation is suppressed to
     // keep the console (and its logged events) alive. Real integrations must
-    // NOT preventDefault — the events are designed to survive navigation.
+    // NOT preventDefault unless `select` returns true — the events are
+    // designed to survive navigation.
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      controller.selectResult(index);
+      hits.select(index);
     });
     // auxclick also fires on right-click, which only opens a context menu:
     // only the middle button is a navigation.
     link.addEventListener("auxclick", (event) => {
       if (event.button === 1) {
-        controller.selectResult(index);
+        hits.select(index, { navigate: false });
       }
     });
     li.appendChild(link);
@@ -107,55 +82,57 @@ function describeError(error) {
   return "Search failed: network error. Check your connection and try again.";
 }
 
-function renderResults(response) {
-  statusEl.textContent = `${response.nbHits} product${response.nbHits > 1 ? "s" : ""} for “${response.query}” (${response.processingTimeMS} ms)`;
-  resultsEl.replaceChildren(
-    ...response.hits.map((hit, index) => {
-      const card = renderProductCard(hit, index);
-      controller.observeResult(card, index);
-      return card;
-    }),
-  );
+function renderStatus({ controller, searchBox, hits, stats }) {
+  const { status, query } = searchBox.getRenderState();
+  statusEl.classList.toggle("status-error", status === SearchStatus.ERROR);
 
-  if (response.nbPages > 1) {
-    paginationEl.hidden = false;
-    pageIndicator.textContent = `Page ${response.page + 1} / ${response.nbPages}`;
-    prevButton.disabled = response.page === 0;
-    nextButton.disabled = response.page >= response.nbPages - 1;
-  }
-}
-
-function render(state) {
-  resultsEl.replaceChildren();
-  paginationEl.hidden = true;
-  statusEl.classList.toggle(
-    "status-error",
-    state.status === SearchStatus.ERROR,
-  );
-
-  switch (state.status) {
+  switch (status) {
     case SearchStatus.IDLE:
       statusEl.textContent = "Start typing to search the catalog.";
       return;
     case SearchStatus.LOADING:
-      statusEl.textContent = `Searching “${state.query}”…`;
+      statusEl.textContent = `Searching “${query}”…`;
       return;
     case SearchStatus.ERROR:
-      statusEl.textContent = describeError(state.error);
+      statusEl.textContent = describeError(
+        controller.getSnapshot().results.error,
+      );
       return;
     case SearchStatus.EMPTY:
-      statusEl.textContent = `No products match “${state.response.query}”.`;
+      statusEl.textContent = `No products match “${hits.getRenderState().query}”.`;
       return;
-    case SearchStatus.SUCCESS:
-      renderResults(state.response);
+    case SearchStatus.SUCCESS: {
+      const { processingTimeMS } = controller.getSnapshot().results.products;
+      // The count in the shopper's language, from the SDK's default texts.
+      statusEl.textContent = `${stats.getRenderState().text} · “${hits.getRenderState().query}” (${processingTimeMS} ms)`;
       return;
+    }
   }
+}
+
+function renderHits(hits) {
+  resultsEl.replaceChildren(
+    ...hits.getRenderState().hits.map((hit, index) => {
+      const card = renderProductCard(hit, index, hits);
+      hits.observe(card, index); // viewport impression
+      return card;
+    }),
+  );
+}
+
+function renderPagination(pagination) {
+  const { visible, currentPage, nbPages, isFirstPage, isLastPage } =
+    pagination.getRenderState();
+  paginationEl.hidden = !visible;
+  pageIndicator.textContent = `Page ${currentPage + 1} / ${nbPages}`;
+  prevButton.disabled = isFirstPage;
+  nextButton.disabled = isLastPage;
 }
 
 function start(apiKey) {
   const dialog = new Dialog({ apiKey, locale: "fr-FR", currency: "EUR" });
-  controller = createSearchController({
-    search: (request, options) => dialog.search(request, options),
+  const controller = createSearchController({
+    transport: (request, options) => dialog.search(request, options),
     language: "fr",
     country: "FR",
     analytics: {
@@ -175,43 +152,49 @@ function start(apiKey) {
     // No `navigate` adapter: the demo renders plain `<a href>` links and
     // suppresses navigation above; a real integration passes its router here.
   });
-  controller.subscribe((state) => {
-    console.log(
-      `[search] ${state.status} query="${state.query}" page=${state.page}`,
-      state,
-    );
+  controller.subscribe(({ searchState, results }) => {
+    console.log(`[search] ${results.status}`, { searchState, results });
   });
-  controller.subscribe(render);
+
+  const searchBox = connectSearchBox(controller);
+  const hits = connectHits(controller);
+  const stats = connectStats(controller);
+  const pagination = connectPagination(controller);
+  const connectors = { controller, searchBox, hits, stats };
+
+  // The status line reads three connectors: render it when any of them changes.
+  for (const connector of [searchBox, hits, stats]) {
+    connector.subscribe(() => renderStatus(connectors));
+  }
+  hits.subscribe(() => renderHits(hits));
+  pagination.subscribe(() => renderPagination(pagination));
+
+  // DOM events only call connector actions.
+  // Focusing the input opens search; every focus emits, dedup happens downstream.
+  searchInput.addEventListener("focus", () => searchBox.open());
+  searchInput.addEventListener("input", () =>
+    searchBox.refine(searchInput.value),
+  );
+  // Enter skips the debounce: an explicit submission runs immediately.
+  searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      searchBox.submit(searchInput.value);
+    }
+  });
+  prevButton.addEventListener("click", () =>
+    pagination.refine(pagination.getRenderState().currentPage - 1),
+  );
+  nextButton.addEventListener("click", () =>
+    pagination.refine(pagination.getRenderState().currentPage + 1),
+  );
 
   apiKeySection.hidden = true;
   searchInput.disabled = false;
+  renderStatus(connectors);
+  renderHits(hits);
+  renderPagination(pagination);
   searchInput.focus();
-  render(controller.getState());
 }
-
-// Focusing the input opens search; every focus emits, dedup happens downstream.
-searchInput.addEventListener("focus", () => {
-  controller.open();
-});
-
-searchInput.addEventListener("input", () => {
-  controller.setQuery(searchInput.value);
-});
-
-// Enter skips the debounce: an explicit submission runs immediately.
-searchInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    controller.submit(searchInput.value);
-  }
-});
-
-prevButton.addEventListener("click", () => {
-  controller.setPage(controller.getState().response.page - 1);
-});
-
-nextButton.addEventListener("click", () => {
-  controller.setPage(controller.getState().response.page + 1);
-});
 
 const envApiKey = import.meta.env.VITE_DIALOG_API_KEY;
 if (typeof envApiKey === "string" && envApiKey.length > 0) {

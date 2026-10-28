@@ -1,11 +1,11 @@
 import { config } from "../config";
-import { DialogSearchError } from "../DialogSearchError";
 import {
   SearchIndex,
   SearchOptions,
   SearchRequest,
   SearchResponse,
 } from "../types/search";
+import { toSearchError } from "./searchError";
 
 const SEARCH_PATH = "/public/search/lexical";
 const API_KEY_HEADER = "x-dialog-api-key";
@@ -24,24 +24,6 @@ export const searchIndexName = (
   }
 
   return `${index}_${language}_${country.toLowerCase()}`;
-};
-
-const toSearchError = async (
-  response: Response,
-): Promise<DialogSearchError> => {
-  let body: { error?: unknown; message?: unknown } | undefined;
-  try {
-    body = (await response.json()) as typeof body;
-  } catch {
-    body = undefined;
-  }
-  const code = typeof body?.error === "string" ? body.error : undefined;
-  const message =
-    typeof body?.message === "string" && body.message.length > 0
-      ? body.message
-      : response.statusText;
-
-  return new DialogSearchError({ status: response.status, code, message });
 };
 
 /** Send one request. The caller controls cancellation through `options.signal`. */

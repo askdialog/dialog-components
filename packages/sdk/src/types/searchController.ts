@@ -1,11 +1,8 @@
 import {
   SearchIndex,
   SearchOptions,
-  SearchProductHit,
   SearchRequest,
   SearchResponse,
-  SearchResult,
-  SearchSections,
 } from "./search";
 import {
   OpenedSearchParams,
@@ -30,18 +27,6 @@ export interface SearchSection {
   hitsPerPage?: number;
 }
 
-export interface SearchControllerState {
-  status: SearchStatus;
-  /** Last submitted query, excluding pending input; `""` once the empty-query results run. */
-  query: string;
-  /** Zero-based page of the last request. */
-  page: number;
-  /** Last products result; retained while loading and cleared on error or reset. */
-  response?: SearchResult<SearchProductHit>;
-  sections?: SearchSections;
-  error?: unknown;
-}
-
 export type SearchFunction = (
   request: SearchRequest,
   options?: SearchOptions,
@@ -54,58 +39,4 @@ export interface SearchControllerAnalytics {
   trackSelectSearchResult: (params: SelectSearchResultParams) => void;
   /** Called by `open()`; optional so existing custom adapters keep compiling. */
   trackOpenedSearch?: (params: OpenedSearchParams) => void;
-}
-
-export interface SearchControllerOptions {
-  /** Search function bound to its client, or a custom transport. */
-  search: SearchFunction;
-  /** Lowercase ISO 639-1 language code, e.g. `fr`. */
-  language: string;
-  /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`; prices follow its market. */
-  country: string;
-  analytics: SearchControllerAnalytics;
-  /** Navigate after recording selection. Omit to use native link navigation. */
-  navigate?: (url: string, hit: SearchProductHit) => void;
-  /** Build a product's link when its hit has no `url`, e.g. `/products/${hit.handle}`. */
-  buildProductUrl?: (hit: SearchProductHit) => string | undefined;
-  debounceMs?: number;
-  hitsPerPage?: number;
-  sections?: readonly SearchSection[] | (() => readonly SearchSection[]);
-}
-
-/** Manage search requests, pagination and analytics independently of rendering. */
-export interface SearchController {
-  /**
-   * Record that the shopper opened search; call it when the search input gets focus.
-   * With no query yet, it runs the empty-query products search.
-   */
-  open(): void;
-  /**
-   * Close search without a request: cancel pending and in-flight searches,
-   * flush qualified impressions and reset the state to idle with an empty query.
-   */
-  close(): void;
-  /** Submit after the debounce delay; an empty query runs the empty-query search. */
-  setQuery(rawQuery: string): void;
-  /** Submit immediately. */
-  submit(rawQuery: string): void;
-  /** Request a zero-based page immediately. Pending input starts at page zero. */
-  setPage(page: number): void;
-  /** Retry the last request when the state is `error`. */
-  retry(): void;
-  /** Track impressions for the element representing `response.hits[index]`. */
-  observeResult(element: Element, index: number): void;
-  /**
-   * Record the impression and selection for `response.hits[index]`.
-   * Pass `{ navigate: false }` for middle-clicks or modified clicks.
-   * Returns true if the navigation adapter ran; call `preventDefault()` then.
-   */
-  selectResult(index: number, options?: { navigate?: boolean }): boolean;
-  /** The hit's `url`, else `buildProductUrl`'s result; undefined when neither gives one. */
-  productUrl(hit: SearchProductHit): string | undefined;
-  /** Subscribe to state changes; returns an unsubscribe function. */
-  subscribe(listener: (state: SearchControllerState) => void): () => void;
-  getState(): SearchControllerState;
-  /** Cancel pending requests and remove listeners and observers. */
-  dispose(): void;
 }

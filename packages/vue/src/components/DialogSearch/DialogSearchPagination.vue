@@ -1,46 +1,52 @@
 <template>
   <nav
-    v-if="response !== undefined && hasPagination(props.state)"
+    v-if="pagination.visible"
     aria-label="Search results pages"
     class="dialog-search-pagination"
   >
     <button
       type="button"
-      :disabled="response.page === 0"
-      @click="props.controller.setPage(response.page - 1)"
+      :disabled="pagination.isFirstPage"
+      @click="connector.refine(pagination.currentPage - 1)"
     >
-      {{ messages.previous }}
+      {{ texts.previous }}
     </button>
-    <span>{{ messages.pageOf(response.page + 1, response.nbPages) }}</span>
+    <span>{{
+      texts.pageOf(pagination.currentPage + 1, pagination.nbPages)
+    }}</span>
     <button
       type="button"
-      :disabled="response.page >= response.nbPages - 1"
-      @click="props.controller.setPage(response.page + 1)"
+      :disabled="pagination.isLastPage"
+      @click="connector.refine(pagination.currentPage + 1)"
     >
-      {{ messages.next }}
+      {{ texts.next }}
     </button>
   </nav>
 </template>
 
 <script setup lang="ts">
-import type {
-  SearchController,
-  SearchControllerState,
-} from "@askdialog/dialog-sdk";
+import {
+  connectPagination,
+  type SearchController,
+  type SearchSnapshot,
+} from "@askdialog/dialog-sdk/search";
 import { computed } from "vue";
-import { getSearchMessages } from "./searchMessages";
-import { hasPagination } from "./searchPagination";
+import { searchTexts } from "./searchTexts";
+import { useConnector } from "./useConnector";
 
 interface Props {
   controller: SearchController;
-  state: SearchControllerState;
+  state: SearchSnapshot;
+  /** BCP 47 locale of the labels; omitted, the shopper's language. */
   locale?: string;
 }
 
 const props = defineProps<Props>();
 
-const response = computed(() => props.state.response);
-const messages = computed(() => getSearchMessages(props.locale));
+// The controller is fixed for the component's lifetime.
+const connector = connectPagination(props.controller);
+const pagination = useConnector(connector);
+const texts = computed(() => searchTexts(props.locale, props.state.context));
 </script>
 
 <style>

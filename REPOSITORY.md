@@ -148,6 +148,41 @@ packages/
 2. Vue components build after SDK completes
 3. Vue example builds after both SDK and Vue components complete
 
+## Search Architecture
+
+Storefront search runs on four surfaces: `@askdialog/dialog-react`, `@askdialog/dialog-vue`, the Shopify theme extension and the widget (both in `dialog-ecom`). It follows an InstantSearch-like architecture: the search logic lives once in `@askdialog/dialog-sdk`, and each surface keeps only its rendering and a thin subscription layer.
+
+> **Status:** this is the target architecture, built by the "Storefront search on SDK connectors" project. The SDK root exports the controller and the search box, hits, pagination, stats and sections connectors (`@askdialog/dialog-sdk/search` is an alias); the draft, the AI transports and the other connectors come with the widget milestones. The placement rules apply in review.
+
+### Search Controller
+
+`createSearchController(options)` holds everything a surface reads, in one snapshot (`getSnapshot()`, `subscribe`):
+
+- **search state**: what the visitor asks for (query, page, refinements), keyed by index name in InstantSearch's `uiState` shape. The only writable part, through `setSearchState(updater)`.
+- **results**: read-only. Status, products, sections, AI filters and the error.
+- **context**: read-only. Language, country, currency, business ranking, filterable attributes and texts, passed in or loaded once per page.
+
+The controller builds and sends the requests through its transport (lexical or AI, fixed at creation). `createDraft()` returns a controller that collects changes without searching, then applies them in a single search on `commit()`.
+
+### Connectors
+
+A connector (`connectSearchBox`, `connectHits`, `connectPagination`, `connectStats`, `connectSections`, `connectInfiniteHits`, `connectRefinementList`, `connectRange`, `connectCurrentRefinements`, `connectAiOverview`) is headless: `connectX(controller, params)` returns a render state, actions, `subscribe` and `dispose`. It reads the controller's snapshot, applies the display rules (each hit carries a ready-to-render `display`) and turns actions into search state changes. It holds no state beyond UI state such as "show more" or accumulated pages.
+
+React and Vue wrap connectors in a `useConnector`; the extension and the widget call them directly.
+
+### Placement Rules
+
+Every search change, during and after the migration, is reviewed against these four rules:
+
+1. **Data** the UI needs is exposed by the search controller, in results or context, never loaded by a surface.
+2. **Default texts** live once in the SDK; a surface overrides them, never copies them.
+3. **Display rules** (image, link, title, price, highlight) live in the SDK and are applied by connectors.
+4. **DOM events** go through connectors; a surface binds events to actions with no logic of its own.
+
+**Review test**: if this feature changed tomorrow, how many files outside rendering would change? More than one means something belongs in the SDK.
+
+New search code goes into the SDK whenever a rule says so: in the controller, a connector, a transport or a shared UI module (texts, display rules, highlight, price, theme), never in a surface. A surface only adds rendering.
+
 ## Build System (Nx)
 
 ### Why Nx?

@@ -1,6 +1,7 @@
-import type { SearchBusinessRanking } from "@askdialog/dialog-sdk";
+import type { SearchBusinessRanking } from "../types/dialogConfig";
 
-export interface SearchMessages {
+/** Default storefront search texts, shared by every search surface. */
+export interface SearchTexts {
   searching: (query: string) => string;
   noResults: string;
   retry: string;
@@ -24,9 +25,9 @@ const formatCount = (count: number, locale: string | undefined): string => {
   }
 };
 
-type MessagesFactory = (n: (count: number) => string) => SearchMessages;
+type TextsFactory = (n: (count: number) => string) => SearchTexts;
 
-const MESSAGES: Record<string, MessagesFactory> = {
+const TEXTS: Record<string, TextsFactory> = {
   en: (n) => ({
     searching: (query) => `Searching “${query}”…`,
     noResults: "No matching products",
@@ -155,11 +156,17 @@ const MESSAGES: Record<string, MessagesFactory> = {
   }),
 };
 
-export const getSearchMessages = (
+/**
+ * Texts for a locale (`fr`, `fr-BE`…), English when its language is unknown.
+ * An override replaces only the keys it names.
+ */
+export const getSearchTexts = (
   locale: string | undefined,
-): SearchMessages => {
+  overrides: Partial<SearchTexts> = {},
+): SearchTexts => {
   const language = locale?.split("-")[0]?.toLowerCase() ?? "en";
-  const factory = MESSAGES[language] ?? MESSAGES.en;
+  // An own property only: "constructor" or "__proto__" must fall back too.
+  const factory = Object.hasOwn(TEXTS, language) ? TEXTS[language] : TEXTS.en;
 
-  return factory((count) => formatCount(count, locale));
+  return { ...factory((count) => formatCount(count, locale)), ...overrides };
 };
