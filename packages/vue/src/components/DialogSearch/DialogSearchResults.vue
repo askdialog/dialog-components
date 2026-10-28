@@ -51,20 +51,11 @@
             :texts="texts"
           />
         </div>
-        <div
-          v-if="hasSeeAll || pagination.visible"
-          class="dialog-search-footer"
-        >
-          <a v-if="hasSeeAll" class="dialog-search-cta" :href="seeAllHref">
+        <div v-if="hasSeeAll" class="dialog-search-footer">
+          <a class="dialog-search-cta" :href="seeAllHref">
             {{ texts.seeAllLabel(products.nbHits) }}
             <ArrowRightIcon />
           </a>
-          <DialogSearchPagination
-            v-else
-            :controller="props.controller"
-            :state="props.state"
-            :locale="props.locale"
-          />
         </div>
       </template>
     </div>
@@ -74,7 +65,6 @@
 <script setup lang="ts">
 import {
   connectHits,
-  connectPagination,
   connectSearchBox,
   connectSections,
   DialogSearchError,
@@ -87,7 +77,6 @@ import {
 import { computed } from "vue";
 import ArrowRightIcon from "../../icons/ArrowRightIcon.vue";
 import DialogSearchCollections from "./DialogSearchCollections.vue";
-import DialogSearchPagination from "./DialogSearchPagination.vue";
 import DialogSearchProducts from "./DialogSearchProducts.vue";
 import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
 import type { SearchProductsLayout } from "./searchLayout";
@@ -104,7 +93,7 @@ interface Props {
   /** Usually `client.theme`, as returned by `useDialogSearch`. */
   theme?: Theme;
   layout?: SearchProductsLayout;
-  /** Link of the "See all results" footer; omitted, the panel paginates instead. */
+  /** Link of the "See all results" footer; omitted, the panel shows the first page of hits only. */
   seeAllHref?: (query: string) => string;
 }
 
@@ -127,7 +116,6 @@ const describeError = (error: unknown): string => {
 const searchBox = useConnector(connectSearchBox(props.controller));
 const hits = useConnector(connectHits(props.controller));
 const sections = useConnector(connectSections(props.controller));
-const pagination = useConnector(connectPagination(props.controller));
 
 const hasResults = computed(
   () => props.state.results.status !== SearchStatus.IDLE,
@@ -311,10 +299,6 @@ const seeAllHref = computed(() =>
 
 .dialog-search-cta:hover {
   filter: brightness(0.95);
-}
-
-.dialog-search-footer .dialog-search-pagination {
-  flex: 1;
 }
 
 @media (max-width: 767px) {
