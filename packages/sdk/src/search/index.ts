@@ -53,6 +53,7 @@ export type {
   SearchArticleHit,
   SearchCollectionHit,
   SearchHitByIndex,
+  SearchHitDisplay,
   SearchIndex,
   SearchPageHit,
   SearchProductHit,

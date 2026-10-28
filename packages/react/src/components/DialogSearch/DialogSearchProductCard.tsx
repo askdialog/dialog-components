@@ -81,9 +81,11 @@ export const ProductCardView: FC<ProductCardViewProps> = ({
 
   const content = (
     <>
-      <span className="dialog-search-product-thumb" aria-hidden>
-        {image !== undefined && <img src={image} alt="" loading="lazy" />}
-      </span>
+      {image !== undefined && (
+        <span className="dialog-search-product-thumb" aria-hidden>
+          <img src={image} alt="" loading="lazy" />
+        </span>
+      )}
       <span className="dialog-search-product-title">
         <HighlightedTitle parts={titleParts} />
       </span>
@@ -98,13 +100,16 @@ export const ProductCardView: FC<ProductCardViewProps> = ({
     </>
   );
 
+  // Without an image, the title takes the thumbnail's column.
+  const className = `dialog-search-product${image === undefined ? " dialog-search-product--no-image" : ""}`;
+
   return (
     <li ref={cardRef} className="dialog-search-card">
       {href === undefined ? (
-        <div className="dialog-search-product">{content}</div>
+        <div className={className}>{content}</div>
       ) : (
         <a
-          className="dialog-search-product"
+          className={className}
           href={href}
           onClick={handleClick}
           onAuxClick={handleAuxClick}

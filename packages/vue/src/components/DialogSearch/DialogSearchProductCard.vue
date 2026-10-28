@@ -2,7 +2,10 @@
   <li ref="cardRef" class="dialog-search-card">
     <component
       :is="display.href === undefined ? 'div' : 'a'"
-      class="dialog-search-product"
+      :class="[
+        'dialog-search-product',
+        { 'dialog-search-product--no-image': display.image === undefined },
+      ]"
       :href="display.href"
       v-on="
         display.href === undefined
@@ -10,13 +13,12 @@
           : { click: handleClick, auxclick: handleAuxClick }
       "
     >
-      <span class="dialog-search-product-thumb" aria-hidden="true">
-        <img
-          v-if="display.image !== undefined"
-          :src="display.image"
-          alt=""
-          loading="lazy"
-        />
+      <span
+        v-if="display.image !== undefined"
+        class="dialog-search-product-thumb"
+        aria-hidden="true"
+      >
+        <img :src="display.image" alt="" loading="lazy" />
       </span>
       <span class="dialog-search-product-title">
         <HighlightedTitle :parts="display.titleParts" />
@@ -141,6 +143,10 @@ a.dialog-search-product:hover {
   border: 1px solid var(--dso-border);
   border-radius: var(--dso-r-thumb);
   background: var(--dso-thumb);
+}
+
+.dialog-search-product.dialog-search-product--no-image {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .dialog-search-product-thumb img {

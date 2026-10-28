@@ -1,3 +1,4 @@
+/* eslint max-lines: ["error", 220] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import { SearchController } from "../search/types";
@@ -23,6 +24,7 @@ const productHit = (id: number, url?: string): SearchProductHit => ({
   options: {},
   option_names: [],
   inventory_available: true,
+  _display: {},
 });
 
 const answer = (overrides: Partial<SearchResult> = {}): SearchResponse => ({

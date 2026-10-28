@@ -15,18 +15,18 @@ const product = (hit: Partial<SearchProductHit>): SearchProductHit => ({
   options: {},
   option_names: [],
   inventory_available: true,
+  _display: {},
   ...hit,
 });
 
 describe("hitImage", () => {
-  it("prefers the product's image over the variant's", () => {
-    expect(hitImage(product({ product_image: "p.jpg", image: "v.jpg" }))).toBe(
-      "p.jpg",
+  it("takes `_display.image`, never the record's images", () => {
+    const record = { product_image: "p.jpg", image: "v.jpg" };
+    expect(hitImage(product({ ...record, _display: { image: "d.jpg" } }))).toBe(
+      "d.jpg",
     );
-    expect(hitImage(product({ product_image: "", image: "v.jpg" }))).toBe(
-      "v.jpg",
-    );
-    expect(hitImage(product({ image: "" }))).toBeUndefined();
+    expect(hitImage(product({ ...record, _display: {} }))).toBeUndefined();
+    expect(hitImage(product({ _display: { image: "" } }))).toBeUndefined();
   });
 });
 
@@ -47,19 +47,18 @@ describe("safeHref", () => {
 
 describe("hitTitle", () => {
   it("falls back from the title to the handle, then the id", () => {
-    expect(hitTitle({ objectID: "1", title: "Bag", handle: "bag" })).toBe(
-      "Bag",
-    );
-    expect(hitTitle({ objectID: "1", handle: "bag" })).toBe("bag");
-    expect(hitTitle({ objectID: "1" })).toBe("1");
+    const page = { objectID: "1", _display: {} };
+    expect(hitTitle({ ...page, title: "Bag", handle: "bag" })).toBe("Bag");
+    expect(hitTitle({ ...page, handle: "bag" })).toBe("bag");
+    expect(hitTitle(page)).toBe("1");
   });
 });
 
 describe("navigableCollections", () => {
   it("keeps only collections with a safe link", () => {
-    const linked = { objectID: "1", url: "/collections/bags" };
-    const unsafe = { objectID: "2", url: "javascript:void(0)" };
-    const unlinked = { objectID: "3" };
+    const linked = { objectID: "1", url: "/collections/bags", _display: {} };
+    const unsafe = { objectID: "2", url: "javascript:void(0)", _display: {} };
+    const unlinked = { objectID: "3", _display: {} };
 
     expect(navigableCollections([linked, unsafe, unlinked])).toEqual([
       { collection: linked, href: "/collections/bags" },
