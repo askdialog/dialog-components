@@ -28,7 +28,7 @@ export const applySearchState = (
   updater: SearchStateUpdater,
 ): SearchState => {
   const next = typeof updater === "function" ? updater(previous) : updater;
-  const result: SearchState = {};
+  const result: Record<string, IndexSearchState> = {};
   for (const [indexName, entry] of Object.entries(next)) {
     const changed =
       withoutPage(entryOf(previous, indexName)) !== withoutPage(entry);

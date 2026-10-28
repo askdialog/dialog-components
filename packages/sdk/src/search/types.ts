@@ -11,13 +11,13 @@ import {
 
 /** What the visitor asks for on one index, in InstantSearch's `uiState` entry shape. */
 export interface IndexSearchState {
-  query: string;
+  readonly query: string;
   /** Zero-based page; absent means 0. */
-  page?: number;
+  readonly page?: number;
 }
 
 /** InstantSearch's `uiState`: entries keyed by index name, e.g. `products_fr_be`. */
-export type SearchState = Record<string, IndexSearchState>;
+export type SearchState = Readonly<Record<string, IndexSearchState>>;
 
 export type SearchStateUpdater =
   | SearchState
