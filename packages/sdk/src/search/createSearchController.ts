@@ -161,8 +161,15 @@ export function createSearchController({
       void runner.run(failed);
     },
 
-    observeHit: hitTracking.observeHit,
-    selectHit: hitTracking.selectHit,
+    observeHit(element, index) {
+      if (!disposed) {
+        hitTracking.observeHit(element, index);
+      }
+    },
+
+    selectHit: (index, options) =>
+      !disposed && hitTracking.selectHit(index, options),
+
     productUrl: hitTracking.productUrl,
 
     dispose() {
