@@ -39,13 +39,13 @@ export const createSearchRunner = ({
 
   const cancel = (): void => {
     requestId += 1;
+    failed = undefined;
     abortController?.abort();
     abortController = undefined;
   };
 
   const run = async (entry: Required<IndexSearchState>): Promise<void> => {
     cancel();
-    failed = undefined;
     const controller = new AbortController();
     abortController = controller;
     const id = requestId;
@@ -59,6 +59,9 @@ export const createSearchRunner = ({
     );
 
     onResults((results) => ({ ...results, status: SearchStatus.LOADING }));
+    if (id !== requestId) {
+      return; // A subscriber cancelled it while notified.
+    }
     try {
       const response = await transport(request, { signal: controller.signal });
       if (id !== requestId) {

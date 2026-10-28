@@ -80,13 +80,22 @@ export function createSearchController({
       if (disposed) {
         return;
       }
-      const searchState = applySearchState(snapshot.searchState, updater);
+      const applied = applySearchState(snapshot.searchState, updater);
+      const searchState = {
+        ...applied,
+        [indexName]: readIndexState(applied, indexName),
+      };
       const change = searchStateChange(
         snapshot.searchState,
         searchState,
         indexName,
       );
       update({ searchState });
+      // A subscriber can dispose the controller while notified.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (disposed) {
+        return;
+      }
       if (change === "query") {
         cancel();
         debounceTimer = setTimeout(send, debounceMs);

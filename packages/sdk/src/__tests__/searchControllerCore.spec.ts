@@ -1,4 +1,4 @@
-/* eslint max-lines: ["error", 300] */
+/* eslint max-lines: ["error", 320] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import { SearchController, SearchSnapshot } from "../search/types";
@@ -99,6 +99,15 @@ describe("search controller", () => {
       searchState: { [INDEX]: { query: "", page: 0 } },
       results: { status: SearchStatus.IDLE },
       context: { language: "fr", country: "BE" },
+    });
+  });
+
+  it("keeps the products entry when an update omits it", () => {
+    const controller = create();
+    controller.setSearchState({});
+
+    expect(controller.getSnapshot().searchState).toEqual({
+      [INDEX]: { query: "", page: 0 },
     });
   });
 
@@ -210,6 +219,18 @@ describe("search controller", () => {
     expect(transport).toHaveBeenCalledTimes(2);
     expect(transport.mock.calls[1][0]).toEqual(transport.mock.calls[0][0]);
     expect(controller.getSnapshot().results.status).toBe(SearchStatus.SUCCESS);
+  });
+
+  it("does not retry a failed request after close", async () => {
+    const controller = create();
+    transport.mockRejectedValueOnce(new Error("boom"));
+    setPage(controller, 2);
+    await settle();
+
+    controller.close();
+    controller.retry();
+
+    expect(transport).toHaveBeenCalledTimes(1);
   });
 
   it("does not retry a successful request", async () => {

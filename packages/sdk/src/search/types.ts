@@ -25,25 +25,25 @@ export type SearchStateUpdater =
 
 /** Read-only answer to the last request. */
 export interface SearchResults {
-  status: SearchStatus;
+  readonly status: SearchStatus;
   /** Last products result; kept while the next one loads, cleared on error or close. */
-  products?: SearchResult<SearchProductHit>;
-  sections?: SearchSections;
-  error?: unknown;
+  readonly products?: SearchResult<SearchProductHit>;
+  readonly sections?: SearchSections;
+  readonly error?: unknown;
 }
 
 /** Read-only context the requests are built from. */
 export interface SearchContext {
   /** Lowercase ISO 639-1 language code, e.g. `fr`. */
-  language: string;
+  readonly language: string;
   /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`. */
-  country: string;
+  readonly country: string;
 }
 
 export interface SearchSnapshot {
-  searchState: SearchState;
-  results: SearchResults;
-  context: SearchContext;
+  readonly searchState: SearchState;
+  readonly results: SearchResults;
+  readonly context: SearchContext;
 }
 
 export interface SearchControllerOptions {
