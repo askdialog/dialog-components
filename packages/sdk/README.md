@@ -382,7 +382,103 @@ Framework integrations:
 - Pass `navigate` for router navigation. The integration owns URL synchronization.
 - Create one controller per search surface and call `dispose()` on unmount.
 
-The raw JavaScript reference adapter lives in [`packages/search-example`](../search-example).
+- Search controller and connectors (`@askdialog/dialog-sdk/search`)
+
+The `@askdialog/dialog-sdk/search` subpath publishes the new search API, built like InstantSearch: a search controller holds the state, and headless connectors read and change it and apply the display rules. A surface only binds DOM events to connector actions and renders. The root `createSearchController()` above stays the legacy controller until the next major release, when this API replaces it.
+
+```typescript
+import { Dialog } from '@askdialog/dialog-sdk';
+import {
+  connectHits,
+  connectPagination,
+  connectSearchBox,
+  connectStats,
+  createSearchController,
+} from '@askdialog/dialog-sdk/search';
+
+const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr-FR', currency: 'EUR' });
+
+const controller = createSearchController({
+  transport: (request, options) => client.search(request, options),
+  language: 'fr',
+  country: 'BE', // shopper's country
+  analytics: {
+    surface: 'search_page',
+    trackViewSearchResults: (params) => client.trackViewSearchResults(params),
+    trackSelectSearchResult: (params) => client.trackSelectSearchResult(params),
+    trackOpenedSearch: (params) => client.trackOpenedSearch(params),
+  },
+  apiKey: 'YOUR_API_KEY', // optional: loads the merchant config (business ranking, filterable attributes)
+  buildProductUrl: (hit) => `/products/${hit.handle}`, // optional, for hits without `url`
+});
+
+const searchBox = connectSearchBox(controller);
+const hits = connectHits(controller);
+const stats = connectStats(controller);
+const pagination = connectPagination(controller);
+
+input.onfocus = () => searchBox.open(); // search opened, empty-query search
+input.oninput = () => searchBox.refine(input.value); // debounced
+form.onsubmit = () => searchBox.submit(input.value); // immediate
+
+hits.subscribe(({ hits: productHits }) => {
+  renderCards(productHits.map(({ display }) => display)).forEach((element, index) => {
+    hits.observe(element, index); // viewport impression
+    element.onclick = (event) => {
+      if (hits.select(index)) event.preventDefault(); // attribution, then `navigate`
+    };
+  });
+});
+stats.subscribe(({ text }) => (count.textContent = text)); // "12 résultats"
+pagination.subscribe(({ visible, pages, currentPage }) => renderPages(visible, pages, currentPage));
+nextButton.onclick = () => pagination.refine(pagination.getRenderState().currentPage + 1);
+
+// On unmount.
+[searchBox, hits, stats, pagination].forEach((connector) => connector.dispose());
+controller.dispose();
+```
+
+**Controller.** `createSearchController(options)` takes the legacy controller's options, with `transport` in place of `search`, plus:
+
+| Option | Description |
+|--------|-------------|
+| `transport` | Search function bound to its client (`client.search`), or a custom transport |
+| `apiKey` | Loads the merchant config at the first `open()` or search, once per API key and language for all the page's controllers |
+| `config` | The merchant config (`{ businessRanking?, searchConfig? }`) when the surface already has it; nothing is then loaded |
+| `texts` | Overrides of the default texts |
+| `initialSearchState` | The search state to start from, e.g. read from the URL |
+
+`language`, `country`, `analytics`, `navigate`, `buildProductUrl`, `debounceMs` (default 100), `hitsPerPage` (default 12) and `sections` keep their legacy meaning.
+
+`controller.getSnapshot()` returns `{ searchState, results, context }`, the same object until the next change. `subscribe(listener)` calls the listener with each new snapshot and returns an unsubscribe function.
+
+- `searchState`: what the shopper asks for, the only writable part. It has InstantSearch's `uiState` shape, keyed by index name:
+
+  ```typescript
+  { products_fr_be: { query: 'shampoo', page: 2 } } // zero-based page, absent means 0
+  ```
+
+  Change it with `setSearchState(updater)`, an object or a function of the previous state. Any change other than `page` resets the page to 0. A query change is sent after the debounce, any other change at once; `search()` sends a pending query now.
+- `results`: read-only. `status` (`idle`, `loading`, `success`, `empty` or `error`), `products` (the products `SearchResult`, kept while the next one loads, cleared on error and on `close()`), `sections` and `error`.
+- `context`: read-only. `language`, `country`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails) and `texts`: the default texts of the language (en, fr, de, es, it) with the `texts` overrides applied.
+
+`open()`, `close()`, `retry()` and `dispose()` behave as in the legacy controller. `observeHit`, `selectHit` and `productUrl` are what connectors call.
+
+**Connectors.** `connectX(controller)` returns `getRenderState()`, `subscribe(listener)`, `dispose()` and its actions. The render state stays the same object while nothing it reads changes, so it fits React's `useSyncExternalStore` or a Vue `shallowRef`. Actions do nothing once disposed.
+
+| Connector | Render state | Actions |
+|-----------|--------------|---------|
+| `connectSearchBox` | `query` (the input's value, pending input included), `status` | `refine(query)` (debounced), `submit(query?)` (now), `clear()`, `open()` (on focus), `close()` |
+| `connectHits` | `hits` (`{ hit, display }[]`), `query` (the one the hits answer), `title` (the business ranking's on the empty query, else the products label) | `observe(element, index)`, `select(index, { navigate? })`: returns true when `navigate` ran; call `preventDefault()` then |
+| `connectStats` | `nbHits`, `text` (the count in the shopper's language) | — |
+| `connectPagination` | `visible` (false while loading, with a query pending or with a single page), `currentPage` (zero-based), `nbPages`, `isFirstPage`, `isLastPage`, `pages`: the first, the last and the current ±2 as `{ type: 'page', page }`, with an `{ type: 'ellipsis' }` for each gap | `refine(page)`: ignored while hidden or out of range |
+| `connectSections` | `collections` (only those with a link), `articles`, `pages`: `{ hit, display }[]`, empty on the empty query | — |
+
+A product hit's `display` is ready to render: `title`, `titleParts` (`{ before, match, after }` around the answered query, for highlighting), `href` (http(s) only: the hit's `url`, else `buildProductUrl`'s result), `image`, `price` and `compareAtPrice` (formatted in the market currency; empty when unknown, or when not higher than the price). A section hit's `display` has `title`, `titleParts`, `href` and `image`.
+
+**Helpers.** The subpath also exports the shared UI helpers the connectors use, for a surface that formats in its own locale: `getSearchTexts(locale, overrides?)`, `formatSearchPrice(hit, locale)`, `formatSearchCompareAtPrice(hit, locale)`, `hitTitle`, `hitImage`, `hitHref`, `safeHref`, `navigableCollections`, `splitTitleMatch(title, query)` and `resolveSearchPanelVariables(theme)`; plus `SearchStatus`, `DialogSearchError` and the types of the snapshot and the hits.
+
+The raw JavaScript reference adapter, on this API, lives in [`packages/search-example`](../search-example).
 
 - Handler for fetch product
 
