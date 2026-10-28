@@ -419,7 +419,10 @@ const pagination = connectPagination(controller);
 
 input.onfocus = () => searchBox.open(); // search opened, empty-query search
 input.oninput = () => searchBox.refine(input.value); // debounced
-form.onsubmit = () => searchBox.submit(input.value); // immediate
+form.onsubmit = (event) => {
+  event.preventDefault();
+  searchBox.submit(input.value); // immediate
+};
 
 hits.subscribe(({ hits: productHits }) => {
   renderCards(productHits.map(({ display }) => display)).forEach((element, index) => {
