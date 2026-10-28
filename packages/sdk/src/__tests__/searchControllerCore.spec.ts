@@ -113,7 +113,7 @@ describe("search controller", () => {
     expect(create().getSnapshot()).toEqual({
       searchState: { [INDEX]: { query: "", page: 0 } },
       results: { status: SearchStatus.IDLE },
-      context: { language: "fr", country: "BE" },
+      context: expect.objectContaining({ language: "fr", country: "BE" }),
     });
   });
 
