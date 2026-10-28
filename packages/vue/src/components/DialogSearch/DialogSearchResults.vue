@@ -7,28 +7,28 @@
       :style="style"
     >
       <div
-        v-if="props.state.status === SearchStatus.ERROR"
+        v-if="props.state.results.status === SearchStatus.ERROR"
         class="dialog-search-error"
       >
         <p role="alert" class="dialog-search-status dialog-search-status-error">
-          {{ describeError(props.state.error) }}
+          {{ describeError(props.state.results.error) }}
         </p>
         <button
           type="button"
           class="dialog-search-retry"
           @click="props.controller.retry()"
         >
-          {{ messages.retry }}
+          {{ texts.retry }}
         </button>
       </div>
       <!-- Non-blocking: the previous results stay while the next query is loading,
            so everything below reads the response's own query, not the pending one. -->
       <p
-        v-else-if="response === undefined"
+        v-else-if="products === undefined"
         role="status"
         class="dialog-search-status"
       >
-        {{ messages.searching(props.state.query) }}
+        {{ texts.searching(searchBox.query) }}
       </p>
       <template v-else>
         <div
@@ -38,21 +38,25 @@
           ]"
         >
           <DialogSearchCollections
-            :collections="collections"
-            :query="response.query"
-            :messages="messages"
+            :collections="sections.collections"
+            :texts="texts"
           />
           <DialogSearchProducts
             :controller="props.controller"
-            :response="response"
+            :hits="hits.hits"
+            :query="hits.query"
+            :nb-hits="products.nbHits"
+            :title="productsTitle"
             :locale="props.locale"
-            :messages="messages"
-            :business-ranking="props.state.businessRanking"
+            :texts="texts"
           />
         </div>
-        <div v-if="hasSeeAll || hasPages" class="dialog-search-footer">
+        <div
+          v-if="hasSeeAll || pagination.visible"
+          class="dialog-search-footer"
+        >
           <a v-if="hasSeeAll" class="dialog-search-cta" :href="seeAllHref">
-            {{ messages.seeAllLabel(response.nbHits) }}
+            {{ texts.seeAllLabel(products.nbHits) }}
             <ArrowRightIcon />
           </a>
           <DialogSearchPagination
@@ -69,30 +73,33 @@
 
 <script setup lang="ts">
 import {
+  connectHits,
+  connectPagination,
+  connectSearchBox,
+  connectSections,
   DialogSearchError,
+  resolveSearchPanelVariables,
   SearchStatus,
   type SearchController,
+  type SearchSnapshot,
   type Theme,
-} from "@askdialog/dialog-sdk";
+} from "@askdialog/dialog-sdk/search";
 import { computed } from "vue";
 import ArrowRightIcon from "../../icons/ArrowRightIcon.vue";
 import DialogSearchCollections from "./DialogSearchCollections.vue";
 import DialogSearchPagination from "./DialogSearchPagination.vue";
 import DialogSearchProducts from "./DialogSearchProducts.vue";
 import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
-import { navigableCollections } from "./searchCollections";
-import { hasPagination } from "./searchPagination";
 import type { SearchProductsLayout } from "./searchLayout";
-import { getSearchMessages } from "./searchMessages";
-import { resolveSearchPanelVariables } from "./searchTheme";
+import { searchTexts } from "./searchTexts";
 import { useAnchorRect } from "./useAnchorRect";
-import type { DialogSearchState } from "./useDialogSearch";
+import { useConnector } from "./useConnector";
 import { useOutsideDismiss } from "./useOutsideDismiss";
 
 interface Props {
   controller: SearchController;
-  state: DialogSearchState;
-  /** BCP 47 locale for prices, counts and labels. */
+  state: SearchSnapshot;
+  /** BCP 47 locale for prices, counts and labels; omitted, the shopper's language and market. */
   locale?: string;
   /** Usually `client.theme`, as returned by `useDialogSearch`. */
   theme?: Theme;
@@ -116,12 +123,23 @@ const describeError = (error: unknown): string => {
   return "Search failed: network error. Check your connection and try again.";
 };
 
-const stateRef = computed(() => props.state);
-const hasResults = computed(() => props.state.status !== SearchStatus.IDLE);
+// The controller is fixed for the component's lifetime.
+const searchBox = useConnector(connectSearchBox(props.controller));
+const hits = useConnector(connectHits(props.controller));
+const sections = useConnector(connectSections(props.controller));
+const pagination = useConnector(connectPagination(props.controller));
+
+const hasResults = computed(
+  () => props.state.results.status !== SearchStatus.IDLE,
+);
 
 // Render fixed under document.body to avoid ancestor clipping and stacking contexts.
 const { anchorRef, rect, viewport } = useAnchorRect(hasResults);
-const { isOpen, panelRef } = useOutsideDismiss(stateRef, anchorRef);
+const { isOpen, panelRef } = useOutsideDismiss(
+  hasResults,
+  computed(() => searchBox.value.query),
+  anchorRef,
+);
 
 const showPanel = computed(
   () =>
@@ -137,25 +155,29 @@ const style = computed(() => ({
   ...panelVariables.value,
 }));
 
-const messages = computed(() => getSearchMessages(props.locale));
-const response = computed(() => props.state.response);
-const collections = computed(
-  () => props.state.sections?.collections?.hits ?? [],
-);
-const hasCollections = computed(
-  () => navigableCollections(collections.value).length > 0,
-);
+const texts = computed(() => searchTexts(props.locale, props.state.context));
+const products = computed(() => props.state.results.products);
+// The connector's title is in the shopper's language; a `locale` asks for its own.
+const productsTitle = computed(() => {
+  if (props.locale === undefined) {
+    return hits.value.title;
+  }
+
+  return hits.value.query === ""
+    ? texts.value.rankingLabel(props.state.context.businessRanking)
+    : texts.value.productsLabel;
+});
+const hasCollections = computed(() => sections.value.collections.length > 0);
 const hasSeeAll = computed(
   () =>
     props.seeAllHref !== undefined &&
-    response.value !== undefined &&
-    response.value.nbHits > 0,
+    products.value !== undefined &&
+    products.value.nbHits > 0,
 );
-const hasPages = computed(() => !hasSeeAll.value && hasPagination(props.state));
 const seeAllHref = computed(() =>
-  response.value === undefined
+  products.value === undefined
     ? undefined
-    : props.seeAllHref?.(response.value.query),
+    : props.seeAllHref?.(products.value.query),
 );
 </script>
 

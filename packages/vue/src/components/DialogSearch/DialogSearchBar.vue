@@ -5,14 +5,14 @@
         <ShurikenIcon />
       </span>
       <input
-        v-model="value"
+        :value="searchBox.query"
         type="text"
         name="dialog-search-query"
         class="dialog-search-bar-input"
         :aria-label="props.placeholder"
         :placeholder="props.placeholder"
         :autofocus="props.autoFocus"
-        @focus="props.controller.open()"
+        @focus="connector.open()"
         @input="handleInput"
       />
     </div>
@@ -27,10 +27,13 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchController } from "@askdialog/dialog-sdk";
-import { ref } from "vue";
+import {
+  connectSearchBox,
+  type SearchController,
+} from "@askdialog/dialog-sdk/search";
 import ArrowUpIcon from "../../icons/ArrowUpIcon.vue";
 import ShurikenIcon from "../../icons/ShurikenIcon.vue";
+import { useConnector } from "./useConnector";
 
 interface Props {
   controller: SearchController;
@@ -45,14 +48,16 @@ const props = withDefaults(defineProps<Props>(), {
   submitAriaLabel: "Search",
 });
 
-const value = ref("");
+// The controller is fixed for the component's lifetime.
+const connector = connectSearchBox(props.controller);
+const searchBox = useConnector(connector);
 
-const handleInput = (): void => {
-  props.controller.setQuery(value.value);
+const handleInput = (event: Event): void => {
+  connector.refine((event.target as HTMLInputElement).value);
 };
 
 const handleSubmit = (): void => {
-  props.controller.submit(value.value);
+  connector.submit();
 };
 </script>
 

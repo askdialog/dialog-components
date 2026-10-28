@@ -1,12 +1,9 @@
-import {
-  SearchStatus,
-  type SearchControllerState,
-} from "@askdialog/dialog-sdk";
 import { computed, onMounted, onUnmounted, ref, watch, type Ref } from "vue";
 
 // Dismiss outside the panel and search bar while retaining search results.
 export const useOutsideDismiss = (
-  state: Readonly<Ref<SearchControllerState>>,
+  hasResults: Readonly<Ref<boolean>>,
+  query: Readonly<Ref<string>>,
   anchorRef: Ref<HTMLDivElement | undefined>,
 ): {
   isOpen: Readonly<Ref<boolean>>;
@@ -14,17 +11,12 @@ export const useOutsideDismiss = (
 } => {
   const dismissed = ref(false);
   const panelRef = ref<HTMLDivElement>();
-  const isOpen = computed(
-    () => state.value.status !== SearchStatus.IDLE && !dismissed.value,
-  );
+  const isOpen = computed(() => hasResults.value && !dismissed.value);
 
   // Reopen on query changes, not on responses arriving after dismissal.
-  watch(
-    () => state.value.query,
-    () => {
-      dismissed.value = false;
-    },
-  );
+  watch(query, () => {
+    dismissed.value = false;
+  });
 
   watch(
     isOpen,

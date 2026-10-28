@@ -1,27 +1,32 @@
 <template>
   <li ref="cardRef" class="dialog-search-card">
     <component
-      :is="href === undefined ? 'div' : 'a'"
+      :is="display.href === undefined ? 'div' : 'a'"
       class="dialog-search-product"
-      :href="href"
+      :href="display.href"
       v-on="
-        href === undefined
+        display.href === undefined
           ? {}
           : { click: handleClick, auxclick: handleAuxClick }
       "
     >
       <span class="dialog-search-product-thumb" aria-hidden="true">
-        <img v-if="image !== undefined" :src="image" alt="" loading="lazy" />
+        <img
+          v-if="display.image !== undefined"
+          :src="display.image"
+          alt=""
+          loading="lazy"
+        />
       </span>
       <span class="dialog-search-product-title">
-        <HighlightedTitle :title="hitTitle(props.hit)" :query="props.query" />
+        <HighlightedTitle :parts="display.titleParts" />
       </span>
-      <span v-if="price !== ''" class="dialog-search-product-price"
+      <span v-if="display.price !== ''" class="dialog-search-product-price"
         ><s
-          v-if="compareAtPrice !== ''"
+          v-if="display.compareAtPrice !== ''"
           class="dialog-search-product-compare-at"
-          >{{ compareAtPrice }}</s
-        >{{ price }}</span
+          >{{ display.compareAtPrice }}</s
+        >{{ display.price }}</span
       >
     </component>
   </li>
@@ -31,25 +36,33 @@
 import {
   formatSearchCompareAtPrice,
   formatSearchPrice,
+  hitImage,
+  hitTitle,
+  safeHref,
+  splitTitleMatch,
+  type ProductHitDisplay,
   type SearchController,
   type SearchProductHit,
-} from "@askdialog/dialog-sdk";
+} from "@askdialog/dialog-sdk/search";
 import { computed, ref, watch } from "vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
-import { hitImage, hitTitle, safeHref } from "./searchDisplay";
 
 interface Props {
   controller: SearchController;
   hit: SearchProductHit;
   index: number;
+  /** BCP 47 locale of the price; omitted, the shopper's market. */
   locale?: string;
   /** Committed query, emphasized inside the title. */
   query?: string;
+  /** The hit's display from `connectHits`; built from the hit when omitted. */
+  display?: ProductHitDisplay;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   locale: undefined,
   query: "",
+  display: undefined,
 });
 
 const cardRef = ref<HTMLLIElement>();
@@ -59,27 +72,50 @@ watch(
   () => props.hit,
   () => {
     if (cardRef.value !== undefined) {
-      props.controller.observeResult(cardRef.value, props.index);
+      props.controller.observeHit(cardRef.value, props.index);
     }
   },
   { immediate: true, flush: "post" },
 );
 
-const href = computed(() => safeHref(props.controller.productUrl(props.hit)));
-const image = computed(() => hitImage(props.hit));
-const price = computed(() => formatSearchPrice(props.hit, props.locale));
-const compareAtPrice = computed(() =>
-  formatSearchCompareAtPrice(props.hit, props.locale),
-);
+const marketLocale = (): string => {
+  const { language, country } = props.controller.getSnapshot().context;
+
+  return `${language}-${country.toUpperCase()}`;
+};
+
+const fromHit = (): ProductHitDisplay => {
+  const title = hitTitle(props.hit);
+
+  return {
+    title,
+    titleParts: splitTitleMatch(title, props.query),
+    href: safeHref(props.controller.productUrl(props.hit)),
+    image: hitImage(props.hit),
+    price: formatSearchPrice(props.hit, marketLocale()),
+    compareAtPrice: formatSearchCompareAtPrice(props.hit, marketLocale()),
+  };
+};
+
+// A `locale` formats the prices in that locale instead of the shopper's market.
+const display = computed((): ProductHitDisplay => {
+  const base = props.display ?? fromHit();
+
+  return props.locale === undefined
+    ? base
+    : {
+        ...base,
+        price: formatSearchPrice(props.hit, props.locale),
+        compareAtPrice: formatSearchCompareAtPrice(props.hit, props.locale),
+      };
+});
 
 // Preserve native modified clicks. Prevent default navigation only when the
 // adapter handles the click; record selection in both cases.
 const handleClick = (event: MouseEvent): void => {
   const opensNatively =
     event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
-  if (
-    props.controller.selectResult(props.index, { navigate: !opensNatively })
-  ) {
+  if (props.controller.selectHit(props.index, { navigate: !opensNatively })) {
     event.preventDefault();
   }
 };
@@ -87,7 +123,7 @@ const handleClick = (event: MouseEvent): void => {
 // Track middle-clicks without the navigation adapter; ignore right-clicks.
 const handleAuxClick = (event: MouseEvent): void => {
   if (event.button === 1) {
-    props.controller.selectResult(props.index, { navigate: false });
+    props.controller.selectHit(props.index, { navigate: false });
   }
 };
 </script>

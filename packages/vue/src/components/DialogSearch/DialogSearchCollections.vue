@@ -1,27 +1,24 @@
 <template>
-  <aside v-if="entries.length > 0" class="dialog-search-collections">
+  <aside v-if="props.collections.length > 0" class="dialog-search-collections">
     <div class="dialog-search-section-head">
-      <p class="dialog-search-label">{{ props.messages.collectionsLabel }}</p>
+      <p class="dialog-search-label">{{ props.texts.collectionsLabel }}</p>
       <span class="dialog-search-count">
-        {{ props.messages.collectionsCount(entries.length) }}
+        {{ props.texts.collectionsCount(props.collections.length) }}
       </span>
     </div>
     <ul class="dialog-search-collection-list">
-      <li v-for="{ collection, href } in entries" :key="collection.objectID">
-        <a class="dialog-search-collection" :href="href">
+      <li v-for="{ hit, display } in props.collections" :key="hit.objectID">
+        <a class="dialog-search-collection" :href="display.href">
           <span class="dialog-search-collection-thumb" aria-hidden="true">
             <img
-              v-if="collection.image"
-              :src="collection.image"
+              v-if="display.image !== undefined"
+              :src="display.image"
               alt=""
               loading="lazy"
             />
           </span>
           <span class="dialog-search-collection-title">
-            <HighlightedTitle
-              :title="hitTitle(collection)"
-              :query="props.query"
-            />
+            <HighlightedTitle :parts="display.titleParts" />
           </span>
           <span class="dialog-search-caret">
             <CaretRightIcon />
@@ -33,21 +30,19 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchCollectionHit } from "@askdialog/dialog-sdk";
-import { computed } from "vue";
+import type {
+  SearchCollectionHit,
+  SearchTexts,
+  SectionHit,
+} from "@askdialog/dialog-sdk/search";
 import CaretRightIcon from "../../icons/CaretRightIcon.vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
-import { hitTitle } from "./searchDisplay";
-import { navigableCollections } from "./searchCollections";
-import type { SearchMessages } from "./searchMessages";
 
 const props = defineProps<{
-  collections: SearchCollectionHit[];
-  query: string;
-  messages: SearchMessages;
+  /** Only collections with a link, from `connectSections`. */
+  collections: readonly SectionHit<SearchCollectionHit>[];
+  texts: SearchTexts;
 }>();
-
-const entries = computed(() => navigableCollections(props.collections));
 </script>
 
 <style>
