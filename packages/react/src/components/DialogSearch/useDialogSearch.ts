@@ -76,6 +76,7 @@ export const useDialogSearch = (
   );
 
   useEffect(() => {
+    controller.revive();
     registerDialogInstallation({
       method: "react",
       version:

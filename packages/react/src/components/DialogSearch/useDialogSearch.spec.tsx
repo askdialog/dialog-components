@@ -203,7 +203,7 @@ describe("useDialogSearch", () => {
     expect(latest.state.results.products?.query).toBe("shoe");
   });
 
-  it("sends no pending search once unmounted", async () => {
+  it("sends no search once unmounted, pending or asked after", async () => {
     const client = fakeClient();
     await render({
       client: client.dialog,
@@ -214,9 +214,11 @@ describe("useDialogSearch", () => {
 
     act(() => latest.controller.setSearchState({ [INDEX]: { query: "shoe" } }));
     act(() => root.unmount());
+    latest.controller.open();
     await new Promise((resolve) => setTimeout(resolve, 30));
 
     expect(client.search).not.toHaveBeenCalled();
+    expect(client.trackOpenedSearch).not.toHaveBeenCalled();
     root = createRoot(container);
   });
 });

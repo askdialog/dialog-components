@@ -3,16 +3,31 @@ import type {
   SearchSnapshot,
 } from "@askdialog/dialog-sdk/search";
 
+export interface RecreatableController extends SearchController {
+  /** Undo `dispose`: the next call creates a new instance. */
+  revive(): void;
+}
+
 /**
  * A controller whose identity survives StrictMode's effect replay: `dispose`
- * drops the current instance, the next call creates a new one, and the
- * subscribers (connectors, `useSyncExternalStore`) follow it.
+ * drops the current instance, `revive` lets the next call create a new one,
+ * and the subscribers (connectors, `useSyncExternalStore`) follow it.
  */
 export const createRecreatableController = (
   create: () => SearchController,
-): SearchController => {
+): RecreatableController => {
   const listeners = new Set<(snapshot: SearchSnapshot) => void>();
   let current: SearchController | undefined;
+  let disposed = false;
+  // Kept after disposal, which leaves no instance to read.
+  let lastSnapshot: SearchSnapshot | undefined;
+
+  // A disposed controller does nothing until revived, as the SDK's.
+  const run = (action: (controller: SearchController) => void): void => {
+    if (!disposed) {
+      action(get());
+    }
+  };
 
   const get = (): SearchController => {
     if (current === undefined) {
@@ -28,7 +43,13 @@ export const createRecreatableController = (
   };
 
   return {
-    getSnapshot: () => get().getSnapshot(),
+    getSnapshot() {
+      if (!disposed || lastSnapshot === undefined) {
+        lastSnapshot = get().getSnapshot();
+      }
+
+      return lastSnapshot;
+    },
     subscribe(listener) {
       listeners.add(listener);
 
@@ -36,17 +57,21 @@ export const createRecreatableController = (
         listeners.delete(listener);
       };
     },
-    setSearchState: (updater) => get().setSearchState(updater),
-    search: () => get().search(),
-    open: () => get().open(),
-    close: () => get().close(),
-    observeHit: (element, index) => get().observeHit(element, index),
-    selectHit: (index, options) => get().selectHit(index, options),
+    setSearchState: (updater) => run((c) => c.setSearchState(updater)),
+    search: () => run((c) => c.search()),
+    open: () => run((c) => c.open()),
+    close: () => run((c) => c.close()),
+    observeHit: (element, index) => run((c) => c.observeHit(element, index)),
+    selectHit: (index, options) => !disposed && get().selectHit(index, options),
     productUrl: (hit) => get().productUrl(hit),
-    retry: () => get().retry(),
+    retry: () => run((c) => c.retry()),
     dispose() {
+      disposed = true;
       current?.dispose();
       current = undefined;
+    },
+    revive() {
+      disposed = false;
     },
   };
 };
