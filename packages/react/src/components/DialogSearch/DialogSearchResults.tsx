@@ -1,7 +1,6 @@
 import { type FC, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
-  connectPagination,
   connectSearchBox,
   connectSections,
   DialogSearchError,
@@ -13,7 +12,6 @@ import {
 } from "@askdialog/dialog-sdk/search";
 import { ArrowRightIcon } from "../../icons/ArrowRightIcon";
 import { DialogSearchCollections } from "./DialogSearchCollections";
-import { DialogSearchPagination } from "./DialogSearchPagination";
 import { DialogSearchProducts } from "./DialogSearchProducts";
 import { isAnchorOnScreen, panelStyle } from "./panelPlacement";
 import { resolveSearchTexts } from "./searchTexts";
@@ -33,7 +31,7 @@ interface DialogSearchResultsProps {
   /** Usually `client.theme`, as returned by `useDialogSearch`. */
   theme?: Theme;
   layout?: SearchProductsLayout;
-  /** Link of the "See all results" footer; omitted, the panel paginates instead. */
+  /** Link of the "See all results" footer; omitted, the panel shows the first page of hits only. */
   seeAllHref?: (query: string) => string;
 }
 
@@ -49,10 +47,6 @@ const PanelContent: FC<
   DialogSearchResultsProps & { query: string; texts: SearchTexts }
 > = ({ controller, state, locale, seeAllHref, query, texts }) => {
   const [{ collections }] = useConnector(connectSections, controller);
-  const [{ visible: hasPagination }] = useConnector(
-    connectPagination,
-    controller,
-  );
   const { status, products, error } = state.results;
 
   if (status === SearchStatus.ERROR) {
@@ -85,7 +79,6 @@ const PanelContent: FC<
   }
 
   const hasSeeAll = seeAllHref !== undefined && products.nbHits > 0;
-  const hasPages = !hasSeeAll && hasPagination;
 
   return (
     <>
@@ -101,20 +94,12 @@ const PanelContent: FC<
           texts={texts}
         />
       </div>
-      {(hasSeeAll || hasPages) && (
+      {hasSeeAll && (
         <div className="dialog-search-footer">
-          {hasSeeAll ? (
-            <a className="dialog-search-cta" href={seeAllHref(products.query)}>
-              {texts.seeAllLabel(products.nbHits)}
-              <ArrowRightIcon />
-            </a>
-          ) : (
-            <DialogSearchPagination
-              controller={controller}
-              state={state}
-              locale={locale}
-            />
-          )}
+          <a className="dialog-search-cta" href={seeAllHref(products.query)}>
+            {texts.seeAllLabel(products.nbHits)}
+            <ArrowRightIcon />
+          </a>
         </div>
       )}
     </>
