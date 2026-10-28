@@ -4,6 +4,7 @@ import {
   SearchSections,
 } from "../types/search";
 import {
+  SearchControllerAnalytics,
   SearchFunction,
   SearchSection,
   SearchStatus,
@@ -51,6 +52,12 @@ export interface SearchControllerOptions {
   transport: SearchFunction;
   language: string;
   country: string;
+  /** Event callbacks; the controller batches and deduplicates impressions. */
+  analytics: SearchControllerAnalytics;
+  /** Navigate after recording a selection. Omit to use native link navigation. */
+  navigate?: (url: string, hit: SearchProductHit) => void;
+  /** Build a product's link when its hit has no `url`, e.g. `/products/${hit.handle}`. */
+  buildProductUrl?: (hit: SearchProductHit) => string | undefined;
   initialSearchState?: SearchState;
   /** Delay before a query change is sent; other changes are sent at once. */
   debounceMs?: number;
@@ -67,12 +74,22 @@ export interface SearchController {
   subscribe(listener: (snapshot: SearchSnapshot) => void): () => void;
   /** Any change other than the page resets the page to 0. */
   setSearchState(updater: SearchStateUpdater): void;
-  /** Run the empty-query search when there is no query. */
+  /** Emit the search opened signal; with no query, run the empty-query search. */
   open(): void;
-  /** Cancel pending and in-flight requests and return to idle with no query. */
+  /** Cancel requests, flush qualified impressions and return to idle with no query. */
   close(): void;
+  /** Track impressions for the element rendering `results.products.hits[index]`. */
+  observeHit(element: Element, index: number): void;
+  /**
+   * Record the impression and selection of `results.products.hits[index]`, then
+   * call `navigate`. Pass `{ navigate: false }` for middle-clicks or modified clicks.
+   * Returns true when `navigate` ran; call `preventDefault()` then.
+   */
+  selectHit(index: number, options?: { navigate?: boolean }): boolean;
+  /** The hit's `url`, else `buildProductUrl`'s result; undefined when neither gives one. */
+  productUrl(hit: SearchProductHit): string | undefined;
   /** Replay the last request when it failed. */
   retry(): void;
-  /** Cancel requests and remove subscribers; the controller then does nothing. */
+  /** Cancel requests, remove subscribers and observers; the controller then does nothing. */
   dispose(): void;
 }

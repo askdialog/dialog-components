@@ -1,4 +1,4 @@
-/* eslint max-lines: ["error", 320] */
+/* eslint max-lines: ["error", 340] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import { SearchController, SearchSnapshot } from "../search/types";
@@ -9,6 +9,16 @@ import {
   SearchResult,
 } from "../types/search";
 import { SearchStatus } from "../types/searchController";
+
+vi.mock("../utils/searchImpressions", () => ({
+  createSearchImpressionTracker: () => ({
+    setContext: vi.fn(),
+    observe: vi.fn(),
+    forceImpression: vi.fn(),
+    flush: vi.fn(),
+    disconnect: vi.fn(),
+  }),
+}));
 
 const INDEX = "products_fr_be";
 
@@ -60,6 +70,11 @@ const create = (): SearchController => {
     transport,
     language: "fr",
     country: "BE",
+    analytics: {
+      surface: "search_page",
+      trackViewSearchResults: vi.fn(),
+      trackSelectSearchResult: vi.fn(),
+    },
     sections: [{ index: "collections" }],
   });
   controller.subscribe((snapshot) => snapshots.push(snapshot));
