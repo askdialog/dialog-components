@@ -1,7 +1,6 @@
-import { searchIndexName } from "../services/search";
 import { SearchStatus } from "../types/searchController";
 import { Connector, createConnector } from "./connector";
-import { readIndexState } from "./searchState";
+import { productsEntry } from "./searchState";
 import { SearchController, SearchSnapshot } from "./types";
 
 /** Pages shown on each side of the current one. */
@@ -61,12 +60,11 @@ export const paginationItems = (
 export function connectPagination(
   controller: SearchController,
 ): PaginationConnector {
-  const { language, country } = controller.getSnapshot().context;
-  const indexName = searchIndexName("products", language, country);
+  const entry = productsEntry(controller);
 
   // Trimmed query the shown results answer; a different one in the search state is still pending.
   const queryOf = (snapshot: SearchSnapshot): string =>
-    readIndexState(snapshot.searchState, indexName).query.trim();
+    entry.read(snapshot.searchState).query.trim();
   let results = controller.getSnapshot().results;
   // Connected after a search: the results echo the query they answer.
   let answeredQuery = results.products?.query;
@@ -122,10 +120,7 @@ export function connectPagination(
       ) {
         return;
       }
-      controller.setSearchState((searchState) => ({
-        ...searchState,
-        [indexName]: { ...readIndexState(searchState, indexName), page },
-      }));
+      entry.set({ page });
     },
   };
 }

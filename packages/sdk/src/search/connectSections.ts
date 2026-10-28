@@ -1,4 +1,3 @@
-import { searchIndexName } from "../services/search";
 import {
   SearchArticleHit,
   SearchCollectionHit,
@@ -13,8 +12,8 @@ import {
 } from "../utils/searchDisplay";
 import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
 import { Connector, createConnector } from "./connector";
-import { readIndexState } from "./searchState";
-import { SearchController, SearchSnapshot } from "./types";
+import { productsEntry } from "./searchState";
+import { SearchController } from "./types";
 
 /** What a surface renders for a section hit. */
 export interface SectionHitDisplay {
@@ -80,24 +79,15 @@ const renderSections = (sections: SearchSections): SectionsRenderState => {
   };
 };
 
-/** The query being asked; sections answered for a previous one are not shown on the empty query. */
-const isEmptyQuery = ({ searchState, context }: SearchSnapshot): boolean => {
-  const indexName = searchIndexName(
-    "products",
-    context.language,
-    context.country,
-  );
-
-  return readIndexState(searchState, indexName).query.trim() === "";
-};
-
 /** Collections with a link, articles and pages searched beside products, ready to render. */
 export function connectSections(
   controller: SearchController,
 ): SectionsConnector {
+  const entry = productsEntry(controller);
   const { getRenderState, subscribe, dispose } = createConnector(controller, {
-    read: (snapshot) =>
-      [snapshot.results.sections, isEmptyQuery(snapshot)] as const,
+    // The query being asked: sections answered for a previous one are not shown on the empty query.
+    read: ({ results, searchState }) =>
+      [results.sections, entry.read(searchState).query.trim() === ""] as const,
     render: ([sections, empty]) =>
       empty || sections === undefined ? NO_SECTIONS : renderSections(sections),
   });
