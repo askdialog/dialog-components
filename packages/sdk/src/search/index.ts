@@ -22,6 +22,7 @@ export {
 } from "./connectSearchBox";
 export {
   connectHits,
+  productHitDisplay,
   type HitsConnector,
   type HitsRenderState,
   type ProductHit,

@@ -36,14 +36,11 @@
 import {
   formatSearchCompareAtPrice,
   formatSearchPrice,
-  hitImage,
-  hitTitle,
-  safeHref,
-  splitTitleMatch,
+  productHitDisplay,
   type ProductHitDisplay,
   type SearchController,
   type SearchProductHit,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { computed, ref, watch } from "vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
 
@@ -78,33 +75,21 @@ watch(
   { immediate: true, flush: "post" },
 );
 
-const marketLocale = (): string => {
-  const { language, country } = props.controller.getSnapshot().context;
-
-  return `${language}-${country.toUpperCase()}`;
-};
-
-const fromHit = (): ProductHitDisplay => {
-  const title = hitTitle(props.hit);
-
-  return {
-    title,
-    titleParts: splitTitleMatch(title, props.query),
-    href: safeHref(props.controller.productUrl(props.hit)),
-    image: hitImage(props.hit),
-    price: formatSearchPrice(props.hit, marketLocale()),
-    compareAtPrice: formatSearchCompareAtPrice(props.hit, marketLocale()),
-  };
-};
-
 // A `locale` formats the prices in that locale instead of the shopper's market.
 const display = computed((): ProductHitDisplay => {
-  const base = props.display ?? fromHit();
+  if (props.display === undefined) {
+    return productHitDisplay(
+      props.controller,
+      props.hit,
+      props.query,
+      props.locale,
+    );
+  }
 
   return props.locale === undefined
-    ? base
+    ? props.display
     : {
-        ...base,
+        ...props.display,
         price: formatSearchPrice(props.hit, props.locale),
         compareAtPrice: formatSearchCompareAtPrice(props.hit, props.locale),
       };

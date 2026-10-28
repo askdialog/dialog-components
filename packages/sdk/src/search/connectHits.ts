@@ -46,30 +46,45 @@ export interface HitsConnector extends Connector<HitsRenderState> {
   select(index: number, options?: { navigate?: boolean }): boolean;
 }
 
+const marketLocale = ({ language, country }: SearchContext): string =>
+  `${language}-${country.toUpperCase()}`;
+
+/**
+ * The display `connectHits` gives `hit`: its title highlighted for `query`,
+ * its prices in `locale`, the shopper's market when omitted.
+ */
+export const productHitDisplay = (
+  controller: SearchController,
+  hit: SearchProductHit,
+  query: string,
+  locale = marketLocale(controller.getSnapshot().context),
+): ProductHitDisplay => {
+  const title = hitTitle(hit);
+
+  return {
+    title,
+    titleParts: splitTitleMatch(title, query),
+    href: safeHref(controller.productUrl(hit)),
+    image: hitImage(hit),
+    price: formatSearchPrice(hit, locale),
+    compareAtPrice: formatSearchCompareAtPrice(hit, locale),
+  };
+};
+
 const renderHits = (
   controller: SearchController,
   products: SearchResult<SearchProductHit> | undefined,
-  { language, country, businessRanking, texts }: SearchContext,
+  context: SearchContext,
 ): HitsRenderState => {
-  const locale = `${language}-${country.toUpperCase()}`;
+  const { businessRanking, texts } = context;
+  const locale = marketLocale(context);
   const query = products?.query ?? "";
 
   return {
-    hits: (products?.hits ?? []).map((hit) => {
-      const title = hitTitle(hit);
-
-      return {
-        hit,
-        display: {
-          title,
-          titleParts: splitTitleMatch(title, query),
-          href: safeHref(controller.productUrl(hit)),
-          image: hitImage(hit),
-          price: formatSearchPrice(hit, locale),
-          compareAtPrice: formatSearchCompareAtPrice(hit, locale),
-        },
-      };
-    }),
+    hits: (products?.hits ?? []).map((hit) => ({
+      hit,
+      display: productHitDisplay(controller, hit, query, locale),
+    })),
     query,
     title:
       query === "" ? texts.rankingLabel(businessRanking) : texts.productsLabel,
