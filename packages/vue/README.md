@@ -185,7 +185,7 @@ Floating results panel overlaying the page content: portaled to `document.body` 
 
 #### DialogSearchPagination
 
-Previous/next controls with a page indicator, on `connectPagination`; hidden while loading or while there is a single page. Rendered by `DialogSearchResults` — exported only for custom layouts.
+Previous/next controls with a page indicator, on `connectPagination`; hidden while loading, while a typed query is pending, or while there is a single page. Rendered by `DialogSearchResults` — exported only for custom layouts.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
@@ -301,8 +301,8 @@ pnpm build
 # Clean dist folder
 pnpm --filter @askdialog/dialog-vue clean
 
-# Run the specs
-pnpm --filter @askdialog/dialog-vue test
+# Run the specs (builds the SDK first)
+pnpm nx test @askdialog/dialog-vue
 
 # Lint code
 pnpm --filter @askdialog/dialog-vue lint
