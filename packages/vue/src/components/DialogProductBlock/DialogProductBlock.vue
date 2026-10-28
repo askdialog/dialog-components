@@ -4,7 +4,7 @@
       <DialogBlockHeader :title="assistantName" :description="description" />
       <DialogBlockSuggestionsContainer
         :client="props.client"
-        :questions="suggestionData?.questions"
+        :questions="blockQuestions"
         :is-loading="isFetchingSuggestions"
         :product-id="props.productId"
         :product-title="props.productTitle"
@@ -18,6 +18,15 @@
         :product-title="props.productTitle"
         :selected-variant-id="props?.selectedVariantId"
       />
+      <DialogAskSomethingElse
+        v-else
+        :client="props.client"
+        :questions="suggestionData?.questions"
+        :disabled="isFetchingSuggestions"
+        :product-id="props.productId"
+        :product-title="props.productTitle"
+        :selected-variant-id="props.selectedVariantId"
+      />
     </div>
   </ThemeProvider>
 </template>
@@ -30,22 +39,27 @@ import {
   resolveTextDirection,
   type Suggestion,
 } from "@askdialog/dialog-sdk";
+import DialogAskSomethingElse from "./DialogAskSomethingElse.vue";
 import DialogBlockHeader from "./DialogBlockHeader.vue";
 import DialogBlockSuggestionsContainer from "./DialogBlockSuggestionsContainer.vue";
 import DialogInput from "./DialogInput.vue";
 import ThemeProvider from "./ThemeProvider.vue";
 import { computed, onMounted, ref, watch } from "vue";
 
+const BLOCK_QUESTIONS_LIMIT = 2;
+const PANEL_QUESTIONS_LIMIT = 5;
+
 interface Props {
   client: Dialog;
   productId: string;
   productTitle: string;
   selectedVariantId?: string;
+  /** @deprecated Use the default "Ask something else" button. */
   enableInput?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  enableInput: true,
+  enableInput: false,
   selectedVariantId: undefined,
 });
 
@@ -69,6 +83,9 @@ const assistantName = computed(() => {
 const description = computed(() => {
   return isFetchingSuggestions.value ? "" : suggestionData.value?.description;
 });
+const blockQuestions = computed(() =>
+  suggestionData.value?.questions?.slice(0, BLOCK_QUESTIONS_LIMIT),
+);
 const inputPlaceholder = computed(() => {
   return isFetchingSuggestions.value
     ? ""
@@ -86,7 +103,9 @@ const handleFetchingSuggestions = async () => {
   isFetchingSuggestions.value = true;
   suggestionData.value = undefined;
   try {
-    const suggestion = await props.client.getSuggestions(props.productId);
+    const suggestion = await props.client.getSuggestions(props.productId, {
+      limit: PANEL_QUESTIONS_LIMIT,
+    });
     if (sequence === fetchSequence.value) {
       suggestionData.value = suggestion;
     }

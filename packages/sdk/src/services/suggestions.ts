@@ -8,9 +8,13 @@ export const loadSuggestions = async (
   apiKey: string,
   locale: string,
   productId: string,
+  limit?: number,
 ): Promise<Suggestion> => {
   const pagePath = window.location.pathname.split("?")[0];
   const query = new URLSearchParams({ pagePath, locale, productId });
+  if (limit !== undefined) {
+    query.set("limit", String(limit));
+  }
 
   const response = await fetch(
     `${config.monolithApiUrl}${PRODUCT_QUESTIONS_PATH}?${query.toString()}`,

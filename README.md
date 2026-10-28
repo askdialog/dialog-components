@@ -284,7 +284,7 @@ interface SimplifiedProductOption {
 
 ### DialogProductBlock
 
-The main component for displaying AI-powered product suggestions.
+The main component for displaying AI-powered product suggestions: up to 2 product questions and an "Ask something else" button (English, French or Spanish depending on the client locale) that opens the assistant with up to 5 product questions about the product.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
@@ -292,7 +292,7 @@ The main component for displaying AI-powered product suggestions.
 | `productId` | `string` | Yes | Product identifier |
 | `productTitle` | `string` | Yes | Product display name |
 | `selectedVariantId` | `string` | No | Currently selected variant |
-| `enableInput` | `boolean` | No | Show input field (default: `true`) |
+| `enableInput` | `boolean` | No | Deprecated. Show the input field instead of the "Ask something else" button (default: `false`) |
 
 ### DialogInput
 
