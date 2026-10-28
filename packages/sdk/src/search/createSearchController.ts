@@ -37,11 +37,13 @@ export function createSearchController(
   const indexName = searchIndexName("products", language, country);
   const merchant = createMerchantContext(controllerOptions);
   const listeners = new Set<(snapshot: SearchSnapshot) => void>();
+  // The products entry is always present, with its query and page.
+  const withProductsEntry = (searchState: SearchState): SearchState => ({
+    ...searchState,
+    [indexName]: readIndexState(searchState, indexName),
+  });
   let snapshot: SearchSnapshot = {
-    searchState: {
-      ...initialSearchState,
-      [indexName]: readIndexState(initialSearchState, indexName),
-    },
+    searchState: withProductsEntry(initialSearchState),
     results: IDLE,
     context: merchant.context,
   };
@@ -114,11 +116,9 @@ export function createSearchController(
       if (disposed) {
         return;
       }
-      const applied = applySearchState(snapshot.searchState, updater);
-      const searchState = {
-        ...applied,
-        [indexName]: readIndexState(applied, indexName),
-      };
+      const searchState = withProductsEntry(
+        applySearchState(snapshot.searchState, updater),
+      );
       const change = searchStateChange(
         snapshot.searchState,
         searchState,

@@ -1,4 +1,10 @@
-import { IndexSearchState, SearchState, SearchStateUpdater } from "./types";
+import { searchIndexName } from "../services/search";
+import {
+  IndexSearchState,
+  SearchController,
+  SearchState,
+  SearchStateUpdater,
+} from "./types";
 
 /** How the products entry changed, which decides when its request is sent. */
 export type SearchStateChange = "none" | "query" | "other";
@@ -55,4 +61,28 @@ export const searchStateChange = (
       withoutPage(entryOf(next, indexName));
 
   return unchanged ? "none" : "other";
+};
+
+/** The products entry of a controller's search state. */
+export interface ProductsEntry {
+  /** The entry, with an empty query and page 0 when absent. */
+  read(searchState: SearchState): Required<IndexSearchState>;
+  /** Change the entry's query or page; any change but the page resets it to 0. */
+  set(change: Partial<IndexSearchState>): void;
+}
+
+/** Read and change the products entry the controller searches. */
+export const productsEntry = (controller: SearchController): ProductsEntry => {
+  const { language, country } = controller.getSnapshot().context;
+  const indexName = searchIndexName("products", language, country);
+
+  return {
+    read: (searchState) => readIndexState(searchState, indexName),
+    set(change) {
+      controller.setSearchState((searchState) => ({
+        ...searchState,
+        [indexName]: { ...readIndexState(searchState, indexName), ...change },
+      }));
+    },
+  };
 };

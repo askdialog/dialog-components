@@ -1,7 +1,6 @@
-import { searchIndexName } from "../services/search";
 import { SearchStatus } from "../types/searchController";
 import { Connector, createConnector } from "./connector";
-import { readIndexState } from "./searchState";
+import { productsEntry } from "./searchState";
 import { SearchController } from "./types";
 
 export interface SearchBoxRenderState {
@@ -27,12 +26,11 @@ export interface SearchBoxConnector extends Connector<SearchBoxRenderState> {
 export function connectSearchBox(
   controller: SearchController,
 ): SearchBoxConnector {
-  const { language, country } = controller.getSnapshot().context;
-  const indexName = searchIndexName("products", language, country);
+  const entry = productsEntry(controller);
   const connector = createConnector(controller, {
     read: (snapshot) =>
       [
-        readIndexState(snapshot.searchState, indexName).query,
+        entry.read(snapshot.searchState).query,
         snapshot.results.status,
       ] as const,
     render: ([query, status]) => ({ query, status }),
@@ -40,10 +38,7 @@ export function connectSearchBox(
   const { getRenderState, subscribe, dispose } = connector;
 
   const setQuery = (query: string): void => {
-    controller.setSearchState((searchState) => ({
-      ...searchState,
-      [indexName]: { ...readIndexState(searchState, indexName), query },
-    }));
+    entry.set({ query });
   };
 
   const run = (action: () => void): void => {
