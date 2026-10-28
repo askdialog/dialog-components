@@ -165,7 +165,8 @@ export const getSearchTexts = (
   overrides: Partial<SearchTexts> = {},
 ): SearchTexts => {
   const language = locale?.split("-")[0]?.toLowerCase() ?? "en";
-  const factory = TEXTS[language] ?? TEXTS.en;
+  // An own property only: "constructor" or "__proto__" must fall back too.
+  const factory = Object.hasOwn(TEXTS, language) ? TEXTS[language] : TEXTS.en;
 
   return { ...factory((count) => formatCount(count, locale)), ...overrides };
 };

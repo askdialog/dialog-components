@@ -68,6 +68,10 @@ describe("getSearchTexts", () => {
   it("falls back to English for an unknown or missing language", () => {
     expect(getSearchTexts("ja-JP").noResults).toBe("No matching products");
     expect(getSearchTexts(undefined).noResults).toBe("No matching products");
+    expect(getSearchTexts("constructor").noResults).toBe(
+      "No matching products",
+    );
+    expect(getSearchTexts("__proto__").noResults).toBe("No matching products");
   });
 
   it("formats counts in the locale", () => {
