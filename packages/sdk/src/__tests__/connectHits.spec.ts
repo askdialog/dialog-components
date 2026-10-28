@@ -32,6 +32,7 @@ const hit = (overrides: Partial<SearchProductHit>): SearchProductHit => ({
   options: {},
   option_names: [],
   inventory_available: true,
+  _display: {},
   ...overrides,
 });
 
@@ -91,8 +92,8 @@ describe("connectHits", () => {
         hit({
           title: "Crème mains",
           url: "/products/creme-mains",
-          product_image: "product.jpg",
-          image: "variant.jpg",
+          product_image: "raw.jpg",
+          _display: { image: "product.jpg" },
           variants_min_price: 12.5,
           variants_compare_at_price_min: 15,
           currency: "EUR",

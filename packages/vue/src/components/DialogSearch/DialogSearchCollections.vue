@@ -9,13 +9,12 @@
     <ul class="dialog-search-collection-list">
       <li v-for="{ hit, display } in props.collections" :key="hit.objectID">
         <a class="dialog-search-collection" :href="display.href">
-          <span class="dialog-search-collection-thumb" aria-hidden="true">
-            <img
-              v-if="display.image !== undefined"
-              :src="display.image"
-              alt=""
-              loading="lazy"
-            />
+          <span
+            v-if="display.image !== undefined"
+            class="dialog-search-collection-thumb"
+            aria-hidden="true"
+          >
+            <img :src="display.image" alt="" loading="lazy" />
           </span>
           <span class="dialog-search-collection-title">
             <HighlightedTitle :parts="display.titleParts" />

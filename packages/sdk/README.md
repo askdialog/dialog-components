@@ -311,14 +311,17 @@ const response: SearchResponse = await client.search({
 //                        processingTimeMS, query, queryID }
 // A products hit is Algolia's Shopify record (`SearchProductHit`), plus `url`
 // and `currency`: { objectID (variant id), id (product id), title?, handle?,
-// url?, image?, variants_min_price?, price?, compare_at_price?, ... }
+// url?, image?, variants_min_price?, price?, compare_at_price?, ..., _display }
 // Collection hits are `SearchCollectionHit`, Algolia's collection record:
-// { objectID, title?, handle?, url?, body_html_safe?, image?, products_count?, ... }
+// { objectID, title?, handle?, url?, body_html_safe?, image?, products_count?, ..., _display }
 // Article hits are `SearchArticleHit`, Algolia's article record:
 // { objectID, title?, handle?, tags, blog?: { title?, handle? }, author?: { name },
-//   image?, published_at?, updated_at?, body_html_safe?, url? }
+//   image?, published_at?, updated_at?, body_html_safe?, url?, _display }
 // Page hits are `SearchPageHit`, Algolia's page record:
-// { objectID, title?, handle?, author?, updated_at?, body_html_safe?, url? }
+// { objectID, title?, handle?, author?, updated_at?, body_html_safe?, url?, _display }
+// Every hit carries `_display` (`SearchHitDisplay`), what to display computed by
+// the server: `{ image? }`, the image to show, absent when there is none. The
+// SDK and its components display images from `_display` only.
 ```
 
 With the IIFE bundle the results are plain runtime JSON (same shape, no types):

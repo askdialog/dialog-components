@@ -27,6 +27,10 @@ a.dialog-search-product:hover {
   background: var(--dso-thumb);
 }
 
+.dialog-search-product.dialog-search-product--no-image {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .dialog-search-product-thumb img {
   display: block;
   width: 100%;

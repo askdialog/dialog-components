@@ -1,4 +1,5 @@
 import type {
+  SearchArticleHit,
   SearchCollectionHit,
   SearchHitByIndex,
   SearchIndex,
@@ -10,9 +11,14 @@ type SearchHit = SearchHitByIndex[SearchIndex];
 const nonEmpty = (value: string | undefined): string | undefined =>
   value === "" ? undefined : value;
 
-/** The product's image, as Algolia's cards in distinct mode; else the variant's. */
+/** The product's image to display, as the server's `_display` says. */
 export const hitImage = (hit: SearchProductHit): string | undefined =>
-  nonEmpty(hit.product_image) ?? nonEmpty(hit.image);
+  nonEmpty(hit._display.image);
+
+/** The collection's or article's image to display, as the server's `_display` says. */
+export const sectionHitImage = (
+  hit: SearchCollectionHit | SearchArticleHit,
+): string | undefined => nonEmpty(hit._display.image);
 
 // Allow only HTTP(S) links.
 export const safeHref = (url: string | undefined): string | undefined => {

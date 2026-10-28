@@ -33,7 +33,13 @@ const answer: SearchResponse = {
   results: [
     result(INDEX, [{ objectID: "p1" }]),
     result("collections_fr_be", [
-      { objectID: "c1", title: "Crème visage", url: "/collections/creme" },
+      {
+        objectID: "c1",
+        title: "Crème visage",
+        url: "/collections/creme",
+        image: "raw.jpg",
+        _display: {},
+      },
       { objectID: "c2", title: "Sans lien" },
       { objectID: "c3", title: "Script", url: "javascript:alert(1)" },
     ]),
@@ -42,11 +48,14 @@ const answer: SearchResponse = {
         objectID: "a1",
         title: "La crème",
         url: "/blogs/news/creme",
-        image: "a.jpg",
+        image: "raw.jpg",
+        _display: { image: "a.jpg" },
         tags: [],
       },
     ]),
-    result("pages_fr_be", [{ objectID: "g1", handle: "creme-faq" }]),
+    result("pages_fr_be", [
+      { objectID: "g1", handle: "creme-faq", _display: {} },
+    ]),
   ],
 };
 
@@ -116,6 +125,7 @@ describe("connectSections", () => {
             title: "Crème visage",
             titleParts: { before: "", match: "Crème", after: " visage" },
             href: "/collections/creme",
+            // `_display` has no image: the record's is not displayed.
             image: undefined,
           },
         },

@@ -9,6 +9,7 @@ import {
   hitHref,
   hitTitle,
   navigableCollections,
+  sectionHitImage,
 } from "../utils/searchDisplay";
 import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
 import { Connector, createConnector } from "./connector";
@@ -48,20 +49,21 @@ const NO_SECTIONS: SectionsRenderState = {
 const display = (
   hit: SearchCollectionHit | SearchArticleHit | SearchPageHit,
   query: string,
+  image: string | undefined,
   href = hitHref(hit),
 ): SectionHitDisplay => {
   const title = hitTitle(hit);
-  const image = "image" in hit && hit.image !== "" ? hit.image : undefined;
 
   return { title, titleParts: splitTitleMatch(title, query), href, image };
 };
 
 const withDisplay = <THit extends SearchArticleHit | SearchPageHit>(
   result: SearchResult<THit> | undefined,
+  image: (hit: THit) => string | undefined,
 ): SectionHit<THit>[] =>
   (result?.hits ?? []).map((hit) => ({
     hit,
-    display: display(hit, result?.query ?? ""),
+    display: display(hit, result?.query ?? "", image(hit)),
   }));
 
 const renderSections = (sections: SearchSections): SectionsRenderState => {
@@ -71,11 +73,17 @@ const renderSections = (sections: SearchSections): SectionsRenderState => {
     collections: navigableCollections(collections?.hits).map(
       ({ collection, href }) => ({
         hit: collection,
-        display: display(collection, collections?.query ?? "", href),
+        display: display(
+          collection,
+          collections?.query ?? "",
+          sectionHitImage(collection),
+          href,
+        ),
       }),
     ),
-    articles: withDisplay(articles),
-    pages: withDisplay(pages),
+    articles: withDisplay(articles, sectionHitImage),
+    // Pages have no image.
+    pages: withDisplay(pages, () => undefined),
   };
 };
 
