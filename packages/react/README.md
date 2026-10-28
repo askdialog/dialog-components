@@ -209,7 +209,8 @@ One product card, as `DialogSearchResults` renders it, for custom layouts. It re
 
 #### Upgrading from 2.x
 
-The components keep their props and rendering; `useDialogSearch` keeps its options. What changed:
+The components keep their props and rendering, except the pagination of `DialogSearchResults`; `useDialogSearch` keeps its options. What changed:
+- `DialogSearchResults` no longer paginates: without `seeAllHref` it shows the first page of hits only. Set `seeAllHref`, or render `DialogSearchPagination` on a results page of your own.
 - `controller` is the controller of `@askdialog/dialog-sdk/search`: `setQuery`, `submit` and `setPage` are replaced by `setSearchState` and `search` (or the SDK's connectors), `getState` by `getSnapshot`, `observeResult` / `selectResult` by `observeHit` / `selectHit`.
 - `state` is the controller's snapshot: read `state.results.status`, `state.results.products` and `state.results.sections` instead of `state.status`, `state.response` and `state.sections`, and `state.context.businessRanking` instead of `state.businessRanking`.
 - Without a `locale` prop, texts and prices follow the search `language` and `country` instead of English and the browser's number format.
