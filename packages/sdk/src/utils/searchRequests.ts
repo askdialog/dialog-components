@@ -7,21 +7,8 @@ import {
   SearchResult,
   SearchSections,
 } from "../types/search";
-import {
-  SearchControllerOptions,
-  SearchControllerState,
-  SearchSection,
-  SearchStatus,
-} from "../types/searchController";
-
-export const INITIAL_SEARCH_STATE: SearchControllerState = {
-  status: SearchStatus.IDLE,
-  query: "",
-  page: 0,
-  response: undefined,
-  sections: undefined,
-  error: undefined,
-};
+import { SearchControllerOptions } from "../search/types";
+import { SearchSection } from "../types/searchController";
 
 export const requestedSections = (
   query: string,
