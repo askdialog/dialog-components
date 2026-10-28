@@ -1,22 +1,16 @@
 import type { FC } from "react";
-import { splitTitleMatch } from "./titleHighlight";
+import type { TitleParts } from "@askdialog/dialog-sdk/search";
 
 interface HighlightedTitleProps {
-  title: string;
-  query: string;
+  parts: TitleParts;
 }
 
 export const HighlightedTitle: FC<HighlightedTitleProps> = ({
-  title,
-  query,
-}) => {
-  const { before, match, after } = splitTitleMatch(title, query);
-
-  return (
-    <>
-      {before !== "" && <span className="dialog-search-muted">{before}</span>}
-      <span className="dialog-search-match">{match}</span>
-      {after !== "" && <span className="dialog-search-muted">{after}</span>}
-    </>
-  );
-};
+  parts: { before, match, after },
+}) => (
+  <>
+    {before !== "" && <span className="dialog-search-muted">{before}</span>}
+    <span className="dialog-search-match">{match}</span>
+    {after !== "" && <span className="dialog-search-muted">{after}</span>}
+  </>
+);

@@ -1,58 +1,70 @@
 import type { FC } from "react";
-import type {
-  SearchBusinessRanking,
-  SearchController,
-  SearchProductHit,
-  SearchResult,
-} from "@askdialog/dialog-sdk";
-import { DialogSearchProductCard } from "./DialogSearchProductCard";
-import type { SearchMessages } from "./searchMessages";
+import {
+  connectHits,
+  type SearchController,
+  type SearchContext,
+  type SearchTexts,
+} from "@askdialog/dialog-sdk/search";
+import { ProductCardView } from "./DialogSearchProductCard";
+import { useConnector } from "./useConnector";
 
 interface DialogSearchProductsProps {
   controller: SearchController;
-  response: SearchResult<SearchProductHit>;
+  context: SearchContext;
+  /** Hits of the shown products result. */
+  nbHits: number;
   locale: string | undefined;
-  messages: SearchMessages;
-  businessRanking: SearchBusinessRanking | undefined;
+  texts: SearchTexts;
 }
 
 export const DialogSearchProducts: FC<DialogSearchProductsProps> = ({
   controller,
-  response,
+  context,
+  nbHits,
   locale,
-  messages,
-  businessRanking,
-}) => (
-  <section className="dialog-search-products">
-    <div className="dialog-search-section-head">
-      <p className="dialog-search-label">
-        {response.query === ""
-          ? messages.rankingLabel(businessRanking)
-          : messages.productsLabel}
-        {response.nbHits > 0 && (
-          <span className="dialog-search-label-count">
-            {` · ${messages.resultsCount(response.nbHits)}`}
-          </span>
+  texts,
+}) => {
+  const [{ hits, query, title }, connector] = useConnector(
+    connectHits,
+    controller,
+  );
+  // The connector's title is in the search language; a locale has its own.
+  const localizedTitle =
+    locale === undefined
+      ? title
+      : query === ""
+        ? texts.rankingLabel(context.businessRanking)
+        : texts.productsLabel;
+
+  return (
+    <section className="dialog-search-products">
+      <div className="dialog-search-section-head">
+        <p className="dialog-search-label">
+          {localizedTitle}
+          {nbHits > 0 && (
+            <span className="dialog-search-label-count">
+              {` · ${texts.resultsCount(nbHits)}`}
+            </span>
+          )}
+        </p>
+      </div>
+      <ul className="dialog-search-results">
+        {hits.length === 0 ? (
+          <li className="dialog-search-empty" role="status">
+            {texts.noResults}
+          </li>
+        ) : (
+          hits.map((entry, index) => (
+            <ProductCardView
+              key={entry.hit.objectID}
+              entry={entry}
+              index={index}
+              tracking={connector}
+              locale={locale}
+            />
+          ))
         )}
-      </p>
-    </div>
-    <ul className="dialog-search-results">
-      {response.hits.length === 0 ? (
-        <li className="dialog-search-empty" role="status">
-          {messages.noResults}
-        </li>
-      ) : (
-        response.hits.map((hit, index) => (
-          <DialogSearchProductCard
-            key={hit.objectID}
-            controller={controller}
-            hit={hit}
-            index={index}
-            locale={locale}
-            query={response.query}
-          />
-        ))
-      )}
-    </ul>
-  </section>
-);
+      </ul>
+    </section>
+  );
+};

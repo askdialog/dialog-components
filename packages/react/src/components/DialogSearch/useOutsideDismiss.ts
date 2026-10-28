@@ -1,22 +1,21 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import {
-  SearchStatus,
-  type SearchControllerState,
-} from "@askdialog/dialog-sdk";
+import { SearchStatus } from "@askdialog/dialog-sdk/search";
 
 // Dismiss outside the panel and search bar while retaining search results.
 export const useOutsideDismiss = (
-  state: SearchControllerState,
+  status: SearchStatus,
+  /** The query asked; a change reopens the panel. */
+  query: string,
   anchorRef: RefObject<HTMLDivElement | null>,
 ): { isOpen: boolean; panelRef: RefObject<HTMLDivElement | null> } => {
   const [dismissed, setDismissed] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const isOpen = state.status !== SearchStatus.IDLE && !dismissed;
+  const isOpen = status !== SearchStatus.IDLE && !dismissed;
 
   // Reopen on query changes, not on responses arriving after dismissal.
   useEffect(() => {
     setDismissed(false);
-  }, [state.query]);
+  }, [query]);
 
   useEffect(() => {
     if (!isOpen) {
