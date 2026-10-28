@@ -10,6 +10,18 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./search": {
+      "import": "./dist/search/index.js",
+      "require": "./dist/search/index.js",
+      "types": "./dist/search/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "search": [
+        "dist/search/index.d.ts"
+      ]
     }
   },
   "scripts": {
