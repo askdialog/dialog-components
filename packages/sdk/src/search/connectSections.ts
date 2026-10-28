@@ -12,6 +12,7 @@ import {
   navigableCollections,
 } from "../utils/searchDisplay";
 import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
+import { Connector, createConnector } from "./connector";
 import { readIndexState } from "./searchState";
 import { SearchController, SearchSnapshot } from "./types";
 
@@ -37,14 +38,7 @@ export interface SectionsRenderState {
   readonly pages: readonly SectionHit<SearchPageHit>[];
 }
 
-export interface SectionsConnector {
-  /** The same object while the sections and the query emptiness do not change. */
-  getRenderState(): SectionsRenderState;
-  /** Called with a new render state on each change; returns an unsubscribe function. */
-  subscribe(listener: (renderState: SectionsRenderState) => void): () => void;
-  /** Stop reading the controller and remove subscribers. */
-  dispose(): void;
-}
+export type SectionsConnector = Connector<SectionsRenderState>;
 
 const NO_SECTIONS: SectionsRenderState = {
   collections: [],
@@ -101,50 +95,12 @@ const isEmptyQuery = ({ searchState, context }: SearchSnapshot): boolean => {
 export function connectSections(
   controller: SearchController,
 ): SectionsConnector {
-  const listeners = new Set<(renderState: SectionsRenderState) => void>();
-  let sections: SearchSections | undefined;
-  let empty = true;
-  let renderState = NO_SECTIONS;
-
-  const read = (snapshot: SearchSnapshot): boolean => {
-    const nextSections = snapshot.results.sections;
-    const nextEmpty = isEmptyQuery(snapshot);
-    if (nextSections === sections && nextEmpty === empty) {
-      return false;
-    }
-    sections = nextSections;
-    empty = nextEmpty;
-    const next =
-      empty || sections === undefined ? NO_SECTIONS : renderSections(sections);
-    const changed = next !== renderState;
-    renderState = next;
-
-    return changed;
-  };
-
-  read(controller.getSnapshot());
-  const unsubscribe = controller.subscribe((snapshot) => {
-    if (read(snapshot)) {
-      for (const listener of listeners) {
-        listener(renderState);
-      }
-    }
+  const { getRenderState, subscribe, dispose } = createConnector(controller, {
+    read: (snapshot) =>
+      [snapshot.results.sections, isEmptyQuery(snapshot)] as const,
+    render: ([sections, empty]) =>
+      empty || sections === undefined ? NO_SECTIONS : renderSections(sections),
   });
 
-  return {
-    getRenderState: () => renderState,
-
-    subscribe(listener) {
-      listeners.add(listener);
-
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-
-    dispose() {
-      unsubscribe();
-      listeners.clear();
-    },
-  };
+  return { getRenderState, subscribe, dispose };
 }
