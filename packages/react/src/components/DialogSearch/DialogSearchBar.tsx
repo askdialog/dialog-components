@@ -1,8 +1,5 @@
 import type { FC, FormEvent } from "react";
-import {
-  connectSearchBox,
-  type SearchController,
-} from "@askdialog/dialog-sdk/search";
+import { connectSearchBox, type SearchController } from "@askdialog/dialog-sdk";
 import { ArrowUpIcon } from "../../icons/ArrowUpIcon";
 import { ShurikenIcon } from "../../icons/ShurikenIcon";
 import { useConnector } from "./useConnector";

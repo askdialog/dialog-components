@@ -1,16 +1,14 @@
 import {
+  createSearchController,
   registerDialogInstallation,
   type Dialog,
-  type SearchSurface,
-} from "@askdialog/dialog-sdk";
-import {
-  createSearchController,
   type SearchController,
   type SearchProductHit,
   type SearchSection,
   type SearchSnapshot,
+  type SearchSurface,
   type Theme,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createRecreatableController } from "./recreatableController";
 

@@ -34,7 +34,7 @@ import type {
   SearchCollectionHit,
   SearchTexts,
   SectionHit,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import CaretRightIcon from "../../icons/CaretRightIcon.vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
 

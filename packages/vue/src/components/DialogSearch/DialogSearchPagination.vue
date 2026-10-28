@@ -29,7 +29,7 @@ import {
   connectPagination,
   type SearchController,
   type SearchSnapshot,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { computed } from "vue";
 import { searchTexts } from "./searchTexts";
 import { useConnector } from "./useConnector";

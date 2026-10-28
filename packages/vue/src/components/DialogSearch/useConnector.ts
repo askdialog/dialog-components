@@ -1,4 +1,4 @@
-import type { Connector } from "@askdialog/dialog-sdk/search";
+import type { Connector } from "@askdialog/dialog-sdk";
 import { onUnmounted, shallowRef, type ShallowRef } from "vue";
 
 /** Follow a connector's render state; the connector is disposed on unmount. */

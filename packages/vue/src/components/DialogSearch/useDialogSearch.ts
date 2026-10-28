@@ -1,16 +1,14 @@
 import {
+  createSearchController,
   registerDialogInstallation,
   type Dialog,
-  type SearchSurface,
-  type Theme,
-} from "@askdialog/dialog-sdk";
-import {
-  createSearchController,
   type SearchController,
   type SearchProductHit,
   type SearchSection,
   type SearchSnapshot,
-} from "@askdialog/dialog-sdk/search";
+  type SearchSurface,
+  type Theme,
+} from "@askdialog/dialog-sdk";
 import { onMounted, onUnmounted, shallowRef, type ShallowRef } from "vue";
 
 export interface UseDialogSearchOptions {

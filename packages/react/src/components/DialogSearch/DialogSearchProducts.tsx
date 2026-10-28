@@ -4,7 +4,7 @@ import {
   type SearchController,
   type SearchContext,
   type SearchTexts,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { ProductCardView } from "./DialogSearchProductCard";
 import { useConnector } from "./useConnector";
 

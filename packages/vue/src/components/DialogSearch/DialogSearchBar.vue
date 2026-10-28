@@ -27,10 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  connectSearchBox,
-  type SearchController,
-} from "@askdialog/dialog-sdk/search";
+import { connectSearchBox, type SearchController } from "@askdialog/dialog-sdk";
 import ArrowUpIcon from "../../icons/ArrowUpIcon.vue";
 import ShurikenIcon from "../../icons/ShurikenIcon.vue";
 import { useConnector } from "./useConnector";

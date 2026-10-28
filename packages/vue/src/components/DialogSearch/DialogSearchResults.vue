@@ -73,7 +73,7 @@ import {
   type SearchController,
   type SearchSnapshot,
   type Theme,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { computed } from "vue";
 import ArrowRightIcon from "../../icons/ArrowRightIcon.vue";
 import DialogSearchCollections from "./DialogSearchCollections.vue";

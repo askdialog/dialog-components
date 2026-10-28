@@ -2,7 +2,7 @@ import type { FC } from "react";
 import {
   connectPagination,
   type SearchController,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { resolveSearchTexts } from "./searchTexts";
 import { useConnector } from "./useConnector";
 import type { DialogSearchState } from "./useDialogSearch";

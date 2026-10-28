@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { SearchStatus } from "@askdialog/dialog-sdk/search";
+import { SearchStatus } from "@askdialog/dialog-sdk";
 
 // Dismiss outside the panel and search bar while retaining search results.
 export const useOutsideDismiss = (
