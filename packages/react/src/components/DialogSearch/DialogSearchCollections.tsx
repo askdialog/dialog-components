@@ -1,47 +1,46 @@
 import type { FC } from "react";
-import type { SearchCollectionHit } from "@askdialog/dialog-sdk";
+import type {
+  SearchCollectionHit,
+  SearchTexts,
+  SectionHit,
+} from "@askdialog/dialog-sdk/search";
 import { CaretRightIcon } from "../../icons/CaretRightIcon";
 import { HighlightedTitle } from "./HighlightedTitle";
-import { navigableCollections } from "./searchCollections";
-import { hitTitle } from "./searchDisplay";
-import type { SearchMessages } from "./searchMessages";
 import "./DialogSearchCollections.css";
 
 interface DialogSearchCollectionsProps {
-  collections: SearchCollectionHit[];
-  query: string;
-  messages: SearchMessages;
+  /** Collections with a link, from the sections connector. */
+  collections: readonly SectionHit<SearchCollectionHit>[];
+  texts: SearchTexts;
 }
 
 export const DialogSearchCollections: FC<DialogSearchCollectionsProps> = ({
   collections,
-  query,
-  messages,
+  texts,
 }) => {
-  const entries = navigableCollections(collections);
-  if (entries.length === 0) {
+  if (collections.length === 0) {
     return null;
   }
 
   return (
     <aside className="dialog-search-collections">
       <div className="dialog-search-section-head">
-        <p className="dialog-search-label">{messages.collectionsLabel}</p>
+        <p className="dialog-search-label">{texts.collectionsLabel}</p>
         <span className="dialog-search-count">
-          {messages.collectionsCount(entries.length)}
+          {texts.collectionsCount(collections.length)}
         </span>
       </div>
       <ul className="dialog-search-collection-list">
-        {entries.map(({ collection, href }) => (
-          <li key={collection.objectID}>
-            <a className="dialog-search-collection" href={href}>
+        {collections.map(({ hit, display }) => (
+          <li key={hit.objectID}>
+            <a className="dialog-search-collection" href={display.href}>
               <span className="dialog-search-collection-thumb" aria-hidden>
-                {collection.image ? (
-                  <img src={collection.image} alt="" loading="lazy" />
-                ) : null}
+                {display.image !== undefined && (
+                  <img src={display.image} alt="" loading="lazy" />
+                )}
               </span>
               <span className="dialog-search-collection-title">
-                <HighlightedTitle title={hitTitle(collection)} query={query} />
+                <HighlightedTitle parts={display.titleParts} />
               </span>
               <span className="dialog-search-caret">
                 <CaretRightIcon />

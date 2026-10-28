@@ -1,51 +1,48 @@
 import type { FC } from "react";
 import {
-  SearchStatus,
+  connectPagination,
   type SearchController,
-  type SearchControllerState,
-} from "@askdialog/dialog-sdk";
-import { getSearchMessages } from "./searchMessages";
+} from "@askdialog/dialog-sdk/search";
+import { resolveSearchTexts } from "./searchTexts";
+import { useConnector } from "./useConnector";
+import type { DialogSearchState } from "./useDialogSearch";
 import "./DialogSearchPagination.css";
 
 interface DialogSearchPaginationProps {
   controller: SearchController;
-  state: SearchControllerState;
+  state: DialogSearchState;
   locale?: string;
 }
 
 // Hidden while loading: a page taken from the retained response would apply to the pending query.
-export const hasPagination = (state: SearchControllerState): boolean =>
-  state.status !== SearchStatus.LOADING &&
-  state.response !== undefined &&
-  state.response.nbPages > 1;
-
 export const DialogSearchPagination: FC<DialogSearchPaginationProps> = ({
   controller,
   state,
   locale,
 }) => {
-  const response = state.response;
-  if (response === undefined || !hasPagination(state)) {
+  const [pagination, connector] = useConnector(connectPagination, controller);
+  if (!pagination.visible) {
     return null;
   }
-  const messages = getSearchMessages(locale);
+  const { currentPage, nbPages, isFirstPage, isLastPage } = pagination;
+  const texts = resolveSearchTexts(state.context, locale);
 
   return (
     <nav aria-label="Search results pages" className="dialog-search-pagination">
       <button
         type="button"
-        disabled={response.page === 0}
-        onClick={() => controller.setPage(response.page - 1)}
+        disabled={isFirstPage}
+        onClick={() => connector.refine(currentPage - 1)}
       >
-        {messages.previous}
+        {texts.previous}
       </button>
-      <span>{messages.pageOf(response.page + 1, response.nbPages)}</span>
+      <span>{texts.pageOf(currentPage + 1, nbPages)}</span>
       <button
         type="button"
-        disabled={response.page >= response.nbPages - 1}
-        onClick={() => controller.setPage(response.page + 1)}
+        disabled={isLastPage}
+        onClick={() => connector.refine(currentPage + 1)}
       >
-        {messages.next}
+        {texts.next}
       </button>
     </nav>
   );

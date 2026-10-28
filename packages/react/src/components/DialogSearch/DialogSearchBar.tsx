@@ -1,7 +1,11 @@
-import { type FC, type FormEvent, useState } from "react";
-import type { SearchController } from "@askdialog/dialog-sdk";
+import type { FC, FormEvent } from "react";
+import {
+  connectSearchBox,
+  type SearchController,
+} from "@askdialog/dialog-sdk/search";
 import { ArrowUpIcon } from "../../icons/ArrowUpIcon";
 import { ShurikenIcon } from "../../icons/ShurikenIcon";
+import { useConnector } from "./useConnector";
 import "./DialogSearchBar.css";
 
 interface DialogSearchBarProps {
@@ -17,11 +21,11 @@ export const DialogSearchBar: FC<DialogSearchBarProps> = ({
   autoFocus = false,
   submitAriaLabel = "Search",
 }) => {
-  const [value, setValue] = useState("");
+  const [{ query }, searchBox] = useConnector(connectSearchBox, controller);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    controller.submit(value);
+    searchBox.submit();
   };
 
   return (
@@ -34,15 +38,12 @@ export const DialogSearchBar: FC<DialogSearchBarProps> = ({
           type="text"
           name="dialog-search-query"
           className="dialog-search-bar-input"
-          value={value}
+          value={query}
           aria-label={placeholder}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          onFocus={() => controller.open()}
-          onChange={(event) => {
-            setValue(event.target.value);
-            controller.setQuery(event.target.value);
-          }}
+          onFocus={() => searchBox.open()}
+          onChange={(event) => searchBox.refine(event.target.value)}
         />
       </div>
       <button

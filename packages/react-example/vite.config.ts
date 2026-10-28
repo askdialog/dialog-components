@@ -29,6 +29,10 @@ export default defineConfig({
               replacement: resolve(__dirname, "../react/src/main.ts"),
             },
             {
+              find: "@askdialog/dialog-sdk/search",
+              replacement: resolve(__dirname, "../sdk/src/search/index.ts"),
+            },
+            {
               find: "@askdialog/dialog-sdk",
               replacement: resolve(__dirname, "../sdk/src/index.ts"),
             },
