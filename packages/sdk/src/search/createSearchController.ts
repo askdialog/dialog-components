@@ -185,15 +185,9 @@ export function createSearchController(
       void runner.run(failed);
     },
 
-    observeHit(element, index) {
-      if (!disposed) {
-        hitTracking.observeHit(element, index);
-      }
-    },
-
-    selectHit: (index, options) =>
-      !disposed && hitTracking.selectHit(index, options),
-
+    // Hit tracking does nothing once disposed.
+    observeHit: hitTracking.observeHit,
+    selectHit: hitTracking.selectHit,
     productUrl: hitTracking.productUrl,
 
     dispose() {

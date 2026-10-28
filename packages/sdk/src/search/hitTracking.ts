@@ -18,6 +18,7 @@ export interface HitTracking
   onProducts(products: SearchResult<SearchProductHit>): void;
   /** Flush qualified impressions; the next result starts a new context. */
   close(): void;
+  /** Stop tracking; `observeHit` and `selectHit` then do nothing. */
   dispose(): void;
 }
 
@@ -28,6 +29,7 @@ export const createHitTracking = ({
   products,
 }: HitTrackingOptions): HitTracking => {
   const binding = createControllerAnalytics(analytics);
+  let disposed = false;
 
   const productUrl = (hit: SearchProductHit): string | undefined =>
     hit.url !== undefined && hit.url !== "" ? hit.url : buildProductUrl?.(hit);
@@ -36,19 +38,23 @@ export const createHitTracking = ({
     open: binding.open,
     onProducts: binding.onResponse,
     close: binding.close,
-    dispose: binding.dispose,
     productUrl,
+
+    dispose() {
+      disposed = true;
+      binding.dispose();
+    },
 
     observeHit(element, index) {
       const result = products();
-      if (result !== undefined) {
+      if (!disposed && result !== undefined) {
         binding.observeResult(element, result, index);
       }
     },
 
     selectHit(index, options) {
       const result = products();
-      if (result === undefined) {
+      if (disposed || result === undefined) {
         return false;
       }
       binding.select(result, index);
