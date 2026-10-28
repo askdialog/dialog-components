@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import type { TitleParts } from "@askdialog/dialog-sdk/search";
+import type { TitleParts } from "@askdialog/dialog-sdk";
 
 interface HighlightedTitleProps {
   parts: TitleParts;

@@ -7,7 +7,7 @@ import {
   createSearchController,
   DialogSearchError,
   SearchStatus,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 
 const apiKeySection = document.getElementById("api-key-section");
 const apiKeyInput = document.getElementById("api-key-input");

@@ -107,7 +107,7 @@ Standalone input component for asking questions.
 
 ### Storefront search
 
-`useDialogSearch` binds the search controller of `@askdialog/dialog-sdk/search` to component state. The controller holds the search state, the results and the context (language, country, business ranking, texts) and manages requests and analytics; the components render the SDK's connectors (search box, hits, sections, pagination) and handle navigation.
+`useDialogSearch` binds the search controller of `@askdialog/dialog-sdk` to component state. The controller holds the search state, the results and the context (language, country, business ranking, texts) and manages requests and analytics; the components render the SDK's connectors (search box, hits, sections, pagination) and handle navigation.
 
 ```tsx
 import { Dialog } from '@askdialog/dialog-sdk';
@@ -150,7 +150,7 @@ Creates one search controller per hook instance and disposes it on unmount. The 
 Search language and country are explicit and independent of `client.locale`, which can be a regional locale such as `fr-FR`.
 
 **Returns:** `{ controller, state, theme }` — pass them to the components below.
-- `controller` (SearchController) - The controller of `@askdialog/dialog-sdk/search`; pass it to the SDK's connectors (`connectHits(controller)`, …) to build a custom UI
+- `controller` (SearchController) - The controller of `@askdialog/dialog-sdk`; pass it to the SDK's connectors (`connectHits(controller)`, …) to build a custom UI
 - `state` (SearchSnapshot) - The controller's snapshot, re-rendered on each change: `searchState` (the query and page asked, keyed by index name), `results` (`status` is `idle` / `loading` / `success` / `empty` / `error`, `products`, `sections`, `error`) and `context` (`language`, `country`, `businessRanking`, `texts`)
 - `theme` (Theme) - The client's theme, for `DialogSearchResults`
 
@@ -211,7 +211,7 @@ One product card, as `DialogSearchResults` renders it, for custom layouts. It re
 
 The components keep their props and rendering, except the pagination of `DialogSearchResults`; `useDialogSearch` keeps its options. What changed:
 - `DialogSearchResults` no longer paginates: without `seeAllHref` it shows the first page of hits only. Set `seeAllHref`, or render `DialogSearchPagination` on a results page of your own.
-- `controller` is the controller of `@askdialog/dialog-sdk/search`: `setQuery`, `submit` and `setPage` are replaced by `setSearchState` and `search` (or the SDK's connectors), `getState` by `getSnapshot`, `observeResult` / `selectResult` by `observeHit` / `selectHit`.
+- `controller` is the controller of `@askdialog/dialog-sdk`: `setQuery`, `submit` and `setPage` are replaced by `setSearchState` and `search` (or the SDK's connectors), `getState` by `getSnapshot`, `observeResult` / `selectResult` by `observeHit` / `selectHit`.
 - `state` is the controller's snapshot: read `state.results.status`, `state.results.products` and `state.results.sections` instead of `state.status`, `state.response` and `state.sections`, and `state.context.businessRanking` instead of `state.businessRanking`.
 - Without a `locale` prop, texts and prices follow the search `language` and `country` instead of English and the browser's number format.
 - The peer `@askdialog/dialog-sdk` is 3.x.

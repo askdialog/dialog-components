@@ -9,7 +9,7 @@ import {
   type ProductHitDisplay,
   type SearchController,
   type SearchProductHit,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { HighlightedTitle } from "./HighlightedTitle";
 import { useConnector } from "./useConnector";
 import "./DialogSearchProductCard.css";

@@ -3,7 +3,7 @@ import type {
   SearchCollectionHit,
   SearchTexts,
   SectionHit,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { CaretRightIcon } from "../../icons/CaretRightIcon";
 import { HighlightedTitle } from "./HighlightedTitle";
 import "./DialogSearchCollections.css";

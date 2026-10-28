@@ -37,7 +37,6 @@ export default defineConfig({
         "react-dom",
         "react/jsx-runtime",
         "@askdialog/dialog-sdk",
-        "@askdialog/dialog-sdk/search",
       ],
       output: {
         inlineDynamicImports: true,

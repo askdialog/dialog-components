@@ -4,7 +4,7 @@ Raw JavaScript reference page for `dialog.search()` (DEC-2452): a framework-free
 storefront search demonstrating input, loading, errors, empty results, product
 cards and pagination.
 
-It runs on the search API of `@askdialog/dialog-sdk/search`: a
+It runs on the search API of `@askdialog/dialog-sdk`: a
 `createSearchController()` holds the search state, the results and the
 context, and the `connectSearchBox`, `connectHits`, `connectStats` and
 `connectPagination` connectors read and change them. Debounce, cancellation,

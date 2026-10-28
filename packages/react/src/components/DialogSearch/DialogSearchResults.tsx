@@ -9,7 +9,7 @@ import {
   type SearchController,
   type SearchTexts,
   type Theme,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { ArrowRightIcon } from "../../icons/ArrowRightIcon";
 import { DialogSearchCollections } from "./DialogSearchCollections";
 import { DialogSearchProducts } from "./DialogSearchProducts";

@@ -36,7 +36,7 @@ import type {
   ProductHit,
   SearchController,
   SearchTexts,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import DialogSearchProductCard from "./DialogSearchProductCard.vue";
 
 const props = defineProps<{

@@ -16,7 +16,6 @@
     "baseUrl": ".",
     "paths": {
       "@askdialog/dialog-sdk": ["packages/sdk/src/index.ts"],
-      "@askdialog/dialog-sdk/search": ["packages/sdk/src/search/index.ts"],
       "@askdialog/dialog-vue": ["packages/vue/src/main.ts"],
       "@askdialog/dialog-react": ["packages/react/src/main.ts"]
     }

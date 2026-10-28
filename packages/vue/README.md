@@ -106,7 +106,7 @@ Standalone input component for asking questions.
 
 ### Storefront search
 
-`useDialogSearch` binds the SDK search controller (`createSearchController` from `@askdialog/dialog-sdk/search`) to component state. The controller manages requests, the merchant's configuration and analytics; the components read its connectors (`connectSearchBox`, `connectHits`, `connectSections`, `connectPagination`) and only handle rendering. Texts, display rules, title highlight, prices and theme come from the SDK.
+`useDialogSearch` binds the SDK search controller (`createSearchController` from `@askdialog/dialog-sdk`) to component state. The controller manages requests, the merchant's configuration and analytics; the components read its connectors (`connectSearchBox`, `connectHits`, `connectSections`, `connectPagination`) and only handle rendering. Texts, display rules, title highlight, prices and theme come from the SDK.
 
 ```vue
 <script setup lang="ts">
@@ -148,7 +148,7 @@ Search language and country are explicit and independent of `client.locale`, whi
 
 Options are read once during setup — later changes don't rebind the live controller.
 
-**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `controller` is the SDK's `SearchController`, which you can also pass to the connectors of `@askdialog/dialog-sdk/search` for a custom UI. `state` is a `ShallowRef` of the controller's snapshot: `state.value.searchState` (what the shopper asks for), `state.value.results` (`status` is `idle` / `loading` / `success` / `empty` / `error`, `products`, `sections`, `error`) and `state.value.context` (language, country, business ranking, texts).
+**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `controller` is the SDK's `SearchController`, which you can also pass to the connectors of `@askdialog/dialog-sdk` for a custom UI. `state` is a `ShallowRef` of the controller's snapshot: `state.value.searchState` (what the shopper asks for), `state.value.results` (`status` is `idle` / `loading` / `success` / `empty` / `error`, `products`, `sections`, `error`) and `state.value.context` (language, country, business ranking, texts).
 
 With the collections column, for a catalog that exposes a collections index:
 
