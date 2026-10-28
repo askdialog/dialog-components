@@ -125,6 +125,14 @@ export function createSearchController({
       }
     },
 
+    search() {
+      if (disposed) {
+        return;
+      }
+      cancel();
+      send();
+    },
+
     open() {
       if (disposed) {
         return;
