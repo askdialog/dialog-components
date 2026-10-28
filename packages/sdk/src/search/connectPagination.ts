@@ -69,15 +69,17 @@ export function connectPagination(
   const indexName = searchIndexName("products", language, country);
   const listeners = new Set<(renderState: PaginationRenderState) => void>();
 
-  // Query the shown results answer; a different one in the search state is still pending.
+  // Trimmed query the shown results answer; a different one in the search state is still pending.
+  const queryOf = (snapshot: SearchSnapshot): string =>
+    readIndexState(snapshot.searchState, indexName).query.trim();
   let answeredQuery: string | undefined;
   const answered = (snapshot: SearchSnapshot): void => {
     if (snapshot.results.status !== SearchStatus.LOADING) {
-      answeredQuery = readIndexState(snapshot.searchState, indexName).query;
+      answeredQuery = queryOf(snapshot);
     }
   };
   const pending = (snapshot: SearchSnapshot): boolean =>
-    readIndexState(snapshot.searchState, indexName).query !== answeredQuery;
+    queryOf(snapshot) !== answeredQuery;
 
   // Hidden while loading or pending: a page of the shown results would apply to the next query.
   const read = (snapshot: SearchSnapshot): PaginationRenderState => {
@@ -98,7 +100,8 @@ export function connectPagination(
   };
 
   let snapshot = controller.getSnapshot();
-  answered(snapshot);
+  // Connected after a search: the results echo the query they answer.
+  answeredQuery = snapshot.results.products?.query;
   let renderState = read(snapshot);
 
   // A request aborts on each query change, so results arrive for the query in the search state.

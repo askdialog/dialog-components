@@ -130,6 +130,21 @@ describe("connectPagination", () => {
     });
   });
 
+  it("is hidden when connected while a newer query is pending", async () => {
+    await answer();
+    setQuery(controller, "shoes");
+    const late = connectPagination(controller);
+
+    expect(late.getRenderState().visible).toBe(false);
+    late.refine(2);
+    expect(transport).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(100);
+    await answer({ query: "shoes" });
+    expect(late.getRenderState().visible).toBe(true);
+    late.dispose();
+  });
+
   it("requests the refined page, and ignores a page out of range", async () => {
     await answer();
 
