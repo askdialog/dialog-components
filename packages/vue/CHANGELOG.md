@@ -1,5 +1,17 @@
 # @askdialog/dialog-vue
 
+## 4.0.0
+
+### Major Changes
+
+- 99bf669: The search components run on the SDK's new search controller and connectors (`@askdialog/dialog-sdk/search`). `useDialogSearch` keeps its options and returns `{ controller, state, theme }`, where `controller` is the new `SearchController` and `state` a `ShallowRef` of its snapshot: read `state.value.results.status`, `state.value.results.products` and `state.value.context` instead of `state.value.status`, `state.value.response` and `state.value.businessRanking`. `DialogSearchBar`, `DialogSearchResults`, `DialogSearchPagination` and `DialogSearchProductCard` keep their props and rendering; `DialogSearchProductCard` takes an optional `display`.
+
+  Without a `locale` prop, texts and prices now follow the controller's `language` and `country` (previously English texts and the browser's number format); with one, they are formatted in that locale with the SDK's helpers. The business ranking is loaded by the controller at the first focus or search instead of on mount.
+
+  The peer `@askdialog/dialog-sdk` is 3.x, whose root exports the same search API.
+
+- f0ae12f: `DialogSearchResults` no longer paginates. Without `seeAllHref`, the panel shows the first page of hits only, with no "Previous / Page x / y / Next" controls, as the Shopify theme's search overlay does; with `seeAllHref`, it still shows the "See all N results" link. `DialogSearchPagination` stays exported, for a results page of your own.
+
 ## 3.12.0
 
 ### Minor Changes

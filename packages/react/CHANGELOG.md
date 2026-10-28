@@ -1,5 +1,18 @@
 # @askdialog/dialog-react
 
+## 3.0.0
+
+### Major Changes
+
+- 55cb0d7: Storefront search runs on the SDK's new search API (`@askdialog/dialog-sdk/search`). `DialogSearchBar`, `DialogSearchResults`, `DialogSearchPagination` and `DialogSearchProductCard` keep their props and rendering, built on the SDK's search box, hits, sections and pagination connectors; React's own copies of the search texts, display, highlight, theme and collection rules are removed.
+
+  Breaking changes:
+  - `useDialogSearch` keeps its options but returns the new controller and its snapshot: `controller.setQuery`, `submit`, `setPage` and `getState` are replaced by `setSearchState`, `search` and `getSnapshot`; `state` is `{ searchState, results, context }` (`state.results.status`, `state.results.products`, `state.context.businessRanking`) instead of the flat `{ status, query, page, response, sections, businessRanking }`.
+  - Without a `locale` prop, texts and prices follow the search `language` and `country` instead of English and the browser's number format. With one, they are formatted in that locale with the SDK's helpers.
+  - The peer `@askdialog/dialog-sdk` is 3.x, whose root exports the same search API.
+
+- f0ae12f: `DialogSearchResults` no longer paginates. Without `seeAllHref`, the panel shows the first page of hits only, with no "Previous / Page x / y / Next" controls, as the Shopify theme's search overlay does; with `seeAllHref`, it still shows the "See all N results" link. `DialogSearchPagination` stays exported, for a results page of your own.
+
 ## 2.12.0
 
 ### Minor Changes
