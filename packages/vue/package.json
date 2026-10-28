@@ -26,7 +26,7 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@askdialog/dialog-sdk": "^2.1.0",
+    "@askdialog/dialog-sdk": "^3.0.0",
     "vue": "^3.0.0"
   },
   "devDependencies": {

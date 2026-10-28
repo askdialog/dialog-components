@@ -317,84 +317,21 @@ With the IIFE bundle the results are plain runtime JSON (same shape, no types):
 
 A non-2xx answer rejects with `DialogSearchError` — stable `name`, HTTP `status` and `message` (e.g. `404 Index products_xx does not exist`, `400 Unknown parameter: foo`). Aborting rejects with the native `AbortError`, and network failures keep their native errors.
 
-`client.search()` sends requests unchanged, without debounce, caching or automatic cancellation. Use `createSearchController()` for interactive search.
+`client.search()` sends requests unchanged, without debounce, caching or automatic cancellation. Use the search controller below for interactive search.
 
-- Search controller
+- Search controller and connectors
 
-`createSearchController()` handles debounce, cancellation, stale responses, pagination, retries and search analytics. New queries reset pagination. State is `idle`, `loading`, `success`, `empty` or `error`.
-
-Products are available in `state.response`. Optional `sections` query additional indexes in the same request and expose results in `state.sections`.
+The search API is built like InstantSearch: a search controller holds the state, and headless connectors read and change it and apply the display rules. A surface only binds DOM events to connector actions and renders. It is exported by the SDK root and by its `@askdialog/dialog-sdk/search` alias.
 
 ```typescript
-import { createSearchController, Dialog, SearchStatus } from '@askdialog/dialog-sdk';
-
-const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr-FR', currency: 'EUR' });
-
-const controller = createSearchController({
-  search: (request, options) => client.search(request, options),
-  language: 'fr',
-  country: 'BE', // shopper's country
-  analytics: {
-    surface: 'search_page', // where results are displayed
-    trackViewSearchResults: (params) => client.trackViewSearchResults(params),
-    trackSelectSearchResult: (params) => client.trackSelectSearchResult(params),
-    trackOpenedSearch: (params) => client.trackOpenedSearch(params),
-  },
-  navigate: (url) => router.push(url), // optional platform routing adapter
-  buildProductUrl: (hit) => `/products/${hit.handle}`, // optional, for hits without `url`
-  debounceMs: 100, // optional (default 100)
-  hitsPerPage: 12, // optional (default 12)
-  sections: [{ index: 'collections', hitsPerPage: 5 }], // optional, first page only; a function is resolved per request
-});
-
-const unsubscribe = controller.subscribe((state) => {
-  // state: { status, query, page, response?, sections?, error? }
-  if (state.status === SearchStatus.SUCCESS) {
-    renderCards(state.response.hits).forEach((element, index) => {
-      controller.observeResult(element, index); // viewport impression
-      element.onclick = () => controller.selectResult(index); // attribution, then `navigate`
-    });
-  }
-});
-
-input.onfocus = () => controller.open(); // search opened
-closeButton.onclick = () => controller.close(); // reset without a request
-input.oninput = () => controller.setQuery(input.value); // debounced
-form.onsubmit = () => controller.submit(input.value); // immediate
-nextButton.onclick = () => controller.setPage(controller.getState().page + 1);
-retryButton.onclick = () => controller.retry();
-// Cancel requests and remove observers on unmount.
-controller.dispose();
-```
-
-The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Search controllers and React/Vue hooks require explicit `language` (ISO 639-1) and `country` (the shopper's ISO 3166-1 alpha-2 country), independently of the client locale.
-
-For Shopify, use `window.Shopify.country` as the country. Controller options are fixed at creation; recreate the controller to change language or country.
-
-Analytics send each product hit's `id` (the product id) as `product_id`; `navigate` receives `controller.productUrl(hit)`: the hit's `url`, else `buildProductUrl`'s result.
-
-Framework integrations:
-
-- Subscribe to state changes and render results.
-- Call `open()` when the search input gets focus. It emits `TRACK_OPENED_SEARCH` (`userId`, `surface`, `search_type`) on every focus; deduplication happens downstream.
-- Call `close()` when the shopper dismisses search, instead of `setQuery('')`, which runs the empty-query search. It cancels pending requests, emits impressions already qualified and resets the state to idle; the next `open()` runs the empty-query search again.
-- Call `observeResult(element, index)` for each result and `selectResult(index)` on selection. Use `{ navigate: false }` for middle-clicks and modified clicks. Call `preventDefault()` only when `selectResult` returns true.
-- Pass `navigate` for router navigation. The integration owns URL synchronization.
-- Create one controller per search surface and call `dispose()` on unmount.
-
-- Search controller and connectors (`@askdialog/dialog-sdk/search`)
-
-The `@askdialog/dialog-sdk/search` subpath publishes the new search API, built like InstantSearch: a search controller holds the state, and headless connectors read and change it and apply the display rules. A surface only binds DOM events to connector actions and renders. The root `createSearchController()` above stays the legacy controller until the next major release, when this API replaces it.
-
-```typescript
-import { Dialog } from '@askdialog/dialog-sdk';
 import {
   connectHits,
   connectPagination,
   connectSearchBox,
   connectStats,
   createSearchController,
-} from '@askdialog/dialog-sdk/search';
+  Dialog,
+} from '@askdialog/dialog-sdk';
 
 const client = new Dialog({ apiKey: 'YOUR_API_KEY', locale: 'fr-FR', currency: 'EUR' });
 
@@ -441,17 +378,27 @@ nextButton.onclick = () => pagination.refine(pagination.getRenderState().current
 controller.dispose();
 ```
 
-**Controller.** `createSearchController(options)` takes the legacy controller's options, with `transport` in place of `search`, plus:
+**Controller.** `createSearchController(options)` takes:
 
 | Option | Description |
 |--------|-------------|
+| `language`, `country` | The shopper's ISO 639-1 language and ISO 3166-1 alpha-2 country, e.g. `fr` and `BE` |
+| `analytics` | `surface` and the `trackViewSearchResults`, `trackSelectSearchResult` and `trackOpenedSearch` callbacks; the controller batches and deduplicates impressions |
+| `navigate` | Called with a product's URL after its selection is recorded; omit it to keep native link navigation |
+| `buildProductUrl` | A product's link when its hit has no `url` |
+| `debounceMs`, `hitsPerPage` | Delay before a query change is sent (default 100) and products per page (default 12) |
+| `sections` | Indexes searched next to products (`[{ index: 'collections', hitsPerPage: 5 }]`, or a function resolved per request); the empty query searches none |
 | `transport` | Search function bound to its client (`client.search`), or a custom transport |
 | `apiKey` | Loads the merchant config at the first `open()` or search, once per API key and language for all the page's controllers |
 | `config` | The merchant config (`{ businessRanking?, searchConfig? }`) when the surface already has it; nothing is then loaded |
 | `texts` | Overrides of the default texts |
 | `initialSearchState` | The search state to start from, e.g. read from the URL |
 
-`language`, `country`, `analytics`, `navigate`, `buildProductUrl`, `debounceMs` (default 100), `hitsPerPage` (default 12) and `sections` keep their legacy meaning.
+The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Search controllers and React/Vue hooks require explicit `language` (ISO 639-1) and `country` (the shopper's ISO 3166-1 alpha-2 country), independently of the client locale.
+
+For Shopify, use `window.Shopify.country` as the country. Controller options are fixed at creation; recreate the controller to change language or country.
+
+Analytics send each product hit's `id` (the product id) as `product_id`; `navigate` receives `controller.productUrl(hit)`: the hit's `url`, else `buildProductUrl`'s result.
 
 `controller.getSnapshot()` returns `{ searchState, results, context }`, the same object until the next change. `subscribe(listener)` calls the listener with each new snapshot and returns an unsubscribe function.
 
@@ -465,7 +412,7 @@ controller.dispose();
 - `results`: read-only. `status` (`idle`, `loading`, `success`, `empty` or `error`), `products` (the products `SearchResult`, kept while the next one loads, cleared on error and on `close()`), `sections` and `error`.
 - `context`: read-only. `language`, `country`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails) and `texts`: the default texts of the language (en, fr, de, es, it) with the `texts` overrides applied.
 
-`open()`, `close()`, `retry()` and `dispose()` behave as in the legacy controller. `observeHit`, `selectHit` and `productUrl` are what connectors call.
+`open()` emits the search opened signal on each focus and, with no query, runs the empty-query search. `close()` cancels requests, flushes the impressions already qualified and returns to idle with no query; the next `open()` runs the empty-query search again. `retry()` replays a failed request; `dispose()` cancels requests and removes subscribers and observers. `observeHit`, `selectHit` and `productUrl` are what connectors call. Create one controller per search surface.
 
 **Connectors.** `connectX(controller)` returns `getRenderState()`, `subscribe(listener)`, `dispose()` and its actions. The render state stays the same object while nothing it reads changes, so it fits React's `useSyncExternalStore` or a Vue `shallowRef`. Actions do nothing once disposed.
 

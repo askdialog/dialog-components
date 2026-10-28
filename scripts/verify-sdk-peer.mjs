@@ -10,7 +10,9 @@
  * tarball (the exact manifest npm receives), not the source file.
  *
  * Run it in CI after `changeset version` + build and before `changeset publish`
- * so a mismatched artifact can never reach npm.
+ * so a mismatched artifact can never reach npm. On a pull request, before
+ * `changeset version`, a pending major changeset of the SDK counts: the peers
+ * are then expected on the next major.
  *
  * No external dependencies — uses node built-ins + the `tar` CLI.
  */
@@ -30,8 +32,17 @@ const majorOf = (range) => {
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
+const changesetDir = join(repoRoot, '.changeset');
+const pendingSdkMajor = readdirSync(changesetDir)
+  .filter((file) => file.endsWith('.md') && file !== 'README.md')
+  .some((file) => {
+    const frontmatter = readFileSync(join(changesetDir, file), 'utf8').match(/^---\n([\s\S]*?)\n---/);
+    return /^\s*["']?@askdialog\/dialog-sdk["']?\s*:\s*["']?major/m.test(frontmatter?.[1] ?? '');
+  });
+
 const sdkVersion = readJson(join(repoRoot, 'packages/sdk/package.json')).version;
-const sdkMajor = majorOf(sdkVersion);
+const sdkMajor = majorOf(sdkVersion) + (pendingSdkMajor ? 1 : 0);
+const sdkRelease = pendingSdkMajor ? `${sdkVersion} + a pending major changeset` : sdkVersion;
 
 const packagesDir = join(repoRoot, 'packages');
 const consumers = readdirSync(packagesDir)
@@ -66,12 +77,12 @@ for (const { dir, name: pkgName } of consumers) {
   const peerMajor = majorOf(peer);
   const aligned = peerMajor === sdkMajor;
   console.log(
-    `${aligned ? '✓' : '✗'} ${pkgName}: packed peer "${SDK_PEER}@${peer}" vs SDK ${sdkVersion}`,
+    `${aligned ? '✓' : '✗'} ${pkgName}: packed peer "${SDK_PEER}@${peer}" vs SDK ${sdkRelease}`,
   );
   if (!aligned) {
     failures.push(
       `${pkgName} will publish "${SDK_PEER}@${peer}" (major ${peerMajor}) ` +
-        `but the SDK is ${sdkVersion} (major ${sdkMajor}).`,
+        `but the SDK is ${sdkRelease} (major ${sdkMajor}).`,
     );
   }
 };

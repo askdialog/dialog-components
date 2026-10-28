@@ -1,6 +1,5 @@
-// Entry point of `@askdialog/dialog-sdk/search`: the new search controller and
-// connectors, published next to the legacy root `createSearchController` until
-// they replace it.
+// The search controller and connectors, exported by the SDK root and by its
+// `@askdialog/dialog-sdk/search` alias.
 export { createSearchController } from "./createSearchController";
 export type {
   FilterableAttribute,

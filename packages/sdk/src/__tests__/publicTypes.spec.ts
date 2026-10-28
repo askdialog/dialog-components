@@ -9,13 +9,13 @@ import {
   DialogSearchError,
   SearchArticleHit,
   SearchCollectionHit,
-  SearchControllerState,
   SearchOptions,
   SearchPageHit,
   SearchProductHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
+  SearchResults,
 } from "../index";
 
 describe("public API types", () => {
@@ -100,7 +100,7 @@ describe("public API types", () => {
       )[]
     >();
     expectTypeOf<
-      NonNullable<SearchControllerState["response"]>["hits"]
+      NonNullable<SearchResults["products"]>["hits"]
     >().toEqualTypeOf<SearchProductHit[]>();
     expectTypeOf<SearchProductHit["objectID"]>().toEqualTypeOf<string>();
     expectTypeOf<SearchProductHit["id"]>().toEqualTypeOf<number | string>();
@@ -115,13 +115,13 @@ describe("public API types", () => {
     >().toEqualTypeOf<boolean>();
     expectTypeOf<SearchResult["queryID"]>().toEqualTypeOf<string>();
     expectTypeOf<
-      NonNullable<SearchControllerState["sections"]>["collections"]
+      NonNullable<SearchResults["sections"]>["collections"]
     >().toEqualTypeOf<SearchResult<SearchCollectionHit> | undefined>();
     expectTypeOf<
-      NonNullable<SearchControllerState["sections"]>["articles"]
+      NonNullable<SearchResults["sections"]>["articles"]
     >().toEqualTypeOf<SearchResult<SearchArticleHit> | undefined>();
     expectTypeOf<
-      NonNullable<SearchControllerState["sections"]>["pages"]
+      NonNullable<SearchResults["sections"]>["pages"]
     >().toEqualTypeOf<SearchResult<SearchPageHit> | undefined>();
 
     const error = new DialogSearchError({ status: 404, message: "not found" });

@@ -8,3 +8,4 @@ Breaking changes:
 
 - `useDialogSearch` keeps its options but returns the new controller and its snapshot: `controller.setQuery`, `submit`, `setPage` and `getState` are replaced by `setSearchState`, `search` and `getSnapshot`; `state` is `{ searchState, results, context }` (`state.results.status`, `state.results.products`, `state.context.businessRanking`) instead of the flat `{ status, query, page, response, sections, businessRanking }`.
 - Without a `locale` prop, texts and prices follow the search `language` and `country` instead of English and the browser's number format. With one, they are formatted in that locale with the SDK's helpers.
+- The peer `@askdialog/dialog-sdk` is 3.x, whose root exports the same search API.
