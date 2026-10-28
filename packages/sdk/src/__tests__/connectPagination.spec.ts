@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   connectPagination,
@@ -12,6 +13,16 @@ import {
   SearchResponse,
   SearchResult,
 } from "../types/search";
+
+vi.mock("../utils/searchImpressions", () => ({
+  createSearchImpressionTracker: () => ({
+    setContext: vi.fn(),
+    observe: vi.fn(),
+    forceImpression: vi.fn(),
+    flush: vi.fn(),
+    disconnect: vi.fn(),
+  }),
+}));
 
 const INDEX = "products_fr_be";
 
@@ -85,6 +96,11 @@ describe("connectPagination", () => {
       transport,
       language: "fr",
       country: "BE",
+      analytics: {
+        surface: "search_page",
+        trackViewSearchResults: vi.fn(),
+        trackSelectSearchResult: vi.fn(),
+      },
       debounceMs: 100,
     });
     pagination = connectPagination(controller);
