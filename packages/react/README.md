@@ -213,7 +213,7 @@ The components keep their props and rendering; `useDialogSearch` keeps its optio
 - `controller` is the controller of `@askdialog/dialog-sdk/search`: `setQuery`, `submit` and `setPage` are replaced by `setSearchState` and `search` (or the SDK's connectors), `getState` by `getSnapshot`, `observeResult` / `selectResult` by `observeHit` / `selectHit`.
 - `state` is the controller's snapshot: read `state.results.status`, `state.results.products` and `state.results.sections` instead of `state.status`, `state.response` and `state.sections`, and `state.context.businessRanking` instead of `state.businessRanking`.
 - Without a `locale` prop, texts and prices follow the search `language` and `country` instead of English and the browser's number format.
-- `@askdialog/dialog-sdk` must publish the `@askdialog/dialog-sdk/search` entry point.
+- The peer `@askdialog/dialog-sdk` is 3.x.
 
 ## Theming
 
