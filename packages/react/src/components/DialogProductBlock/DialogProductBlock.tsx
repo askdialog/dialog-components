@@ -6,17 +6,22 @@ import {
   type Suggestion,
 } from "@askdialog/dialog-sdk";
 import type { Dialog } from "@askdialog/dialog-sdk";
+import { DialogAskSomethingElse } from "./DialogAskSomethingElse";
 import { DialogBlockHeader } from "./DialogBlockHeader";
 import { DialogBlockSuggestionsContainer } from "./DialogBlockSuggestionsContainer";
 import { DialogInput } from "./DialogInput";
 import { ThemeProvider } from "./ThemeProvider";
 import "./DialogProductBlock.css";
 
+const BLOCK_QUESTIONS_LIMIT = 2;
+const PANEL_QUESTIONS_LIMIT = 5;
+
 interface DialogProductBlockProps {
   client: Dialog;
   productId: string;
   productTitle: string;
   selectedVariantId?: string;
+  /** @deprecated Use the default "Ask something else" button. */
   enableInput?: boolean;
 }
 
@@ -25,7 +30,7 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
   productId,
   productTitle,
   selectedVariantId,
-  enableInput = true,
+  enableInput = false,
 }) => {
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(true);
   const [suggestionData, setSuggestionData] = useState<Suggestion | undefined>(
@@ -68,7 +73,9 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
       setIsFetchingSuggestions(true);
       setSuggestionData(undefined);
       try {
-        const suggestion = await client.getSuggestions(productId);
+        const suggestion = await client.getSuggestions(productId, {
+          limit: PANEL_QUESTIONS_LIMIT,
+        });
         if (isActive) {
           setSuggestionData(suggestion);
         }
@@ -97,16 +104,25 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
         <DialogBlockHeader title={assistantName} description={description} />
         <DialogBlockSuggestionsContainer
           client={client}
-          questions={suggestionData?.questions}
+          questions={suggestionData?.questions?.slice(0, BLOCK_QUESTIONS_LIMIT)}
           isLoading={isFetchingSuggestions}
           productId={productId}
           productTitle={productTitle}
           selectedVariantId={selectedVariantId}
         />
-        {enableInput && (
+        {enableInput ? (
           <DialogInput
             client={client}
             placeholder={inputPlaceholder}
+            productId={productId}
+            productTitle={productTitle}
+            selectedVariantId={selectedVariantId}
+          />
+        ) : (
+          <DialogAskSomethingElse
+            client={client}
+            questions={suggestionData?.questions}
+            disabled={isFetchingSuggestions}
             productId={productId}
             productTitle={productTitle}
             selectedVariantId={selectedVariantId}
