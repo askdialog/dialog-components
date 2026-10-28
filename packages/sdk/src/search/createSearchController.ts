@@ -1,6 +1,7 @@
 import { searchIndexName } from "../services/search";
 import { SearchStatus } from "../types/searchController";
 import { createHitTracking } from "./hitTracking";
+import { createMerchantContext } from "./merchantConfig";
 import { createSearchRunner } from "./searchRunner";
 import {
   applySearchState,
@@ -18,20 +19,23 @@ import {
 const IDLE: SearchResults = { status: SearchStatus.IDLE };
 
 /** Hold the search state, the results and the context; send a request on each change. */
-export function createSearchController({
-  transport,
-  language,
-  country,
-  analytics,
-  navigate,
-  buildProductUrl,
-  initialSearchState = {},
-  debounceMs = 100,
-  hitsPerPage = 12,
-  sections = [],
-}: SearchControllerOptions): SearchController {
+export function createSearchController(
+  controllerOptions: SearchControllerOptions,
+): SearchController {
+  const {
+    transport,
+    language,
+    country,
+    analytics,
+    navigate,
+    buildProductUrl,
+    initialSearchState = {},
+    debounceMs = 100,
+    hitsPerPage = 12,
+    sections = [],
+  } = controllerOptions;
   const indexName = searchIndexName("products", language, country);
-  const context = { language, country };
+  const merchant = createMerchantContext(controllerOptions);
   const listeners = new Set<(snapshot: SearchSnapshot) => void>();
   let snapshot: SearchSnapshot = {
     searchState: {
@@ -39,7 +43,7 @@ export function createSearchController({
       [indexName]: readIndexState(initialSearchState, indexName),
     },
     results: IDLE,
-    context,
+    context: merchant.context,
   };
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
   let disposed = false;
@@ -74,6 +78,15 @@ export function createSearchController({
     },
   });
 
+  // The merchant config loads at the first open or search.
+  const loadConfig = (): void => {
+    merchant.load((loaded) => {
+      if (!disposed) {
+        update({ context: { ...snapshot.context, ...loaded } });
+      }
+    });
+  };
+
   const cancel = (): void => {
     clearTimeout(debounceTimer);
     debounceTimer = undefined;
@@ -82,6 +95,7 @@ export function createSearchController({
 
   const send = (): void => {
     debounceTimer = undefined;
+    loadConfig();
     void runner.run(readIndexState(snapshot.searchState, indexName));
   };
 
@@ -117,6 +131,7 @@ export function createSearchController({
         return;
       }
       if (change === "query") {
+        loadConfig();
         cancel();
         debounceTimer = setTimeout(send, debounceMs);
       } else if (change === "other") {
@@ -130,6 +145,7 @@ export function createSearchController({
         return;
       }
       hitTracking.open();
+      loadConfig();
       const { status } = snapshot.results;
       const waiting =
         status !== SearchStatus.IDLE && status !== SearchStatus.ERROR;

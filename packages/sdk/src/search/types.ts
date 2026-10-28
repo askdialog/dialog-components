@@ -1,3 +1,4 @@
+import { SearchBusinessRanking } from "../types/dialogConfig";
 import {
   SearchProductHit,
   SearchResult,
@@ -9,6 +10,7 @@ import {
   SearchSection,
   SearchStatus,
 } from "../types/searchController";
+import { SearchTexts } from "../utils/searchTexts";
 
 /** What the visitor asks for on one index, in InstantSearch's `uiState` entry shape. */
 export interface IndexSearchState {
@@ -33,12 +35,38 @@ export interface SearchResults {
   readonly error?: unknown;
 }
 
-/** Read-only context the requests are built from. */
+/** An attribute the shopper can filter products on, from the search config. */
+export interface FilterableAttribute {
+  readonly key: string;
+  readonly label: string;
+  readonly type: "keyword" | "number" | "boolean" | "date";
+  readonly values: readonly string[];
+}
+
+/** The part of the storefront search config the SDK reads. */
+export interface SearchConfig {
+  readonly filterableAttributes: readonly FilterableAttribute[];
+}
+
+/** The merchant's configuration, passed in or loaded once per page. */
+export interface MerchantConfig {
+  /** Absent when the merchant chose none or its loading failed. */
+  readonly businessRanking?: SearchBusinessRanking;
+  readonly searchConfig?: SearchConfig;
+}
+
+/** Read-only context the requests and the UI are built from. */
 export interface SearchContext {
   /** Lowercase ISO 639-1 language code, e.g. `fr`. */
   readonly language: string;
   /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`. */
   readonly country: string;
+  /** Undefined until loaded, without one, or when its loading failed. */
+  readonly businessRanking?: SearchBusinessRanking;
+  /** Empty until loaded or when its loading failed. */
+  readonly filterableAttributes: readonly FilterableAttribute[];
+  /** Default texts of the language, overrides applied. */
+  readonly texts: SearchTexts;
 }
 
 export interface SearchSnapshot {
@@ -50,6 +78,12 @@ export interface SearchSnapshot {
 export interface SearchControllerOptions {
   /** Search function bound to its client, or a custom transport. */
   transport: SearchFunction;
+  /** Loads the merchant config when `config` is absent; without either, the context keeps no config. */
+  apiKey?: string;
+  /** The merchant config when the surface already has it; nothing is then loaded. */
+  config?: MerchantConfig;
+  /** Replace some of the default texts. */
+  texts?: Partial<SearchTexts>;
   language: string;
   country: string;
   /** Event callbacks; the controller batches and deduplicates impressions. */
