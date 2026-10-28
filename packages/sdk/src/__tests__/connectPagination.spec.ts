@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   connectPagination,
@@ -75,6 +76,15 @@ describe("connectPagination", () => {
 
   beforeEach(async () => {
     vi.useFakeTimers();
+    // Hit tracking observes impressions once a response arrives.
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        observe = vi.fn();
+        unobserve = vi.fn();
+        disconnect = vi.fn();
+      },
+    );
     transport.mockImplementation(
       () =>
         new Promise((resolve) => {
@@ -85,6 +95,11 @@ describe("connectPagination", () => {
       transport,
       language: "fr",
       country: "BE",
+      analytics: {
+        surface: "search_page",
+        trackViewSearchResults: vi.fn(),
+        trackSelectSearchResult: vi.fn(),
+      },
       debounceMs: 100,
     });
     pagination = connectPagination(controller);
@@ -98,6 +113,7 @@ describe("connectPagination", () => {
     pending.length = 0;
     transport.mockReset();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it("exposes the current page, the page count, first/last flags and the numbered pages", async () => {
