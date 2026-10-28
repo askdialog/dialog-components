@@ -47,6 +47,11 @@ const create = (): SearchController =>
     transport,
     language: "fr",
     country: "BE",
+    analytics: {
+      surface: "search_page",
+      trackViewSearchResults: vi.fn(),
+      trackSelectSearchResult: vi.fn(),
+    },
     sections: [
       { index: "collections" },
       { index: "articles" },
@@ -68,11 +73,21 @@ const search = async (
 
 beforeEach(() => {
   vi.useFakeTimers();
+  // Hit tracking observes impressions once a response arrives.
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+    },
+  );
   transport.mockResolvedValue(answer);
 });
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
 
