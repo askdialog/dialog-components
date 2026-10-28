@@ -1,5 +1,6 @@
 import { searchIndexName } from "../services/search";
 import { SearchStatus } from "../types/searchController";
+import { createHitTracking } from "./hitTracking";
 import { createSearchRunner } from "./searchRunner";
 import {
   applySearchState,
@@ -21,6 +22,9 @@ export function createSearchController({
   transport,
   language,
   country,
+  analytics,
+  navigate,
+  buildProductUrl,
   initialSearchState = {},
   debounceMs = 100,
   hitsPerPage = 12,
@@ -47,11 +51,27 @@ export function createSearchController({
     }
   };
 
+  const hitTracking = createHitTracking({
+    analytics,
+    navigate,
+    buildProductUrl,
+    products: () => snapshot.results.products,
+  });
+
   const runner = createSearchRunner({
     transport,
     requestConfig: { indexName, language, country, hitsPerPage },
     sections,
-    onResults: (next) => update({ results: next(snapshot.results) }),
+    onResults: (next) => {
+      const results = next(snapshot.results);
+      if (
+        results.products !== undefined &&
+        results.products !== snapshot.results.products
+      ) {
+        hitTracking.onProducts(results.products);
+      }
+      update({ results });
+    },
   });
 
   const cancel = (): void => {
@@ -106,11 +126,15 @@ export function createSearchController({
     },
 
     open() {
+      if (disposed) {
+        return;
+      }
+      hitTracking.open();
       const { status } = snapshot.results;
       const waiting =
         status !== SearchStatus.IDLE && status !== SearchStatus.ERROR;
       const query = readIndexState(snapshot.searchState, indexName).query;
-      if (disposed || waiting || debounceTimer !== undefined || query !== "") {
+      if (waiting || debounceTimer !== undefined || query !== "") {
         return;
       }
       send();
@@ -121,6 +145,7 @@ export function createSearchController({
         return;
       }
       cancel();
+      hitTracking.close();
       const searchState: SearchState = {
         ...snapshot.searchState,
         [indexName]: { query: "", page: 0 },
@@ -136,10 +161,15 @@ export function createSearchController({
       void runner.run(failed);
     },
 
+    observeHit: hitTracking.observeHit,
+    selectHit: hitTracking.selectHit,
+    productUrl: hitTracking.productUrl,
+
     dispose() {
       disposed = true;
       cancel();
       listeners.clear();
+      hitTracking.dispose();
     },
   };
 }
