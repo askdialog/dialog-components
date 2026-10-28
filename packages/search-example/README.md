@@ -4,11 +4,14 @@ Raw JavaScript reference page for `dialog.search()` (DEC-2452): a framework-free
 storefront search demonstrating input, loading, errors, empty results, product
 cards and pagination.
 
-Debounce, cancellation, stale-response protection, state, pagination and
-analytics attribution come from the SDK's `createSearchController()`
-(DEC-2459) — this page only renders the controller's state. It is the
-functional gate of the shared behavior: the reference wiring for the raw
-JavaScript, React, Vue and Shopify adapters.
+It runs on the search API of `@askdialog/dialog-sdk/search`: a
+`createSearchController()` holds the search state, the results and the
+context, and the `connectSearchBox`, `connectHits`, `connectStats` and
+`connectPagination` connectors read and change them. Debounce, cancellation,
+stale-response protection, display rules (title, link, image, price),
+pagination and analytics attribution come from the SDK — this page binds DOM
+events to connector actions and renders their render states. It is the
+reference wiring for a framework-free integration.
 
 ## Run
 
@@ -25,11 +28,12 @@ instead of the sources.
 The page searches in French for a shopper in France (`language: "fr"`,
 `country: "FR"`, index `products_fr_fr`); the country picks the market whose
 prices the hits carry. Each product hit is Algolia's Shopify record
-(`SearchProductHit`): the card shows its `product_image`
-(the variant's `image` when absent), its `title`, its lowest
-variant price (`variants_min_price`, formatted with `currency`, the base
-currency of the shopper's market) and links to its `url`, else to
-`/products/<handle>` through the controller's `buildProductUrl`.
+(`SearchProductHit`); `connectHits` gives it a ready-to-render `display`: the
+card shows its `image` (the product's image, else the variant's), its `title`,
+its `price` (lowest variant price formatted in the market currency) and links
+to its `href` (the hit's `url`, else `/products/<handle>` through the
+controller's `buildProductUrl`, http(s) only). The status line shows
+`connectStats`' count in the shopper's language.
 
 ## Analytics
 
@@ -37,16 +41,16 @@ The search analytics events (DEC-2448, snake_case end to end) are owned by the
 controller — the page only declares `analytics.surface` and forwards the
 track methods of the `Dialog` instance:
 
-- `opened_search` — `controller.open()` on every focus of the search input
+- `opened_search` — `searchBox.open()` on every focus of the search input
   (`TRACK_OPENED_SEARCH`, logged as `[search] opened` in the console). It
   carries `userId`, `surface` and `search_type`; deduplication happens
   downstream.
 
 - `view_search_results` — viewport impressions (≥50% visible for ≥500ms,
   deduplicated by `(query_id, product_id)`, batched) via
-  `controller.observeResult(card, index)` after rendering each card. A
+  `hits.observe(card, index)` after rendering each card. A
   rendered no-results state is emitted by the controller with `items: []`.
-- `select_search_result` — `controller.selectResult(index)` on result clicks,
+- `select_search_result` — `hits.select(index)` on result clicks,
   including `auxclick`/cmd+click; the click forces the item's impression first.
 
 `query_id` is the response's `queryID`: every request — pagination included —
