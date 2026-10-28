@@ -5,6 +5,16 @@ import { createSearchController } from "../search/createSearchController";
 import { SearchController } from "../search/types";
 import { SearchResponse, SearchResult } from "../types/search";
 
+vi.mock("../utils/searchImpressions", () => ({
+  createSearchImpressionTracker: () => ({
+    setContext: vi.fn(),
+    observe: vi.fn(),
+    forceImpression: vi.fn(),
+    flush: vi.fn(),
+    disconnect: vi.fn(),
+  }),
+}));
+
 const INDEX = "products_fr_be";
 
 const result = (index: string, hits: unknown[]): SearchResult => ({

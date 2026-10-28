@@ -108,6 +108,8 @@ export interface SearchController {
   subscribe(listener: (snapshot: SearchSnapshot) => void): () => void;
   /** Any change other than the page resets the page to 0. */
   setSearchState(updater: SearchStateUpdater): void;
+  /** Send the search state now, without waiting for a pending query debounce. */
+  search(): void;
   /** Emit the search opened signal; with no query, run the empty-query search. */
   open(): void;
   /** Cancel requests, flush qualified impressions and return to idle with no query. */
