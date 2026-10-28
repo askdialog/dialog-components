@@ -7,6 +7,9 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["{projectRoot}/dist"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
     }
   },
   "tags": ["type:library", "scope:vue"],

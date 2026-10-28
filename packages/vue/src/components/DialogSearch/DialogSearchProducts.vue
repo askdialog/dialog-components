@@ -2,35 +2,30 @@
   <section class="dialog-search-products">
     <div class="dialog-search-section-head">
       <p class="dialog-search-label">
-        {{
-          props.response.query === ""
-            ? props.messages.rankingLabel(props.businessRanking)
-            : props.messages.productsLabel
-        }}<span
-          v-if="props.response.nbHits > 0"
-          class="dialog-search-label-count"
-        >
-          · {{ props.messages.resultsCount(props.response.nbHits) }}</span
+        {{ props.title
+        }}<span v-if="props.nbHits > 0" class="dialog-search-label-count">
+          · {{ props.texts.resultsCount(props.nbHits) }}</span
         >
       </p>
     </div>
     <ul class="dialog-search-results">
       <li
-        v-if="props.response.hits.length === 0"
+        v-if="props.hits.length === 0"
         class="dialog-search-empty"
         role="status"
       >
-        {{ props.messages.noResults }}
+        {{ props.texts.noResults }}
       </li>
       <DialogSearchProductCard
-        v-for="(hit, index) in props.response.hits"
+        v-for="({ hit, display }, index) in props.hits"
         v-else
         :key="hit.objectID"
         :controller="props.controller"
         :hit="hit"
         :index="index"
         :locale="props.locale"
-        :query="props.response.query"
+        :query="props.query"
+        :display="display"
       />
     </ul>
   </section>
@@ -38,20 +33,20 @@
 
 <script setup lang="ts">
 import type {
-  SearchBusinessRanking,
+  ProductHit,
   SearchController,
-  SearchProductHit,
-  SearchResult,
-} from "@askdialog/dialog-sdk";
+  SearchTexts,
+} from "@askdialog/dialog-sdk/search";
 import DialogSearchProductCard from "./DialogSearchProductCard.vue";
-import type { SearchMessages } from "./searchMessages";
 
 const props = defineProps<{
   controller: SearchController;
-  response: SearchResult<SearchProductHit>;
+  hits: readonly ProductHit[];
+  query: string;
+  nbHits: number;
+  title: string;
   locale: string | undefined;
-  messages: SearchMessages;
-  businessRanking: SearchBusinessRanking | undefined;
+  texts: SearchTexts;
 }>();
 </script>
 

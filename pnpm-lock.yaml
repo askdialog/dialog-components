@@ -205,9 +205,15 @@ importers:
       eslint-plugin-vue:
         specifier: ^10.0.0
         version: 10.0.0(eslint@9.39.1(jiti@2.4.2))(vue-eslint-parser@10.2.0(eslint@9.39.1(jiti@2.4.2)))
+      jsdom:
+        specifier: ~22.1.0
+        version: 22.1.0
       vite-plugin-eslint:
         specifier: ^1.8.1
         version: 1.8.1(eslint@9.39.1(jiti@2.4.2))(vite@6.2.6(@types/node@22.14.0)(jiti@2.4.2)(terser@5.44.1)(yaml@2.8.1))
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@22.14.0)(@vitest/ui@3.2.4)(jiti@2.4.2)(jsdom@22.1.0)(terser@5.44.1)(yaml@2.8.1)
       vue-tsc:
         specifier: ^2.2.4
         version: 2.2.8(typescript@5.9.3)

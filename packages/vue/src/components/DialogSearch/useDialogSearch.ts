@@ -1,15 +1,16 @@
 import {
-  createSearchController,
   registerDialogInstallation,
   type Dialog,
-  type SearchBusinessRanking,
-  type SearchController,
-  type SearchControllerState,
-  type SearchProductHit,
-  type SearchSection,
   type SearchSurface,
   type Theme,
 } from "@askdialog/dialog-sdk";
+import {
+  createSearchController,
+  type SearchController,
+  type SearchProductHit,
+  type SearchSection,
+  type SearchSnapshot,
+} from "@askdialog/dialog-sdk/search";
 import { onMounted, onUnmounted, shallowRef, type ShallowRef } from "vue";
 
 export interface UseDialogSearchOptions {
@@ -33,10 +34,8 @@ export interface UseDialogSearchOptions {
   sections?: readonly SearchSection[];
 }
 
-/** The controller state plus the merchant's business ranking, read from the dialog config. */
-export type DialogSearchState = SearchControllerState & {
-  businessRanking?: SearchBusinessRanking;
-};
+/** The controller's snapshot: search state, results and context. */
+export type DialogSearchState = SearchSnapshot;
 
 export interface DialogSearch {
   controller: SearchController;
@@ -51,7 +50,10 @@ export const useDialogSearch = (
 ): DialogSearch => {
   const { client, surface = "search_page", ...rest } = options;
   const controller = createSearchController({
-    search: (request, requestOptions) => client.search(request, requestOptions),
+    transport: (request, requestOptions) =>
+      client.search(request, requestOptions),
+    // The controller loads the merchant's business ranking at the first open or search.
+    apiKey: client.apiKey,
     analytics: {
       surface,
       trackViewSearchResults: (params) => client.trackViewSearchResults(params),
@@ -62,25 +64,12 @@ export const useDialogSearch = (
     ...rest,
   });
 
-  let businessRanking: SearchBusinessRanking | undefined;
-  const state = shallowRef<DialogSearchState>(controller.getState());
-  const unsubscribe = controller.subscribe(() => {
-    state.value = { ...controller.getState(), businessRanking };
+  const state = shallowRef(controller.getSnapshot());
+  const unsubscribe = controller.subscribe((snapshot) => {
+    state.value = snapshot;
   });
 
-  let active = true;
-
   onMounted(() => {
-    client
-      .getDialogConfig()
-      .then((config) => {
-        if (active) {
-          businessRanking = config.searchBusinessRanking;
-          state.value = { ...state.value, businessRanking };
-        }
-      })
-      // Without the config the empty-query products keep the default title.
-      .catch(() => undefined);
     registerDialogInstallation({
       method: "vue",
       version:
@@ -91,7 +80,6 @@ export const useDialogSearch = (
   });
 
   onUnmounted(() => {
-    active = false;
     unsubscribe();
     controller.dispose();
   });
