@@ -14,6 +14,7 @@ Vue 3 component library for Dialog AI-powered product assistance.
     - [DialogSearchBar](#dialogsearchbar)
     - [DialogSearchResults](#dialogsearchresults)
     - [DialogSearchPagination](#dialogsearchpagination)
+    - [DialogSearchProductCard](#dialogsearchproductcard)
 - [Theming](#theming)
 - [Development](#development)
 - [TypeScript](#typescript)
@@ -105,7 +106,7 @@ Standalone input component for asking questions.
 
 ### Storefront search
 
-`useDialogSearch` binds the SDK controller to component state. The controller manages requests and analytics; components handle rendering and navigation.
+`useDialogSearch` binds the SDK search controller (`createSearchController` from `@askdialog/dialog-sdk/search`) to component state. The controller manages requests, the merchant's configuration and analytics; the components read its connectors (`connectSearchBox`, `connectHits`, `connectSections`, `connectPagination`) and only handle rendering. Texts, display rules, title highlight, prices and theme come from the SDK.
 
 ```vue
 <script setup lang="ts">
@@ -130,7 +131,7 @@ const { controller, state, theme } = useDialogSearch({ client, language: 'en', c
 
 #### useDialogSearch
 
-Creates one search controller per composable instance and disposes it on unmount.
+Creates one search controller per composable instance and disposes it on unmount. The controller loads the merchant's business ranking with the client's API key at the first focus or search, for the title of the empty-query products.
 
 **Options:**
 - `client` (Dialog) - Dialog SDK client instance (required)
@@ -147,7 +148,7 @@ Search language and country are explicit and independent of `client.locale`, whi
 
 Options are read once during setup — later changes don't rebind the live controller.
 
-**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `state` is a `ShallowRef`; `state.value.status` is `idle` / `loading` / `success` / `empty` / `error`.
+**Returns:** `{ controller, state, theme }` — pass them to the components below; `theme` is the client's theme, for `DialogSearchResults`. `controller` is the SDK's `SearchController`, which you can also pass to the connectors of `@askdialog/dialog-sdk/search` for a custom UI. `state` is a `ShallowRef` of the controller's snapshot: `state.value.searchState` (what the shopper asks for), `state.value.results` (`status` is `idle` / `loading` / `success` / `empty` / `error`, `products`, `sections`, `error`) and `state.value.context` (language, country, business ranking, texts).
 
 With the collections column, for a catalog that exposes a collections index:
 
@@ -162,7 +163,7 @@ const { controller, state, theme } = useDialogSearch({
 
 #### DialogSearchBar
 
-Search input: typing runs a debounced search, submitting (Enter) searches immediately. Focusing the input calls `controller.open()`, which emits the `TRACK_OPENED_SEARCH` analytics event.
+Search input, on `connectSearchBox`: typing runs a debounced search, submitting (Enter) searches immediately. Focusing the input opens the search, which emits the `TRACK_OPENED_SEARCH` analytics event and, with no query yet, shows the empty-query products.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
@@ -176,20 +177,32 @@ Floating results panel overlaying the page content: portaled to `document.body` 
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
-- `state` (SearchControllerState) - From `useDialogSearch` (required)
-- `locale` (string, optional) - BCP 47 locale for prices, counts and labels (English labels and browser number format when omitted)
+- `state` (SearchSnapshot) - From `useDialogSearch` (required)
+- `locale` (string, optional) - BCP 47 locale for prices, counts and labels, formatted with the SDK's helpers. Omitted, they follow the controller's `language` and `country`.
 - `theme` (Theme, optional) - The client's theme, as returned by `useDialogSearch`; styles the panel (palette, radii, font)
 - `layout` (`'list' | 'grid'`, optional) - Products layout (default: `'list'`)
 - `seeAllHref` ((query) => string, optional) - Link of the "See all results" footer button; omitted, the panel paginates instead
 
 #### DialogSearchPagination
 
-Previous/next controls with a page indicator; hidden while there is a single page. Rendered by `DialogSearchResults` — exported only for custom layouts.
+Previous/next controls with a page indicator, on `connectPagination`; hidden while loading or while there is a single page. Rendered by `DialogSearchResults` — exported only for custom layouts.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
-- `state` (SearchControllerState) - From `useDialogSearch` (required)
-- `locale` (string, optional) - Locale of the button labels
+- `state` (SearchSnapshot) - From `useDialogSearch` (required)
+- `locale` (string, optional) - Locale of the button labels; omitted, the controller's `language`
+
+#### DialogSearchProductCard
+
+One product of the results, with its image, highlighted title, price and link, and its search attribution (viewport impressions, select on click and middle-click). Rendered by `DialogSearchResults` — exported only for custom layouts.
+
+**Props:**
+- `controller` (SearchController) - From `useDialogSearch` (required)
+- `hit` (SearchProductHit) - The product hit (required)
+- `index` (number) - Its position in `state.results.products.hits`, for attribution (required)
+- `locale` (string, optional) - Locale of the prices; omitted, the controller's `language` and `country`
+- `query` (string, optional) - The query emphasized in the title
+- `display` (ProductHitDisplay, optional) - The hit's display from `connectHits`; built from the hit when omitted
 
 ## Theming
 
@@ -287,6 +300,9 @@ pnpm build
 
 # Clean dist folder
 pnpm --filter @askdialog/dialog-vue clean
+
+# Run the specs
+pnpm --filter @askdialog/dialog-vue test
 
 # Lint code
 pnpm --filter @askdialog/dialog-vue lint
