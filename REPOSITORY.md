@@ -152,6 +152,8 @@ packages/
 
 Storefront search runs on four surfaces: `@askdialog/dialog-react`, `@askdialog/dialog-vue`, the Shopify theme extension and the widget (both in `dialog-ecom`). It follows an InstantSearch-like architecture: the search logic lives once in `@askdialog/dialog-sdk`, and each surface keeps only its rendering and a thin subscription layer.
 
+> **Status:** this is the target architecture, being built by the "Storefront search on SDK connectors" project. Until its milestones land, `packages/sdk/src/searchController.ts` still exposes the previous API (`getState`, `setQuery`, `submit`, `setPage`) and the connectors below do not exist yet. The placement rules apply in review from now on.
+
 ### Search Controller
 
 `createSearchController(options)` holds everything a surface reads, in one snapshot (`getSnapshot()`, `subscribe`):
