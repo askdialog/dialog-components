@@ -52,7 +52,7 @@ const fromConfig = (
 
 type MerchantContextOptions = Pick<
   SearchControllerOptions,
-  "apiKey" | "config" | "texts" | "language" | "country"
+  "apiKey" | "config" | "texts" | "language" | "country" | "storefrontRoot"
 >;
 
 /** The initial context, and `load`, which loads the config at its first call unless passed in. */
@@ -62,6 +62,7 @@ export const createMerchantContext = ({
   texts,
   language,
   country,
+  storefrontRoot = "/",
 }: MerchantContextOptions): {
   context: SearchContext;
   load: (onLoaded: (loaded: Partial<SearchContext>) => void) => void;
@@ -74,6 +75,7 @@ export const createMerchantContext = ({
       country,
       ...fromConfig(config ?? {}),
       texts: getSearchTexts(`${language}-${country.toUpperCase()}`, texts),
+      storefrontRoot,
     },
     load(onLoaded) {
       if (loading || apiKey === undefined) {

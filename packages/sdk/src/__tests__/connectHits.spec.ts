@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+/* eslint max-lines: ["error", 220] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { connectHits } from "../search/connectHits";
 import { createSearchController } from "../search/createSearchController";
@@ -32,7 +33,12 @@ const hit = (overrides: Partial<SearchProductHit>): SearchProductHit => ({
   options: {},
   option_names: [],
   inventory_available: true,
-  _display: {},
+  _display: {
+    title: "Produit",
+    url: "/products/produit",
+    price: "",
+    lines: [],
+  },
   ...overrides,
 });
 
@@ -82,53 +88,57 @@ afterEach(() => {
 });
 
 describe("connectHits", () => {
-  it("gives each hit its display in the market currency", async () => {
-    const controller = create({
-      buildProductUrl: (product) => `/products/${product.handle ?? ""}`,
-    });
+  it("gives each hit its display from `_display`, never from the record", async () => {
+    const controller = create({ storefrontRoot: "/fr-be/" });
     const hits = connectHits(controller);
     transport.mockResolvedValue(
       answer("products_fr_be", "creme", [
         hit({
-          title: "Crème mains",
-          url: "/products/creme-mains",
+          title: "Raw",
+          url: "/products/raw",
           product_image: "raw.jpg",
-          _display: { image: "product.jpg" },
-          variants_min_price: 12.5,
-          variants_compare_at_price_min: 15,
+          variants_min_price: 1,
           currency: "EUR",
+          _display: {
+            title: "Crème mains",
+            url: "products/creme-mains",
+            image: "product.jpg",
+            price: "12,50 €",
+            compare_at_price: "15,00 €",
+            lines: [
+              { position: "below_title", text: "Bio" },
+              { position: "above_title", text: "Nouveau" },
+              { position: "below_title", text: "Vegan" },
+            ],
+          },
         }),
-        hit({ objectID: "v2", handle: "savon", image: "", currency: "EUR" }),
-        hit({ objectID: "v3", title: "Script", url: "javascript:alert(1)" }),
+        hit({ objectID: "v2" }),
       ]),
     );
 
     controller.setSearchState({ products_fr_be: { query: "creme" } });
     await vi.advanceTimersByTimeAsync(100);
 
-    const [first, second, third] = hits
+    const [first, second] = hits
       .getRenderState()
       .hits.map(({ display }) => display);
-    expect({
-      ...first,
-      price: first.price.replace(/\s/g, " "),
-      compareAtPrice: first.compareAtPrice.replace(/\s/g, " "),
-    }).toEqual({
+    expect(first).toEqual({
       title: "Crème mains",
       titleParts: { before: "", match: "Crème", after: " mains" },
-      href: "/products/creme-mains",
+      href: `${window.location.origin}/fr-be/products/creme-mains`,
       image: "product.jpg",
       price: "12,50 €",
       compareAtPrice: "15,00 €",
+      lineAboveTitle: "Nouveau",
+      lineBelowTitle: "Bio",
     });
     expect(second).toMatchObject({
-      title: "savon",
-      href: "/products/savon",
       image: undefined,
       price: "",
       compareAtPrice: "",
+      lineAboveTitle: undefined,
+      lineBelowTitle: undefined,
     });
-    expect(third.href).toBeUndefined();
     expect(hits.getRenderState()).toMatchObject({
       query: "creme",
       title: "Produits",
@@ -167,8 +177,16 @@ describe("connectHits", () => {
     const hits = connectHits(controller);
     transport.mockResolvedValue(
       answer("products_fr_be", "", [
-        hit({ url: "/products/a" }),
-        hit({ objectID: "v2" }),
+        hit({}),
+        hit({
+          objectID: "v2",
+          _display: {
+            title: "B",
+            url: "javascript:void(0)",
+            price: "",
+            lines: [],
+          },
+        }),
       ]),
     );
     controller.open();
@@ -182,7 +200,10 @@ describe("connectHits", () => {
     );
 
     expect(hits.select(0)).toBe(true);
-    expect(navigate).toHaveBeenCalledWith("/products/a", expect.anything());
+    expect(navigate).toHaveBeenCalledWith(
+      "/products/produit",
+      expect.anything(),
+    );
     expect(hits.select(0, { navigate: false })).toBe(false);
     expect(hits.select(1)).toBe(false);
     expect(trackSelectSearchResult).toHaveBeenCalledTimes(3);

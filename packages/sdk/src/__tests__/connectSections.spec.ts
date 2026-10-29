@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+/* eslint max-lines: ["error", 210] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { connectSections } from "../search/connectSections";
 import { createSearchController } from "../search/createSearchController";
@@ -29,32 +30,41 @@ const result = (index: string, hits: unknown[]): SearchResult => ({
   queryID: "qid",
 });
 
+const unlinked = (objectID: string) => ({
+  objectID,
+  tags: [],
+  _display: { title: "Script", url: "javascript:alert(1)" },
+});
+
 const answer: SearchResponse = {
   results: [
-    result(INDEX, [{ objectID: "p1" }]),
+    result(INDEX, []),
     result("collections_fr_be", [
       {
         objectID: "c1",
-        title: "Crème visage",
-        url: "/collections/creme",
+        title: "Raw",
+        url: "/collections/raw",
         image: "raw.jpg",
-        _display: {},
+        _display: { title: "Crème visage", url: "/collections/creme" },
       },
-      { objectID: "c2", title: "Sans lien" },
-      { objectID: "c3", title: "Script", url: "javascript:alert(1)" },
+      unlinked("c2"),
     ]),
     result("articles_fr_be", [
       {
         objectID: "a1",
-        title: "La crème",
-        url: "/blogs/news/creme",
         image: "raw.jpg",
-        _display: { image: "a.jpg" },
         tags: [],
+        _display: {
+          title: "La crème",
+          url: "https://blog.test/creme",
+          image: "a.jpg",
+        },
       },
+      unlinked("a2"),
     ]),
     result("pages_fr_be", [
-      { objectID: "g1", handle: "creme-faq", _display: {} },
+      { objectID: "g1", _display: { title: "creme-faq", url: "pages/faq" } },
+      unlinked("g2"),
     ]),
   ],
 };
@@ -71,6 +81,7 @@ const create = (): SearchController =>
       trackViewSearchResults: vi.fn(),
       trackSelectSearchResult: vi.fn(),
     },
+    storefrontRoot: "/fr-be/",
     sections: [
       { index: "collections" },
       { index: "articles" },
@@ -111,7 +122,7 @@ afterEach(() => {
 });
 
 describe("connectSections", () => {
-  it("exposes collections that have a link, articles and pages, each with its display", async () => {
+  it("exposes the hits of each section that have a link, each with its display from `_display`", async () => {
     const controller = create();
     const sections = connectSections(controller);
 
@@ -125,7 +136,6 @@ describe("connectSections", () => {
             title: "Crème visage",
             titleParts: { before: "", match: "Crème", after: " visage" },
             href: "/collections/creme",
-            // `_display` has no image: the record's is not displayed.
             image: undefined,
           },
         },
@@ -136,7 +146,7 @@ describe("connectSections", () => {
           display: {
             title: "La crème",
             titleParts: { before: "La ", match: "crème", after: "" },
-            href: "/blogs/news/creme",
+            href: "https://blog.test/creme",
             image: "a.jpg",
           },
         },
@@ -147,7 +157,7 @@ describe("connectSections", () => {
           display: {
             title: "creme-faq",
             titleParts: { before: "", match: "creme", after: "-faq" },
-            href: undefined,
+            href: `${window.location.origin}/fr-be/pages/faq`,
             image: undefined,
           },
         },

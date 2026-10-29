@@ -28,11 +28,11 @@ instead of the sources.
 The page searches in French for a shopper in France (`language: "fr"`,
 `country: "FR"`, index `products_fr_fr`); the country picks the market whose
 prices the hits carry. Each product hit is Algolia's Shopify record
-(`SearchProductHit`); `connectHits` gives it a ready-to-render `display`: the
-card shows its `image` (the product's image, else the variant's), its `title`,
-its `price` (lowest variant price formatted in the market currency) and links
-to its `href` (the hit's `url`, else `/products/<handle>` through the
-controller's `buildProductUrl`, http(s) only). The status line shows
+(`SearchProductHit`); `connectHits` gives it a ready-to-render `display`, read
+from the server's `_display`: the card shows its `image`, its `title`, its
+`price` (formatted in the market currency by the server) and links to its
+`href` (`_display.url`, a relative one resolved under the controller's
+`storefrontRoot`, http(s) only). The status line shows
 `connectStats`' count in the shopper's language.
 
 ## Analytics

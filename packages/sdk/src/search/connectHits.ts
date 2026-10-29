@@ -1,25 +1,29 @@
-import { SearchProductHit, SearchResult } from "../types/search";
-import { hitImage, hitTitle, safeHref } from "../utils/searchDisplay";
 import {
-  formatSearchCompareAtPrice,
-  formatSearchPrice,
-} from "../utils/searchPrice";
+  SearchDisplayLine,
+  SearchProductHit,
+  SearchResult,
+} from "../types/search";
+import { hitImage } from "../utils/searchDisplay";
 import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
 import { Connector, createConnector } from "./connector";
 import { SearchContext, SearchController } from "./types";
 
-/** What a surface renders for a product hit. */
+/** What a surface renders for a product hit, all from the server's `_display`. */
 export interface ProductHitDisplay {
   readonly title: string;
   /** The title split around the answered query, for highlighting. */
   readonly titleParts: TitleParts;
-  /** HTTP(S) link; absent when the hit has none and none can be built. */
+  /** HTTP(S) link; absent when unsafe or off the storefront. */
   readonly href?: string;
   readonly image?: string;
-  /** Lowest variant price in the market currency; empty when unknown. */
+  /** Formatted in the shopper's market currency. */
   readonly price: string;
   /** Struck next to the price when higher than it; else empty. */
   readonly compareAtPrice: string;
+  /** The first line the merchant shows above the title. */
+  readonly lineAboveTitle?: string;
+  /** The first line the merchant shows below the title. */
+  readonly lineBelowTitle?: string;
 }
 
 export interface ProductHit {
@@ -46,44 +50,45 @@ export interface HitsConnector extends Connector<HitsRenderState> {
   select(index: number, options?: { navigate?: boolean }): boolean;
 }
 
-const marketLocale = ({ language, country }: SearchContext): string =>
-  `${language}-${country.toUpperCase()}`;
+const lineText = (
+  lines: readonly SearchDisplayLine[],
+  position: SearchDisplayLine["position"],
+): string | undefined => lines.find((line) => line.position === position)?.text;
 
-/**
- * The display `connectHits` gives `hit`: its title highlighted for `query`,
- * its prices in `locale`, the shopper's market when omitted.
- */
+/** The display `connectHits` gives `hit`: its title highlighted for `query`. */
 export const productHitDisplay = (
   controller: SearchController,
   hit: SearchProductHit,
   query: string,
-  locale = marketLocale(controller.getSnapshot().context),
+  /** @deprecated Ignored: prices come formatted from the server. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Callers that still pass a locale keep compiling.
+  _locale?: string,
 ): ProductHitDisplay => {
-  const title = hitTitle(hit);
+  const { title, price, compare_at_price, lines } = hit._display;
 
   return {
     title,
     titleParts: splitTitleMatch(title, query),
-    href: safeHref(controller.productUrl(hit)),
+    href: controller.productUrl(hit),
     image: hitImage(hit),
-    price: formatSearchPrice(hit, locale),
-    compareAtPrice: formatSearchCompareAtPrice(hit, locale),
+    price,
+    compareAtPrice: compare_at_price ?? "",
+    lineAboveTitle: lineText(lines, "above_title"),
+    lineBelowTitle: lineText(lines, "below_title"),
   };
 };
 
 const renderHits = (
   controller: SearchController,
   products: SearchResult<SearchProductHit> | undefined,
-  context: SearchContext,
+  { businessRanking, texts }: SearchContext,
 ): HitsRenderState => {
-  const { businessRanking, texts } = context;
-  const locale = marketLocale(context);
   const query = products?.query ?? "";
 
   return {
     hits: (products?.hits ?? []).map((hit) => ({
       hit,
-      display: productHitDisplay(controller, hit, query, locale),
+      display: productHitDisplay(controller, hit, query),
     })),
     query,
     title:
