@@ -60,6 +60,9 @@ export const productHitDisplay = (
   controller: SearchController,
   hit: SearchProductHit,
   query: string,
+  /** @deprecated Ignored: prices come formatted from the server. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Callers that still pass a locale keep compiling.
+  _locale?: string,
 ): ProductHitDisplay => {
   const { title, price, compare_at_price, lines } = hit._display;
 
