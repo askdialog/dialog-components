@@ -137,7 +137,8 @@ Creates one search controller per composable instance and disposes it on unmount
 - `country` (string, required) - Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`; prices follow its market
 - `surface` (SearchSurface, optional) - Where results are displayed, for analytics (default: `'search_page'`)
 - `navigate` ((url, hit: SearchProductHit) => void, optional) - Router adapter called after selection attribution (e.g. `(url) => router.push(url)`). Omit it to let the cards' plain `<a href>` links navigate natively.
-- `buildProductUrl` ((hit: SearchProductHit) => string | undefined, optional) - Builds a card's link when its hit has no `url`, e.g. ``(hit) => `/products/${hit.handle}` ``. With neither, the card has no link.
+- `storefrontRoot` (string, optional) - The path a hit's relative `_display.url` resolves under, e.g. `/` or `/fr-fr/` (Shopify's `window.Shopify.routes.root`); default `/`
+- `buildProductUrl` (deprecated, ignored) - Every hit's link is its `_display.url`
 - `debounceMs` (number, optional) - Keystroke debounce (default: 100)
 - `hitsPerPage` (number, optional) - Results per page (default: 12)
 - `sections` (SearchSection[], optional) - Extra indices searched alongside the products; `collections` fills the collections column of `DialogSearchResults`. Only request an index the catalog exposes: a missing one fails the whole search.
@@ -171,12 +172,12 @@ Search input, on `connectSearchBox`: typing runs a debounced search, submitting 
 
 #### DialogSearchResults
 
-Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, centered on the bar (up to 1440px wide, filling the viewport) and anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. It shows the same layout as the Shopify search overlay: a collections column on the left when `sections` requests them, the products on the right as a list or a 3-column grid, the query match emphasized in every title, and, when `seeAllHref` is set, a "See all results" button; without it, the panel shows the first page of hits only and does not paginate. Below 768px the panel stacks, collections in a horizontal rail above the products. Colors, radii and font follow the SDK theme (dark palette when `backgroundColor` is dark, straight or rounded corners from `ctaBorderType`). Each product card reads the hit, Algolia's Shopify record: its `_display.image` (hits require `_display`, computed by the server since DAT-2016; when `_display.image` is absent, no thumbnail), its `title`, its lowest variant price (`variants_min_price`, formatted with `currency`, the base currency of the shopper's market), struck through next to it the lowest compare-at price (`variants_compare_at_price_min`, formatted the same way) when it is higher, and its `url`; a hit without a price shows none. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically. Clicking outside the panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept.
+Floating results panel overlaying the page content: portaled to `document.body` in `position: fixed`, centered on the bar (up to 1440px wide, filling the viewport) and anchored under the spot where the component is rendered (place it right after the bar), so no ancestor stacking context or `overflow: hidden` can hide it. It shows the same layout as the Shopify search overlay: a collections column on the left when `sections` requests them, the products on the right as a list or a 3-column grid, the query match emphasized in every title, and, when `seeAllHref` is set, a "See all results" button; without it, the panel shows the first page of hits only and does not paginate. Below 768px the panel stacks, collections in a horizontal rail above the products. Colors, radii and font follow the SDK theme (dark palette when `backgroundColor` is dark, straight or rounded corners from `ctaBorderType`). Each product card reads the hit, Algolia's Shopify record: its `_display.image` (hits require `_display`, computed by the server since DAT-2016; when `_display.image` is absent, no thumbnail), its `_display.title`, its `_display.price` (formatted by the server in the shopper's market currency), struck through next to it its `_display.compare_at_price` when present, and its `_display.url` (a relative one resolved under `storefrontRoot`); a hit without a price shows none. Each card links to the product page and records search attribution (viewport impressions, select on click and middle-click) automatically. Clicking outside the panel (and outside the bar) closes it; typing again or re-focusing the bar reopens it with the results kept.
 
 **Props:**
 - `controller` (SearchController) - From `useDialogSearch` (required)
 - `state` (SearchSnapshot) - From `useDialogSearch` (required)
-- `locale` (string, optional) - BCP 47 locale for prices, counts and labels, formatted with the SDK's helpers. Omitted, they follow the controller's `language` and `country`.
+- `locale` (string, optional) - BCP 47 locale for counts and labels. Omitted, they follow the controller's `language`. Prices are formatted by the server.
 - `theme` (Theme, optional) - The client's theme, as returned by `useDialogSearch`; styles the panel (palette, radii, font)
 - `layout` (`'list' | 'grid'`, optional) - Products layout (default: `'list'`)
 - `seeAllHref` ((query) => string, optional) - Link of the "See all results" footer button; omitted, the panel shows the first page of hits only, with no pagination
@@ -198,7 +199,7 @@ One product of the results, with its image, highlighted title, price and link, a
 - `controller` (SearchController) - From `useDialogSearch` (required)
 - `hit` (SearchProductHit) - The product hit (required)
 - `index` (number) - Its position in `state.results.products.hits`, for attribution (required)
-- `locale` (string, optional) - Locale of the prices; omitted, the controller's `language` and `country`
+- `locale` (string, optional) - Deprecated and ignored: prices are formatted by the server
 - `query` (string, optional) - The query emphasized in the title
 - `display` (ProductHitDisplay, optional) - The hit's display from `connectHits`; built from the hit when omitted
 

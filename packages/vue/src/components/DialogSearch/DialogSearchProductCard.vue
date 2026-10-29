@@ -36,8 +36,6 @@
 
 <script setup lang="ts">
 import {
-  formatSearchCompareAtPrice,
-  formatSearchPrice,
   productHitDisplay,
   type ProductHitDisplay,
   type SearchController,
@@ -50,7 +48,7 @@ interface Props {
   controller: SearchController;
   hit: SearchProductHit;
   index: number;
-  /** BCP 47 locale of the price; omitted, the shopper's market. */
+  /** @deprecated Ignored: prices are formatted by the server in the shopper's market. */
   locale?: string;
   /** Committed query, emphasized inside the title. */
   query?: string;
@@ -77,25 +75,11 @@ watch(
   { immediate: true, flush: "post" },
 );
 
-// A `locale` formats the prices in that locale instead of the shopper's market.
-const display = computed((): ProductHitDisplay => {
-  if (props.display === undefined) {
-    return productHitDisplay(
-      props.controller,
-      props.hit,
-      props.query,
-      props.locale,
-    );
-  }
-
-  return props.locale === undefined
-    ? props.display
-    : {
-        ...props.display,
-        price: formatSearchPrice(props.hit, props.locale),
-        compareAtPrice: formatSearchCompareAtPrice(props.hit, props.locale),
-      };
-});
+const display = computed(
+  (): ProductHitDisplay =>
+    props.display ??
+    productHitDisplay(props.controller, props.hit, props.query),
+);
 
 // Preserve native modified clicks. Prevent default navigation only when the
 // adapter handles the click; record selection in both cases.

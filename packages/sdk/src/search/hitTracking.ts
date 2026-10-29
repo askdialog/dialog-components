@@ -1,11 +1,13 @@
 import { SearchProductHit, SearchResult } from "../types/search";
 import { createControllerAnalytics } from "../utils/searchControllerAnalytics";
+import { hitHref } from "../utils/searchDisplay";
 import { SearchController, SearchControllerOptions } from "./types";
 
 type HitTrackingOptions = Pick<
   SearchControllerOptions,
-  "analytics" | "navigate" | "buildProductUrl"
+  "analytics" | "navigate"
 > & {
+  storefrontRoot: string;
   /** The products result the hits are rendered from. */
   products: () => SearchResult<SearchProductHit> | undefined;
 };
@@ -25,14 +27,14 @@ export interface HitTracking
 export const createHitTracking = ({
   analytics,
   navigate,
-  buildProductUrl,
+  storefrontRoot,
   products,
 }: HitTrackingOptions): HitTracking => {
   const binding = createControllerAnalytics(analytics);
   let disposed = false;
 
   const productUrl = (hit: SearchProductHit): string | undefined =>
-    hit.url !== undefined && hit.url !== "" ? hit.url : buildProductUrl?.(hit);
+    hitHref(hit, storefrontRoot);
 
   return {
     open: binding.open,

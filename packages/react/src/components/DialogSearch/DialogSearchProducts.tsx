@@ -60,7 +60,6 @@ export const DialogSearchProducts: FC<DialogSearchProductsProps> = ({
               entry={entry}
               index={index}
               tracking={connector}
-              locale={locale}
             />
           ))
         )}

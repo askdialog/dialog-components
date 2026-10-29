@@ -26,7 +26,7 @@ export type SearchProductsLayout = "list" | "grid";
 interface DialogSearchResultsProps {
   controller: SearchController;
   state: DialogSearchState;
-  /** BCP 47 locale for prices, counts and labels; the search language and country when omitted. */
+  /** BCP 47 locale for counts and labels; the search language and country when omitted. */
   locale?: string;
   /** Usually `client.theme`, as returned by `useDialogSearch`. */
   theme?: Theme;

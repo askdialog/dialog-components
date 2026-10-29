@@ -28,7 +28,6 @@ export function createSearchController(
     country,
     analytics,
     navigate,
-    buildProductUrl,
     initialSearchState = {},
     debounceMs = 100,
     hitsPerPage = 12,
@@ -60,7 +59,7 @@ export function createSearchController(
   const hitTracking = createHitTracking({
     analytics,
     navigate,
-    buildProductUrl,
+    storefrontRoot: merchant.context.storefrontRoot,
     products: () => snapshot.results.products,
   });
 

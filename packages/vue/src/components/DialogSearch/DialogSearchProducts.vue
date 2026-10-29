@@ -23,7 +23,6 @@
         :controller="props.controller"
         :hit="hit"
         :index="index"
-        :locale="props.locale"
         :query="props.query"
         :display="display"
       />
@@ -45,7 +44,6 @@ const props = defineProps<{
   query: string;
   nbHits: number;
   title: string;
-  locale: string | undefined;
   texts: SearchTexts;
 }>();
 </script>

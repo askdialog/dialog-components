@@ -47,7 +47,6 @@
             :query="hits.query"
             :nb-hits="products.nbHits"
             :title="productsTitle"
-            :locale="props.locale"
             :texts="texts"
           />
         </div>
@@ -88,7 +87,7 @@ import { useOutsideDismiss } from "./useOutsideDismiss";
 interface Props {
   controller: SearchController;
   state: SearchSnapshot;
-  /** BCP 47 locale for prices, counts and labels; omitted, the shopper's language and market. */
+  /** BCP 47 locale for counts and labels; omitted, the shopper's language. */
   locale?: string;
   /** Usually `client.theme`, as returned by `useDialogSearch`. */
   theme?: Theme;
