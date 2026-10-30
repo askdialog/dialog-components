@@ -1,7 +1,4 @@
-import type {
-  SearchController,
-  SearchSnapshot,
-} from "@askdialog/dialog-sdk/search";
+import type { SearchController, SearchSnapshot } from "@askdialog/dialog-sdk";
 
 export interface RecreatableController extends SearchController {
   /** Undo `dispose`: the next call creates a new instance. */

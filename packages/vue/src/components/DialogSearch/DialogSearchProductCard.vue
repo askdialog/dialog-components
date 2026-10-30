@@ -2,7 +2,10 @@
   <li ref="cardRef" class="dialog-search-card">
     <component
       :is="display.href === undefined ? 'div' : 'a'"
-      class="dialog-search-product"
+      :class="[
+        'dialog-search-product',
+        { 'dialog-search-product--no-image': display.image === undefined },
+      ]"
       :href="display.href"
       v-on="
         display.href === undefined
@@ -10,13 +13,12 @@
           : { click: handleClick, auxclick: handleAuxClick }
       "
     >
-      <span class="dialog-search-product-thumb" aria-hidden="true">
-        <img
-          v-if="display.image !== undefined"
-          :src="display.image"
-          alt=""
-          loading="lazy"
-        />
+      <span
+        v-if="display.image !== undefined"
+        class="dialog-search-product-thumb"
+        aria-hidden="true"
+      >
+        <img :src="display.image" alt="" loading="lazy" />
       </span>
       <span class="dialog-search-product-title">
         <HighlightedTitle :parts="display.titleParts" />
@@ -34,16 +36,11 @@
 
 <script setup lang="ts">
 import {
-  formatSearchCompareAtPrice,
-  formatSearchPrice,
-  hitImage,
-  hitTitle,
-  safeHref,
-  splitTitleMatch,
+  productHitDisplay,
   type ProductHitDisplay,
   type SearchController,
   type SearchProductHit,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { computed, ref, watch } from "vue";
 import HighlightedTitle from "./HighlightedTitle.vue";
 
@@ -51,7 +48,7 @@ interface Props {
   controller: SearchController;
   hit: SearchProductHit;
   index: number;
-  /** BCP 47 locale of the price; omitted, the shopper's market. */
+  /** @deprecated Ignored: prices are formatted by the server in the shopper's market. */
   locale?: string;
   /** Committed query, emphasized inside the title. */
   query?: string;
@@ -78,37 +75,11 @@ watch(
   { immediate: true, flush: "post" },
 );
 
-const marketLocale = (): string => {
-  const { language, country } = props.controller.getSnapshot().context;
-
-  return `${language}-${country.toUpperCase()}`;
-};
-
-const fromHit = (): ProductHitDisplay => {
-  const title = hitTitle(props.hit);
-
-  return {
-    title,
-    titleParts: splitTitleMatch(title, props.query),
-    href: safeHref(props.controller.productUrl(props.hit)),
-    image: hitImage(props.hit),
-    price: formatSearchPrice(props.hit, marketLocale()),
-    compareAtPrice: formatSearchCompareAtPrice(props.hit, marketLocale()),
-  };
-};
-
-// A `locale` formats the prices in that locale instead of the shopper's market.
-const display = computed((): ProductHitDisplay => {
-  const base = props.display ?? fromHit();
-
-  return props.locale === undefined
-    ? base
-    : {
-        ...base,
-        price: formatSearchPrice(props.hit, props.locale),
-        compareAtPrice: formatSearchCompareAtPrice(props.hit, props.locale),
-      };
-});
+const display = computed(
+  (): ProductHitDisplay =>
+    props.display ??
+    productHitDisplay(props.controller, props.hit, props.query),
+);
 
 // Preserve native modified clicks. Prevent default navigation only when the
 // adapter handles the click; record selection in both cases.
@@ -156,6 +127,10 @@ a.dialog-search-product:hover {
   border: 1px solid var(--dso-border);
   border-radius: var(--dso-r-thumb);
   background: var(--dso-thumb);
+}
+
+.dialog-search-product.dialog-search-product--no-image {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .dialog-search-product-thumb img {

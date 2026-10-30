@@ -67,6 +67,8 @@ export interface SearchContext {
   readonly filterableAttributes: readonly FilterableAttribute[];
   /** Default texts of the language, overrides applied. */
   readonly texts: SearchTexts;
+  /** The path a hit's relative `_display.url` resolves under. */
+  readonly storefrontRoot: string;
 }
 
 export interface SearchSnapshot {
@@ -90,8 +92,13 @@ export interface SearchControllerOptions {
   analytics: SearchControllerAnalytics;
   /** Navigate after recording a selection. Omit to use native link navigation. */
   navigate?: (url: string, hit: SearchProductHit) => void;
-  /** Build a product's link when its hit has no `url`, e.g. `/products/${hit.handle}`. */
+  /** @deprecated Ignored: every hit's `_display.url` is its link. */
   buildProductUrl?: (hit: SearchProductHit) => string | undefined;
+  /**
+   * The path a relative `_display.url` resolves under, e.g. `/` or `/fr-fr/`
+   * (Shopify's `window.Shopify.routes.root`); default `/`.
+   */
+  storefrontRoot?: string;
   initialSearchState?: SearchState;
   /** Delay before a query change is sent; other changes are sent at once. */
   debounceMs?: number;
@@ -122,7 +129,7 @@ export interface SearchController {
    * Returns true when `navigate` ran; call `preventDefault()` then.
    */
   selectHit(index: number, options?: { navigate?: boolean }): boolean;
-  /** The hit's `url`, else `buildProductUrl`'s result; undefined when neither gives one. */
+  /** The hit's `_display.url` resolved under `storefrontRoot`; undefined when unsafe or off the storefront. */
   productUrl(hit: SearchProductHit): string | undefined;
   /** Replay the last request when it failed. */
   retry(): void;

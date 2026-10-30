@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import type { SearchProductHit } from "../types/search";
+import type { SearchCollectionHit, SearchProductHit } from "../types/search";
 import {
+  hitHref,
   hitImage,
   hitTitle,
   navigableCollections,
+  resolveDisplayUrl,
   safeHref,
 } from "../utils/searchDisplay";
 
@@ -15,18 +17,28 @@ const product = (hit: Partial<SearchProductHit>): SearchProductHit => ({
   options: {},
   option_names: [],
   inventory_available: true,
+  _display: { title: "Bag", url: "products/bag", price: "", lines: [] },
   ...hit,
 });
 
+const collection = (objectID: string, url: string): SearchCollectionHit => ({
+  objectID,
+  _display: { title: objectID, url },
+});
+
 describe("hitImage", () => {
-  it("prefers the product's image over the variant's", () => {
-    expect(hitImage(product({ product_image: "p.jpg", image: "v.jpg" }))).toBe(
-      "p.jpg",
-    );
-    expect(hitImage(product({ product_image: "", image: "v.jpg" }))).toBe(
-      "v.jpg",
-    );
-    expect(hitImage(product({ image: "" }))).toBeUndefined();
+  it("takes `_display.image`, never the record's images", () => {
+    const record = { product_image: "p.jpg", image: "v.jpg" };
+    const display = product({})._display;
+    expect(
+      hitImage(
+        product({ ...record, _display: { ...display, image: "d.jpg" } }),
+      ),
+    ).toBe("d.jpg");
+    expect(hitImage(product(record))).toBeUndefined();
+    expect(
+      hitImage(product({ _display: { ...display, image: "" } })),
+    ).toBeUndefined();
   });
 });
 
@@ -45,24 +57,54 @@ describe("safeHref", () => {
   });
 });
 
-describe("hitTitle", () => {
-  it("falls back from the title to the handle, then the id", () => {
-    expect(hitTitle({ objectID: "1", title: "Bag", handle: "bag" })).toBe(
-      "Bag",
+describe("resolveDisplayUrl", () => {
+  const { origin } = window.location;
+
+  it("resolves a relative url under the storefront root, `/` by default", () => {
+    expect(resolveDisplayUrl("products/creme-lift", "/fr-fr/")).toBe(
+      `${origin}/fr-fr/products/creme-lift`,
     );
-    expect(hitTitle({ objectID: "1", handle: "bag" })).toBe("bag");
-    expect(hitTitle({ objectID: "1" })).toBe("1");
+    expect(resolveDisplayUrl("blogs/conseils/guide")).toBe(
+      `${origin}/blogs/conseils/guide`,
+    );
+  });
+
+  it("keeps an absolute or root-relative HTTP(S) url as sent", () => {
+    expect(resolveDisplayUrl("https://shop.test/p", "/fr-fr/")).toBe(
+      "https://shop.test/p",
+    );
+    expect(resolveDisplayUrl("/pages/livraison", "/fr-fr/")).toBe(
+      "/pages/livraison",
+    );
+  });
+
+  it("leaves an unsafe or off-origin url without a link", () => {
+    expect(resolveDisplayUrl("javascript:alert(1)")).toBeUndefined();
+    expect(resolveDisplayUrl("\\\\evil.test/x")).toBeUndefined();
+    expect(resolveDisplayUrl("")).toBeUndefined();
+  });
+});
+
+describe("hitTitle and hitHref", () => {
+  it("read `_display`, never the record", () => {
+    const hit = product({ title: "Raw", url: "/raw" });
+    expect(hitTitle(hit)).toBe("Bag");
+    expect(hitHref(hit, "/fr-fr/")).toBe(
+      `${window.location.origin}/fr-fr/products/bag`,
+    );
   });
 });
 
 describe("navigableCollections", () => {
   it("keeps only collections with a safe link", () => {
-    const linked = { objectID: "1", url: "/collections/bags" };
-    const unsafe = { objectID: "2", url: "javascript:void(0)" };
-    const unlinked = { objectID: "3" };
+    const linked = collection("1", "collections/bags");
+    const unsafe = collection("2", "javascript:void(0)");
 
-    expect(navigableCollections([linked, unsafe, unlinked])).toEqual([
-      { collection: linked, href: "/collections/bags" },
+    expect(navigableCollections([linked, unsafe], "/fr-fr/")).toEqual([
+      {
+        collection: linked,
+        href: `${window.location.origin}/fr-fr/collections/bags`,
+      },
     ]);
     expect(navigableCollections(undefined)).toEqual([]);
   });

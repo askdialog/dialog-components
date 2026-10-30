@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TitleParts } from "@askdialog/dialog-sdk/search";
+import type { TitleParts } from "@askdialog/dialog-sdk";
 
 const props = defineProps<{
   parts: TitleParts;

@@ -22,6 +22,7 @@ export {
 } from "./connectSearchBox";
 export {
   connectHits,
+  productHitDisplay,
   type HitsConnector,
   type HitsRenderState,
   type ProductHit,
@@ -51,10 +52,13 @@ export type { SearchBusinessRanking } from "../types/dialogConfig";
 export type {
   SearchArticleHit,
   SearchCollectionHit,
+  SearchDisplayLine,
   SearchHitByIndex,
+  SearchHitDisplay,
   SearchIndex,
   SearchPageHit,
   SearchProductHit,
+  SearchProductHitDisplay,
   SearchResult,
   SearchSections,
 } from "../types/search";
@@ -73,6 +77,7 @@ export {
   hitImage,
   hitTitle,
   navigableCollections,
+  resolveDisplayUrl,
   safeHref,
 } from "../utils/searchDisplay";
 export { splitTitleMatch, type TitleParts } from "../utils/titleHighlight";

@@ -32,6 +32,30 @@ export interface SearchOptions {
   signal?: AbortSignal;
 }
 
+/** The server's display rules on top of a hit's raw record. */
+export interface SearchHitDisplay {
+  /** The image to display; absent when there is none to show, e.g. the merchant hides images. */
+  image?: string;
+  title: string;
+  /** Absolute, or relative to the storefront's locale root, e.g. `products/creme-lift`. */
+  url: string;
+}
+
+/** A line of text the merchant shows next to a product's title. */
+export interface SearchDisplayLine {
+  position: "above_title" | "below_title";
+  text: string;
+}
+
+/** The server's display rules on top of a product hit's raw record. */
+export interface SearchProductHitDisplay extends SearchHitDisplay {
+  /** Formatted in the shopper's market currency. */
+  price: string;
+  /** Formatted like `price`; present only when higher than it. */
+  compare_at_price?: string;
+  lines: SearchDisplayLine[];
+}
+
 /** Algolia's collection record, plus `url`. */
 export interface SearchCollectionHit {
   /** Collection id, the last segment of the Shopify GID. */
@@ -45,6 +69,8 @@ export interface SearchCollectionHit {
   products_count?: number;
   template_suffix?: string;
   updated_at?: string;
+  /** What to display, computed by the server; the SDK displays nothing from the raw record. */
+  _display: SearchHitDisplay;
 }
 
 /** Algolia's article record, plus `url`. */
@@ -66,6 +92,8 @@ export interface SearchArticleHit {
   updated_at?: string;
   body_html_safe?: string;
   url?: string;
+  /** What to display, computed by the server; the SDK displays nothing from the raw record. */
+  _display: SearchHitDisplay;
 }
 
 /** Algolia's page record, plus `url`. */
@@ -78,6 +106,8 @@ export interface SearchPageHit {
   updated_at?: string;
   body_html_safe?: string;
   url?: string;
+  /** What to display, computed by the server; the SDK displays nothing from the raw record. */
+  _display: SearchHitDisplay;
 }
 
 /** @deprecated No index answers it: article hits are `SearchArticleHit`, page hits `SearchPageHit`. */
@@ -132,6 +162,8 @@ export interface SearchProductHit {
   created_at?: string;
   updated_at?: string;
   published_at?: string;
+  /** What to display, computed by the server; the SDK displays nothing from the raw record. */
+  _display: SearchProductHitDisplay;
 }
 
 /** The hit each index answers. */

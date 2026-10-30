@@ -7,7 +7,7 @@ import {
   createSearchController,
   DialogSearchError,
   SearchStatus,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 
 const apiKeySection = document.getElementById("api-key-section");
 const apiKeyInput = document.getElementById("api-key-input");
@@ -146,9 +146,8 @@ function start(apiKey) {
         dialog.trackOpenedSearch(params);
       },
     },
-    // Link for a hit without `url`: here a Shopify-style product page.
-    buildProductUrl: (hit) =>
-      hit.handle === undefined ? undefined : `/products/${hit.handle}`,
+    // Where a relative `_display.url` resolves, Shopify's `window.Shopify.routes.root`.
+    storefrontRoot: "/",
     // No `navigate` adapter: the demo renders plain `<a href>` links and
     // suppresses navigation above; a real integration passes its router here.
   });

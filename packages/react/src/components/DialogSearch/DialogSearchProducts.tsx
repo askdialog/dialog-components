@@ -4,7 +4,7 @@ import {
   type SearchController,
   type SearchContext,
   type SearchTexts,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { ProductCardView } from "./DialogSearchProductCard";
 import { useConnector } from "./useConnector";
 
@@ -60,7 +60,6 @@ export const DialogSearchProducts: FC<DialogSearchProductsProps> = ({
               entry={entry}
               index={index}
               tracking={connector}
-              locale={locale}
             />
           ))
         )}

@@ -3,7 +3,7 @@ import type {
   SearchCollectionHit,
   SearchTexts,
   SectionHit,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { CaretRightIcon } from "../../icons/CaretRightIcon";
 import { HighlightedTitle } from "./HighlightedTitle";
 import "./DialogSearchCollections.css";
@@ -34,11 +34,11 @@ export const DialogSearchCollections: FC<DialogSearchCollectionsProps> = ({
         {collections.map(({ hit, display }) => (
           <li key={hit.objectID}>
             <a className="dialog-search-collection" href={display.href}>
-              <span className="dialog-search-collection-thumb" aria-hidden>
-                {display.image !== undefined && (
+              {display.image !== undefined && (
+                <span className="dialog-search-collection-thumb" aria-hidden>
                   <img src={display.image} alt="" loading="lazy" />
-                )}
-              </span>
+                </span>
+              )}
               <span className="dialog-search-collection-title">
                 <HighlightedTitle parts={display.titleParts} />
               </span>

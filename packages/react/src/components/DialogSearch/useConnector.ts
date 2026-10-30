@@ -1,4 +1,4 @@
-import type { Connector, SearchController } from "@askdialog/dialog-sdk/search";
+import type { Connector, SearchController } from "@askdialog/dialog-sdk";
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 
 /**

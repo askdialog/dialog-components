@@ -1,41 +1,31 @@
 import { type FC, type MouseEvent, useEffect, useRef } from "react";
 import {
   connectHits,
-  formatSearchCompareAtPrice,
-  formatSearchPrice,
   splitTitleMatch,
   type HitsConnector,
   type ProductHit,
   type ProductHitDisplay,
   type SearchController,
   type SearchProductHit,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import { HighlightedTitle } from "./HighlightedTitle";
 import { useConnector } from "./useConnector";
 import "./DialogSearchProductCard.css";
 
-/** The connector's display, its prices formatted in `locale` when given. */
-const localizedDisplay = (
-  { hit, display }: ProductHit,
-  locale: string | undefined,
+/** The connector's display, its title highlighted for `query` when given. */
+const highlightedDisplay = (
+  { display }: ProductHit,
   query: string | undefined,
-): ProductHitDisplay => ({
-  ...display,
-  ...(locale !== undefined && {
-    price: formatSearchPrice(hit, locale),
-    compareAtPrice: formatSearchCompareAtPrice(hit, locale),
-  }),
-  ...(query !== undefined && {
-    titleParts: splitTitleMatch(display.title, query),
-  }),
-});
+): ProductHitDisplay =>
+  query === undefined
+    ? display
+    : { ...display, titleParts: splitTitleMatch(display.title, query) };
 
 interface ProductCardViewProps {
   /** `hits[index]` of the hits connector. */
   entry: ProductHit;
   index: number;
   tracking: Pick<HitsConnector, "observe" | "select">;
-  locale: string | undefined;
   /** Query emphasized inside the title; the answered query when omitted. */
   query?: string;
 }
@@ -44,7 +34,6 @@ export const ProductCardView: FC<ProductCardViewProps> = ({
   entry,
   index,
   tracking,
-  locale,
   query,
 }) => {
   const cardRef = useRef<HTMLLIElement>(null);
@@ -73,17 +62,18 @@ export const ProductCardView: FC<ProductCardViewProps> = ({
     }
   };
 
-  const { href, image, titleParts, price, compareAtPrice } = localizedDisplay(
+  const { href, image, titleParts, price, compareAtPrice } = highlightedDisplay(
     entry,
-    locale,
     query,
   );
 
   const content = (
     <>
-      <span className="dialog-search-product-thumb" aria-hidden>
-        {image !== undefined && <img src={image} alt="" loading="lazy" />}
-      </span>
+      {image !== undefined && (
+        <span className="dialog-search-product-thumb" aria-hidden>
+          <img src={image} alt="" loading="lazy" />
+        </span>
+      )}
       <span className="dialog-search-product-title">
         <HighlightedTitle parts={titleParts} />
       </span>
@@ -98,13 +88,16 @@ export const ProductCardView: FC<ProductCardViewProps> = ({
     </>
   );
 
+  // Without an image, the title takes the thumbnail's column.
+  const className = `dialog-search-product${image === undefined ? " dialog-search-product--no-image" : ""}`;
+
   return (
     <li ref={cardRef} className="dialog-search-card">
       {href === undefined ? (
-        <div className="dialog-search-product">{content}</div>
+        <div className={className}>{content}</div>
       ) : (
         <a
-          className="dialog-search-product"
+          className={className}
           href={href}
           onClick={handleClick}
           onAuxClick={handleAuxClick}
@@ -121,6 +114,7 @@ interface DialogSearchProductCardProps {
   /** `state.results.products.hits[index]`. */
   hit: SearchProductHit;
   index: number;
+  /** @deprecated Ignored: prices are formatted by the server in the shopper's market. */
   locale?: string;
   /** Query emphasized inside the title; the answered query when omitted. */
   query?: string;
@@ -131,7 +125,6 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
   controller,
   hit,
   index,
-  locale,
   query,
 }) => {
   const [{ hits }, connector] = useConnector(connectHits, controller);
@@ -143,7 +136,6 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
       entry={entry}
       index={index}
       tracking={connector}
-      locale={locale}
       query={query}
     />
   ) : null;

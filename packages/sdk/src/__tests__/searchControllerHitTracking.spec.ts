@@ -1,3 +1,4 @@
+/* eslint max-lines: ["error", 220] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import { SearchController } from "../search/types";
@@ -15,21 +16,24 @@ type ObserverCallback = (
 
 let observerCallback: ObserverCallback;
 
-const productHit = (id: number, url?: string): SearchProductHit => ({
+const productHit = (id: number, url: string): SearchProductHit => ({
   objectID: `v${id}`,
   id,
-  url,
   tags: [],
   options: {},
   option_names: [],
   inventory_available: true,
+  _display: { title: `P${id}`, url, price: "", lines: [] },
 });
 
 const answer = (overrides: Partial<SearchResult> = {}): SearchResponse => ({
   results: [
     {
       index: INDEX,
-      hits: [productHit(101, "https://shop.example/p1"), productHit(102)],
+      hits: [
+        productHit(101, "https://shop.example/p1"),
+        productHit(102, "javascript:void(0)"),
+      ],
       nbHits: 30,
       page: 1,
       nbPages: 3,
@@ -100,6 +104,7 @@ beforeEach(() => {
     },
   );
   vi.stubGlobal("window", {
+    location: { href: "https://shop.example/", origin: "https://shop.example" },
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
   });

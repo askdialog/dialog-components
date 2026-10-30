@@ -2,12 +2,12 @@
 import { act, type FC, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Dialog } from "@askdialog/dialog-sdk";
 import {
   SearchStatus,
+  type Dialog,
   type SearchProductHit,
   type SearchResponse,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import {
   type DialogSearch,
   type UseDialogSearchOptions,

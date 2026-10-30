@@ -1,16 +1,14 @@
 import {
+  createSearchController,
   registerDialogInstallation,
   type Dialog,
-  type SearchSurface,
-  type Theme,
-} from "@askdialog/dialog-sdk";
-import {
-  createSearchController,
   type SearchController,
   type SearchProductHit,
   type SearchSection,
   type SearchSnapshot,
-} from "@askdialog/dialog-sdk/search";
+  type SearchSurface,
+  type Theme,
+} from "@askdialog/dialog-sdk";
 import { onMounted, onUnmounted, shallowRef, type ShallowRef } from "vue";
 
 export interface UseDialogSearchOptions {
@@ -23,8 +21,13 @@ export interface UseDialogSearchOptions {
   surface?: SearchSurface;
   /** Navigate after recording selection; omit to use native links. */
   navigate?: (url: string, hit: SearchProductHit) => void;
-  /** Build a product's link when its hit has no `url`, e.g. `/products/${hit.handle}`. */
+  /** @deprecated Ignored: every hit's `_display.url` is its link. */
   buildProductUrl?: (hit: SearchProductHit) => string | undefined;
+  /**
+   * The path a relative `_display.url` resolves under, e.g. `/` or `/fr-fr/`
+   * (Shopify's `window.Shopify.routes.root`); default `/`.
+   */
+  storefrontRoot?: string;
   debounceMs?: number;
   hitsPerPage?: number;
   /**

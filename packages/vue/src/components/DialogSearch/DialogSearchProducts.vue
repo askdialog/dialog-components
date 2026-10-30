@@ -23,7 +23,6 @@
         :controller="props.controller"
         :hit="hit"
         :index="index"
-        :locale="props.locale"
         :query="props.query"
         :display="display"
       />
@@ -36,7 +35,7 @@ import type {
   ProductHit,
   SearchController,
   SearchTexts,
-} from "@askdialog/dialog-sdk/search";
+} from "@askdialog/dialog-sdk";
 import DialogSearchProductCard from "./DialogSearchProductCard.vue";
 
 const props = defineProps<{
@@ -45,7 +44,6 @@ const props = defineProps<{
   query: string;
   nbHits: number;
   title: string;
-  locale: string | undefined;
   texts: SearchTexts;
 }>();
 </script>

@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
-import type { Dialog, SearchResponse } from "@askdialog/dialog-sdk";
-import { SearchStatus } from "@askdialog/dialog-sdk/search";
+import {
+  SearchStatus,
+  type Dialog,
+  type SearchResponse,
+} from "@askdialog/dialog-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h } from "vue";
 import {

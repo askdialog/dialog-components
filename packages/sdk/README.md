@@ -311,14 +311,20 @@ const response: SearchResponse = await client.search({
 //                        processingTimeMS, query, queryID }
 // A products hit is Algolia's Shopify record (`SearchProductHit`), plus `url`
 // and `currency`: { objectID (variant id), id (product id), title?, handle?,
-// url?, image?, variants_min_price?, price?, compare_at_price?, ... }
+// url?, image?, variants_min_price?, price?, compare_at_price?, ..., _display }
 // Collection hits are `SearchCollectionHit`, Algolia's collection record:
-// { objectID, title?, handle?, url?, body_html_safe?, image?, products_count?, ... }
+// { objectID, title?, handle?, url?, body_html_safe?, image?, products_count?, ..., _display }
 // Article hits are `SearchArticleHit`, Algolia's article record:
 // { objectID, title?, handle?, tags, blog?: { title?, handle? }, author?: { name },
-//   image?, published_at?, updated_at?, body_html_safe?, url? }
+//   image?, published_at?, updated_at?, body_html_safe?, url?, _display }
 // Page hits are `SearchPageHit`, Algolia's page record:
-// { objectID, title?, handle?, author?, updated_at?, body_html_safe?, url? }
+// { objectID, title?, handle?, author?, updated_at?, body_html_safe?, url?, _display }
+// Every hit carries `_display` (`SearchHitDisplay`), what to display computed by
+// the server: `{ image?, title, url }`; a product's (`SearchProductHitDisplay`)
+// adds `price`, `compare_at_price?` (formatted in the market currency) and
+// `lines` (`{ position: 'above_title' | 'below_title', text }[]`). `url` is
+// absolute, or relative to the storefront's locale root, e.g. `products/creme-lift`.
+// The SDK and its components display what `_display` says only.
 ```
 
 With the IIFE bundle the results are plain runtime JSON (same shape, no types):
@@ -364,7 +370,7 @@ const controller = createSearchController({
     trackOpenedSearch: (params) => client.trackOpenedSearch(params),
   },
   apiKey: 'YOUR_API_KEY', // optional: loads the merchant config (business ranking, filterable attributes)
-  buildProductUrl: (hit) => `/products/${hit.handle}`, // optional, for hits without `url`
+  storefrontRoot: window.Shopify?.routes?.root ?? '/', // optional: where relative `_display.url`s resolve
 });
 
 const searchBox = connectSearchBox(controller);
@@ -403,7 +409,8 @@ controller.dispose();
 | `language`, `country` | The shopper's ISO 639-1 language and ISO 3166-1 alpha-2 country, e.g. `fr` and `BE` |
 | `analytics` | `surface` and the `trackViewSearchResults`, `trackSelectSearchResult` and `trackOpenedSearch` callbacks; the controller batches and deduplicates impressions |
 | `navigate` | Called with a product's URL after its selection is recorded; omit it to keep native link navigation |
-| `buildProductUrl` | A product's link when its hit has no `url` |
+| `storefrontRoot` | The path a relative `_display.url` resolves under, e.g. `/` or `/fr-fr/` (Shopify's `window.Shopify.routes.root`); default `/` |
+| `buildProductUrl` | Deprecated and ignored: every hit's `_display.url` is its link |
 | `debounceMs`, `hitsPerPage` | Delay before a query change is sent (default 100) and products per page (default 12) |
 | `sections` | Indexes searched next to products (`[{ index: 'collections', hitsPerPage: 5 }]`, or a function resolved per request); the empty query searches none |
 | `transport` | Search function bound to its client (`client.search`), or a custom transport |
@@ -416,7 +423,7 @@ The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Se
 
 For Shopify, use `window.Shopify.country` as the country. Controller options are fixed at creation; recreate the controller to change language or country.
 
-Analytics send each product hit's `id` (the product id) as `product_id`; `navigate` receives `controller.productUrl(hit)`: the hit's `url`, else `buildProductUrl`'s result.
+Analytics send each product hit's `id` (the product id) as `product_id`; `navigate` receives `controller.productUrl(hit)`: the hit's `_display.url`, a relative one resolved under `storefrontRoot`.
 
 `controller.getSnapshot()` returns `{ searchState, results, context }`, the same object until the next change. `subscribe(listener)` calls the listener with each new snapshot and returns an unsubscribe function.
 
@@ -440,11 +447,11 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 | `connectHits` | `hits` (`{ hit, display }[]`), `query` (the one the hits answer), `title` (the business ranking's on the empty query, else the products label) | `observe(element, index)`, `select(index, { navigate? })`: returns true when `navigate` ran; call `preventDefault()` then |
 | `connectStats` | `nbHits`, `text` (the count in the shopper's language) | — |
 | `connectPagination` | `visible` (false while loading, with a query pending or with a single page), `currentPage` (zero-based), `nbPages`, `isFirstPage`, `isLastPage`, `pages`: the first, the last and the current ±2 as `{ type: 'page', page }`, with an `{ type: 'ellipsis' }` for each gap | `refine(page)`: ignored while hidden or out of range |
-| `connectSections` | `collections` (only those with a link), `articles`, `pages`: `{ hit, display }[]`, empty on the empty query | — |
+| `connectSections` | `collections`, `articles`, `pages` (only hits with a link): `{ hit, display }[]`, empty on the empty query | — |
 
-A product hit's `display` is ready to render: `title`, `titleParts` (`{ before, match, after }` around the answered query, for highlighting), `href` (http(s) only: the hit's `url`, else `buildProductUrl`'s result), `image`, `price` and `compareAtPrice` (formatted in the market currency; empty when unknown, or when not higher than the price). A section hit's `display` has `title`, `titleParts`, `href` and `image`.
+A hit's `display` is ready to render, all from its `_display`. A product's: `title`, `titleParts` (`{ before, match, after }` around the answered query, for highlighting), `href` (`_display.url`, a relative one resolved under `storefrontRoot` and kept only on the storefront's origin; http(s) only), `image`, `price`, `compareAtPrice` (empty unless higher than the price), `lineAboveTitle` and `lineBelowTitle` (the first display line at each position). A section hit's: `title`, `titleParts`, `href` and `image`.
 
-**Helpers.** The subpath also exports the shared UI helpers the connectors use, for a surface that formats in its own locale: `getSearchTexts(locale, overrides?)`, `formatSearchPrice(hit, locale)`, `formatSearchCompareAtPrice(hit, locale)`, `hitTitle`, `hitImage`, `hitHref`, `safeHref`, `navigableCollections`, `splitTitleMatch(title, query)` and `resolveSearchPanelVariables(theme)`; plus `SearchStatus`, `DialogSearchError` and the types of the snapshot and the hits.
+**Helpers.** The subpath also exports the shared UI helpers the connectors use, for a surface that formats in its own locale: `getSearchTexts(locale, overrides?)`, `formatSearchPrice(hit, locale)`, `formatSearchCompareAtPrice(hit, locale)`, `hitTitle`, `hitImage`, `hitHref(hit, root?)`, `resolveDisplayUrl(url, root?)`, `safeHref`, `navigableCollections`, `splitTitleMatch(title, query)` and `resolveSearchPanelVariables(theme)`; plus `SearchStatus`, `DialogSearchError` and the types of the snapshot and the hits.
 
 The raw JavaScript reference adapter, on this API, lives in [`packages/search-example`](../search-example).
 
