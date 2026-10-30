@@ -57,7 +57,7 @@ const answer: SearchResponse = {
         _display: {
           title: "La crème",
           url: "https://blog.test/creme",
-          image: "a.jpg",
+          image: { url: "a.jpg", shape: "rounded" },
         },
       },
       unlinked("a2"),
@@ -147,7 +147,7 @@ describe("connectSections", () => {
             title: "La crème",
             titleParts: { before: "La ", match: "crème", after: "" },
             href: "https://blog.test/creme",
-            image: "a.jpg",
+            image: { url: "a.jpg", shape: "rounded" },
           },
         },
       ],

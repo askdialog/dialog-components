@@ -29,7 +29,7 @@ function renderProductCard({ display }, index, hits) {
   image.className = "card-image";
   if (display.image !== undefined) {
     const img = document.createElement("img");
-    img.src = display.image;
+    img.src = display.image.url;
     img.alt = display.title;
     img.loading = "lazy";
     image.appendChild(img);

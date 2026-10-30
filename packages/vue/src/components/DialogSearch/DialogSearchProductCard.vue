@@ -15,10 +15,13 @@
     >
       <span
         v-if="display.image !== undefined"
-        class="dialog-search-product-thumb"
+        :class="[
+          'dialog-search-product-thumb',
+          `dialog-search-thumb--${display.image.shape}`,
+        ]"
         aria-hidden="true"
       >
-        <img :src="display.image" alt="" loading="lazy" />
+        <img :src="display.image.url" alt="" loading="lazy" />
       </span>
       <span class="dialog-search-product-title">
         <HighlightedTitle :parts="display.titleParts" />

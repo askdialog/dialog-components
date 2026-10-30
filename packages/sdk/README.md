@@ -320,7 +320,8 @@ const response: SearchResponse = await client.search({
 // Page hits are `SearchPageHit`, Algolia's page record:
 // { objectID, title?, handle?, author?, updated_at?, body_html_safe?, url?, _display }
 // Every hit carries `_display` (`SearchHitDisplay`), what to display computed by
-// the server: `{ image?, title, url }`; a product's (`SearchProductHitDisplay`)
+// the server: `{ image?, title, url }`, `image` being `{ url, shape }` with
+// `shape` one of `'theme' | 'square' | 'rounded' | 'round'`; a product's (`SearchProductHitDisplay`)
 // adds `price`, `compare_at_price?` (formatted in the market currency) and
 // `lines` (`{ position: 'above_title' | 'below_title', text }[]`). `url` is
 // absolute, or relative to the storefront's locale root, e.g. `products/creme-lift`.
@@ -449,7 +450,7 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 | `connectPagination` | `visible` (false while loading, with a query pending or with a single page), `currentPage` (zero-based), `nbPages`, `isFirstPage`, `isLastPage`, `pages`: the first, the last and the current ±2 as `{ type: 'page', page }`, with an `{ type: 'ellipsis' }` for each gap | `refine(page)`: ignored while hidden or out of range |
 | `connectSections` | `collections`, `articles`, `pages` (only hits with a link): `{ hit, display }[]`, empty on the empty query | — |
 
-A hit's `display` is ready to render, all from its `_display`. A product's: `title`, `titleParts` (`{ before, match, after }` around the answered query, for highlighting), `href` (`_display.url`, a relative one resolved under `storefrontRoot` and kept only on the storefront's origin; http(s) only), `image`, `price`, `compareAtPrice` (empty unless higher than the price), `lineAboveTitle` and `lineBelowTitle` (the first display line at each position). A section hit's: `title`, `titleParts`, `href` and `image`.
+A hit's `display` is ready to render, all from its `_display`. A product's: `title`, `titleParts` (`{ before, match, after }` around the answered query, for highlighting), `href` (`_display.url`, a relative one resolved under `storefrontRoot` and kept only on the storefront's origin; http(s) only), `image`, `price`, `compareAtPrice` (empty unless higher than the price), `lineAboveTitle` and `lineBelowTitle` (the first display line at each position). A section hit's: `title`, `titleParts`, `href` and `image`. `image` is `_display.image`, `{ url, shape }`: draw `url` in `shape`, `theme` with the surface's own corners, `square` with straight ones, `rounded` with rounded ones and `round` as a circle.
 
 **Helpers.** The subpath also exports the shared UI helpers the connectors use, for a surface that formats in its own locale: `getSearchTexts(locale, overrides?)`, `formatSearchPrice(hit, locale)`, `formatSearchCompareAtPrice(hit, locale)`, `hitTitle`, `hitImage`, `hitHref(hit, root?)`, `resolveDisplayUrl(url, root?)`, `safeHref`, `navigableCollections`, `splitTitleMatch(title, query)` and `resolveSearchPanelVariables(theme)`; plus `SearchStatus`, `DialogSearchError` and the types of the snapshot and the hits.
 

@@ -11,10 +11,13 @@
         <a class="dialog-search-collection" :href="display.href">
           <span
             v-if="display.image !== undefined"
-            class="dialog-search-collection-thumb"
+            :class="[
+              'dialog-search-collection-thumb',
+              `dialog-search-thumb--${display.image.shape}`,
+            ]"
             aria-hidden="true"
           >
-            <img :src="display.image" alt="" loading="lazy" />
+            <img :src="display.image.url" alt="" loading="lazy" />
           </span>
           <span class="dialog-search-collection-title">
             <HighlightedTitle :parts="display.titleParts" />
