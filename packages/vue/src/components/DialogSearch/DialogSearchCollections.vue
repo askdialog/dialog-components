@@ -98,6 +98,19 @@ const props = defineProps<{
   object-fit: cover;
 }
 
+/* The merchant's image shape; `theme` keeps the theme's corners. */
+.dialog-search-collection-thumb.dialog-search-thumb--square {
+  border-radius: 0;
+}
+
+.dialog-search-collection-thumb.dialog-search-thumb--rounded {
+  border-radius: 8px;
+}
+
+.dialog-search-collection-thumb.dialog-search-thumb--round {
+  border-radius: 50%;
+}
+
 .dialog-search-collection-title {
   flex: 1;
   min-width: 0;
@@ -156,6 +169,11 @@ const props = defineProps<{
     width: 80px;
     height: 50px;
     border-radius: var(--dso-r-item);
+  }
+
+  .dialog-search-collection-thumb.dialog-search-thumb--round {
+    align-self: center;
+    width: 50px;
   }
 
   .dialog-search-collection-title {
