@@ -52,16 +52,20 @@ export type { SearchBusinessRanking } from "../types/dialogConfig";
 export type {
   SearchArticleHit,
   SearchCollectionHit,
-  SearchDisplayLine,
   SearchHitByIndex,
-  SearchHitDisplay,
   SearchIndex,
   SearchPageHit,
   SearchProductHit,
-  SearchProductHitDisplay,
   SearchResult,
   SearchSections,
 } from "../types/search";
+export type {
+  SearchDisplayImage,
+  SearchDisplayLine,
+  SearchHitDisplay,
+  SearchImageShape,
+  SearchProductHitDisplay,
+} from "../types/searchDisplay";
 export {
   SearchStatus,
   type SearchControllerAnalytics,

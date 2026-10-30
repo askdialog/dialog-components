@@ -1,3 +1,8 @@
+import type {
+  SearchHitDisplay,
+  SearchProductHitDisplay,
+} from "./searchDisplay";
+
 /** Supported indices before adding language and country. */
 export const SEARCH_INDICES = [
   "products",
@@ -30,30 +35,6 @@ export interface SearchRequest {
 export interface SearchOptions {
   /** Passed to fetch; cancellation rejects with `AbortError`. */
   signal?: AbortSignal;
-}
-
-/** The server's display rules on top of a hit's raw record. */
-export interface SearchHitDisplay {
-  /** The image to display; absent when there is none to show, e.g. the merchant hides images. */
-  image?: string;
-  title: string;
-  /** Absolute, or relative to the storefront's locale root, e.g. `products/creme-lift`. */
-  url: string;
-}
-
-/** A line of text the merchant shows next to a product's title. */
-export interface SearchDisplayLine {
-  position: "above_title" | "below_title";
-  text: string;
-}
-
-/** The server's display rules on top of a product hit's raw record. */
-export interface SearchProductHitDisplay extends SearchHitDisplay {
-  /** Formatted in the shopper's market currency. */
-  price: string;
-  /** Formatted like `price`; present only when higher than it. */
-  compare_at_price?: string;
-  lines: SearchDisplayLine[];
 }
 
 /** Algolia's collection record, plus `url`. */

@@ -102,7 +102,7 @@ describe("connectHits", () => {
           _display: {
             title: "Crème mains",
             url: "products/creme-mains",
-            image: "product.jpg",
+            image: { url: "product.jpg", shape: "round" },
             price: "12,50 €",
             compare_at_price: "15,00 €",
             lines: [
@@ -126,7 +126,7 @@ describe("connectHits", () => {
       title: "Crème mains",
       titleParts: { before: "", match: "Crème", after: " mains" },
       href: `${window.location.origin}/fr-be/products/creme-mains`,
-      image: "product.jpg",
+      image: { url: "product.jpg", shape: "round" },
       price: "12,50 €",
       compareAtPrice: "15,00 €",
       lineAboveTitle: "Nouveau",
