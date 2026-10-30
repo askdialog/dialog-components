@@ -70,8 +70,11 @@ export const ProductCardView: FC<ProductCardViewProps> = ({
   const content = (
     <>
       {image !== undefined && (
-        <span className="dialog-search-product-thumb" aria-hidden>
-          <img src={image} alt="" loading="lazy" />
+        <span
+          className={`dialog-search-product-thumb dialog-search-thumb--${image.shape}`}
+          aria-hidden
+        >
+          <img src={image.url} alt="" loading="lazy" />
         </span>
       )}
       <span className="dialog-search-product-title">

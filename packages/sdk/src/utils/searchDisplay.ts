@@ -6,20 +6,23 @@ import type {
   SearchPageHit,
   SearchProductHit,
 } from "../types/search";
+import type { SearchDisplayImage } from "../types/searchDisplay";
 
 type SearchHit = SearchHitByIndex[SearchIndex];
 
-const nonEmpty = (value: string | undefined): string | undefined =>
-  value === "" ? undefined : value;
+const withUrl = (
+  image: SearchDisplayImage | undefined,
+): SearchDisplayImage | undefined => (image?.url === "" ? undefined : image);
 
-/** The product's image to display, as the server's `_display` says. */
-export const hitImage = (hit: SearchProductHit): string | undefined =>
-  nonEmpty(hit._display.image);
+/** The product's image to display, with its shape, as the server's `_display` says. */
+export const hitImage = (
+  hit: SearchProductHit,
+): SearchDisplayImage | undefined => withUrl(hit._display.image);
 
-/** A section hit's image to display, as the server's `_display` says. */
+/** A section hit's image to display, with its shape, as the server's `_display` says. */
 export const sectionHitImage = (
   hit: SearchCollectionHit | SearchArticleHit | SearchPageHit,
-): string | undefined => nonEmpty(hit._display.image);
+): SearchDisplayImage | undefined => withUrl(hit._display.image);
 
 // Allow only HTTP(S) links.
 export const safeHref = (url: string | undefined): string | undefined => {

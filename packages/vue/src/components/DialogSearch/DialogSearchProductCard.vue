@@ -15,10 +15,13 @@
     >
       <span
         v-if="display.image !== undefined"
-        class="dialog-search-product-thumb"
+        :class="[
+          'dialog-search-product-thumb',
+          `dialog-search-thumb--${display.image.shape}`,
+        ]"
         aria-hidden="true"
       >
-        <img :src="display.image" alt="" loading="lazy" />
+        <img :src="display.image.url" alt="" loading="lazy" />
       </span>
       <span class="dialog-search-product-title">
         <HighlightedTitle :parts="display.titleParts" />
@@ -140,6 +143,19 @@ a.dialog-search-product:hover {
   object-fit: cover;
 }
 
+/* The merchant's image shape; `theme` keeps the theme's corners. */
+.dialog-search-product-thumb.dialog-search-thumb--square {
+  border-radius: 0;
+}
+
+.dialog-search-product-thumb.dialog-search-thumb--rounded {
+  border-radius: 8px;
+}
+
+.dialog-search-product-thumb.dialog-search-thumb--round {
+  border-radius: 50%;
+}
+
 .dialog-search-product-title {
   flex: 1;
   min-width: 0;
@@ -180,6 +196,14 @@ a.dialog-search-product:hover {
     height: auto;
     aspect-ratio: 4 / 3;
     border: 0;
+  }
+
+  /* As tall as the other cards' 4:3 images. */
+  .dialog-search-panel--grid
+    .dialog-search-product-thumb.dialog-search-thumb--round {
+    align-self: center;
+    width: 75%;
+    aspect-ratio: 1;
   }
 }
 

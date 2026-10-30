@@ -1,8 +1,5 @@
-import {
-  SearchDisplayLine,
-  SearchProductHit,
-  SearchResult,
-} from "../types/search";
+import { SearchProductHit, SearchResult } from "../types/search";
+import { SearchDisplayImage, SearchDisplayLine } from "../types/searchDisplay";
 import { hitImage } from "../utils/searchDisplay";
 import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
 import { Connector, createConnector } from "./connector";
@@ -15,7 +12,8 @@ export interface ProductHitDisplay {
   readonly titleParts: TitleParts;
   /** HTTP(S) link; absent when unsafe or off the storefront. */
   readonly href?: string;
-  readonly image?: string;
+  /** Draw `image.url` in `image.shape`. */
+  readonly image?: SearchDisplayImage;
   /** Formatted in the shopper's market currency. */
   readonly price: string;
   /** Struck next to the price when higher than it; else empty. */

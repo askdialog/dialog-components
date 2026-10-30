@@ -27,17 +27,24 @@ const collection = (objectID: string, url: string): SearchCollectionHit => ({
 });
 
 describe("hitImage", () => {
-  it("takes `_display.image`, never the record's images", () => {
+  it("takes `_display.image` with its shape, never the record's images", () => {
     const record = { product_image: "p.jpg", image: "v.jpg" };
     const display = product({})._display;
     expect(
       hitImage(
-        product({ ...record, _display: { ...display, image: "d.jpg" } }),
+        product({
+          ...record,
+          _display: { ...display, image: { url: "d.jpg", shape: "square" } },
+        }),
       ),
-    ).toBe("d.jpg");
+    ).toEqual({ url: "d.jpg", shape: "square" });
     expect(hitImage(product(record))).toBeUndefined();
     expect(
-      hitImage(product({ _display: { ...display, image: "" } })),
+      hitImage(
+        product({
+          _display: { ...display, image: { url: "", shape: "theme" } },
+        }),
+      ),
     ).toBeUndefined();
   });
 });

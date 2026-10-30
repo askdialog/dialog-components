@@ -5,6 +5,7 @@ import {
   SearchResult,
   SearchSections,
 } from "../types/search";
+import { SearchDisplayImage } from "../types/searchDisplay";
 import { hitHref, hitTitle, sectionHitImage } from "../utils/searchDisplay";
 import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
 import { Connector, createConnector } from "./connector";
@@ -18,7 +19,8 @@ export interface SectionHitDisplay {
   readonly titleParts: TitleParts;
   /** HTTP(S) link on the storefront or beyond. */
   readonly href: string;
-  readonly image?: string;
+  /** Draw `image.url` in `image.shape`. */
+  readonly image?: SearchDisplayImage;
 }
 
 export interface SectionHit<THit> {
