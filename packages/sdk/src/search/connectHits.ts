@@ -1,15 +1,15 @@
 import { SearchProductHit, SearchResult } from "../types/search";
 import { SearchDisplayImage, SearchDisplayLine } from "../types/searchDisplay";
 import { hitImage } from "../utils/searchDisplay";
-import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
+import { highlightedTitleParts, TitlePart } from "../utils/titleHighlight";
 import { Connector, createConnector } from "./connector";
 import { SearchContext, SearchController } from "./types";
 
 /** What a surface renders for a product hit, all from the server's `_display`. */
 export interface ProductHitDisplay {
   readonly title: string;
-  /** The title split around the answered query, for highlighting. */
-  readonly titleParts: TitleParts;
+  /** The title in runs, those the engine matched `highlighted`. */
+  readonly titleParts: readonly TitlePart[];
   /** HTTP(S) link; absent when unsafe or off the storefront. */
   readonly href?: string;
   /** Draw `image.url` in `image.shape`. */
@@ -53,20 +53,16 @@ const lineText = (
   position: SearchDisplayLine["position"],
 ): string | undefined => lines.find((line) => line.position === position)?.text;
 
-/** The display `connectHits` gives `hit`: its title highlighted for `query`. */
+/** The display `connectHits` gives `hit`. */
 export const productHitDisplay = (
   controller: SearchController,
   hit: SearchProductHit,
-  query: string,
-  /** @deprecated Ignored: prices come formatted from the server. */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Callers that still pass a locale keep compiling.
-  _locale?: string,
 ): ProductHitDisplay => {
   const { title, price, compare_at_price, lines } = hit._display;
 
   return {
     title,
-    titleParts: splitTitleMatch(title, query),
+    titleParts: highlightedTitleParts(title, hit._highlightResult),
     href: controller.productUrl(hit),
     image: hitImage(hit),
     price,
@@ -86,7 +82,7 @@ const renderHits = (
   return {
     hits: (products?.hits ?? []).map((hit) => ({
       hit,
-      display: productHitDisplay(controller, hit, query),
+      display: productHitDisplay(controller, hit),
     })),
     query,
     title:

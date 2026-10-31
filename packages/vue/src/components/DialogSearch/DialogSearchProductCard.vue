@@ -51,17 +51,11 @@ interface Props {
   controller: SearchController;
   hit: SearchProductHit;
   index: number;
-  /** @deprecated Ignored: prices are formatted by the server in the shopper's market. */
-  locale?: string;
-  /** Committed query, emphasized inside the title. */
-  query?: string;
   /** The hit's display from `connectHits`; built from the hit when omitted. */
   display?: ProductHitDisplay;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  locale: undefined,
-  query: "",
   display: undefined,
 });
 
@@ -80,8 +74,7 @@ watch(
 
 const display = computed(
   (): ProductHitDisplay =>
-    props.display ??
-    productHitDisplay(props.controller, props.hit, props.query),
+    props.display ?? productHitDisplay(props.controller, props.hit),
 );
 
 // Preserve native modified clicks. Prevent default navigation only when the

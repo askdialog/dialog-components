@@ -52,6 +52,7 @@ export type { SearchBusinessRanking } from "../types/dialogConfig";
 export type {
   SearchArticleHit,
   SearchCollectionHit,
+  SearchHighlightResult,
   SearchHitByIndex,
   SearchIndex,
   SearchPageHit,
@@ -84,7 +85,7 @@ export {
   resolveDisplayUrl,
   safeHref,
 } from "../utils/searchDisplay";
-export { splitTitleMatch, type TitleParts } from "../utils/titleHighlight";
+export { highlightedTitleParts, type TitlePart } from "../utils/titleHighlight";
 export {
   formatSearchCompareAtPrice,
   formatSearchPrice,

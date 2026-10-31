@@ -1,36 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { splitTitleMatch } from "../utils/titleHighlight";
+import { highlightedTitleParts } from "../utils/titleHighlight";
 
-describe("splitTitleMatch", () => {
-  it("matches regardless of case and diacritics, keeping the title's characters", () => {
-    expect(splitTitleMatch("Crème brûlée", "creme")).toEqual({
-      before: "",
-      match: "Crème",
-      after: " brûlée",
-    });
-    expect(splitTitleMatch("Sac BRÛLÉ", " brule ")).toEqual({
-      before: "Sac ",
-      match: "BRÛLÉ",
-      after: "",
-    });
+const highlight = (value: string, matchLevel: "none" | "partial" | "full") => ({
+  title: { value, matchLevel, matchedWords: [], fullyHighlighted: false },
+});
+
+describe("highlightedTitleParts", () => {
+  it("highlights exactly the parts in <em> and unescapes the text", () => {
+    expect(
+      highlightedTitleParts(
+        'Gants <b> & "boxe" l\'été',
+        highlight(
+          "<em>Gants</em> &lt;b&gt; &amp; &quot;<em>boxe</em>&quot; l&#x27;&#233;t&#xE9;",
+          "partial",
+        ),
+      ),
+    ).toEqual([
+      { text: "Gants", highlighted: true },
+      { text: ' <b> & "', highlighted: false },
+      { text: "boxe", highlighted: true },
+      { text: "\" l'été", highlighted: false },
+    ]);
   });
 
-  it("maps characters whose folded form is longer", () => {
-    expect(splitTitleMatch("Große Tasche", "grosse")).toEqual({
-      before: "",
-      match: "Große",
-      after: " Tasche",
-    });
-    expect(splitTitleMatch("ΟΔΟΣ", "οδος")).toEqual({
-      before: "",
-      match: "ΟΔΟΣ",
-      after: "",
-    });
-  });
-
-  it("highlights nothing on an empty or unmatched query", () => {
-    const whole = { before: "", match: "Bag", after: "" };
-    expect(splitTitleMatch("Bag", "  ")).toEqual(whole);
-    expect(splitTitleMatch("Bag", "shoe")).toEqual(whole);
+  it("keeps the plain title without a match", () => {
+    const plain = [{ text: "Gants & boxe", highlighted: false }];
+    expect(highlightedTitleParts("Gants & boxe", undefined)).toEqual(plain);
+    expect(
+      highlightedTitleParts(
+        "Gants & boxe",
+        highlight("Gants &amp; boxe", "none"),
+      ),
+    ).toEqual(plain);
   });
 });
