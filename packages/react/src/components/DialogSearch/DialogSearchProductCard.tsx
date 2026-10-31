@@ -100,10 +100,6 @@ interface DialogSearchProductCardProps {
   /** `state.results.products.hits[index]`. */
   hit: SearchProductHit;
   index: number;
-  /** @deprecated Ignored: prices are formatted by the server in the shopper's market. */
-  locale?: string;
-  /** @deprecated Ignored: the title shows what the engine matched. */
-  query?: string;
 }
 
 /** A product card for custom layouts, displayed by the hits connector. */

@@ -51,17 +51,11 @@ interface Props {
   controller: SearchController;
   hit: SearchProductHit;
   index: number;
-  /** @deprecated Ignored: prices are formatted by the server in the shopper's market. */
-  locale?: string;
-  /** @deprecated Ignored: the title shows what the engine matched. */
-  query?: string;
   /** The hit's display from `connectHits`; built from the hit when omitted. */
   display?: ProductHitDisplay;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  locale: undefined,
-  query: undefined,
   display: undefined,
 });
 

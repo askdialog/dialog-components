@@ -199,8 +199,6 @@ One product of the results, with its image, highlighted title, price and link, a
 - `controller` (SearchController) - From `useDialogSearch` (required)
 - `hit` (SearchProductHit) - The product hit (required)
 - `index` (number) - Its position in `state.results.products.hits`, for attribution (required)
-- `locale` (string, optional) - Deprecated and ignored: prices are formatted by the server
-- `query` (string, optional) - The query emphasized in the title
 - `display` (ProductHitDisplay, optional) - The hit's display from `connectHits`; built from the hit when omitted
 
 ## Theming
