@@ -23,7 +23,6 @@
         :controller="props.controller"
         :hit="hit"
         :index="index"
-        :query="props.query"
         :display="display"
       />
     </ul>
@@ -41,7 +40,6 @@ import DialogSearchProductCard from "./DialogSearchProductCard.vue";
 const props = defineProps<{
   controller: SearchController;
   hits: readonly ProductHit[];
-  query: string;
   nbHits: number;
   title: string;
   texts: SearchTexts;

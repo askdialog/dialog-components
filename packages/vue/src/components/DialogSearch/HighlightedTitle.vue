@@ -1,27 +1,21 @@
 <template>
-  <span v-if="props.parts.before !== ''" class="dialog-search-muted">{{
-    props.parts.before
-  }}</span>
-  <span class="dialog-search-match">{{ props.parts.match }}</span>
-  <span v-if="props.parts.after !== ''" class="dialog-search-muted">{{
-    props.parts.after
-  }}</span>
+  <template v-for="({ text, highlighted }, index) in props.parts" :key="index">
+    <span v-if="highlighted" class="dialog-search-match">{{ text }}</span>
+    <template v-else>{{ text }}</template>
+  </template>
 </template>
 
 <script setup lang="ts">
-import type { TitleParts } from "@askdialog/dialog-sdk";
+import type { TitlePart } from "@askdialog/dialog-sdk";
 
+/** The title as text, the parts the engine matched in bold. */
 const props = defineProps<{
-  parts: TitleParts;
+  parts: readonly TitlePart[];
 }>();
 </script>
 
 <style>
 .dialog-search-match {
   font-weight: 600;
-}
-
-.dialog-search-muted {
-  opacity: 0.55;
 }
 </style>

@@ -80,10 +80,6 @@ a.dialog-search-product:hover {
   font-weight: 600;
 }
 
-.dialog-search-muted {
-  opacity: 0.55;
-}
-
 @media (min-width: 768px) {
   .dialog-search-panel--grid .dialog-search-product {
     display: flex;

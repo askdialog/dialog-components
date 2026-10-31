@@ -1,16 +1,21 @@
 import type { FC } from "react";
-import type { TitleParts } from "@askdialog/dialog-sdk";
+import type { TitlePart } from "@askdialog/dialog-sdk";
 
 interface HighlightedTitleProps {
-  parts: TitleParts;
+  parts: readonly TitlePart[];
 }
 
-export const HighlightedTitle: FC<HighlightedTitleProps> = ({
-  parts: { before, match, after },
-}) => (
+/** The title as text, the parts the engine matched in bold. */
+export const HighlightedTitle: FC<HighlightedTitleProps> = ({ parts }) => (
   <>
-    {before !== "" && <span className="dialog-search-muted">{before}</span>}
-    <span className="dialog-search-match">{match}</span>
-    {after !== "" && <span className="dialog-search-muted">{after}</span>}
+    {parts.map(({ text, highlighted }, index) =>
+      highlighted ? (
+        <span key={index} className="dialog-search-match">
+          {text}
+        </span>
+      ) : (
+        text
+      ),
+    )}
   </>
 );

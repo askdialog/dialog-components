@@ -1,10 +1,8 @@
 import { type FC, type MouseEvent, useEffect, useRef } from "react";
 import {
   connectHits,
-  splitTitleMatch,
   type HitsConnector,
   type ProductHit,
-  type ProductHitDisplay,
   type SearchController,
   type SearchProductHit,
 } from "@askdialog/dialog-sdk";
@@ -12,29 +10,17 @@ import { HighlightedTitle } from "./HighlightedTitle";
 import { useConnector } from "./useConnector";
 import "./DialogSearchProductCard.css";
 
-/** The connector's display, its title highlighted for `query` when given. */
-const highlightedDisplay = (
-  { display }: ProductHit,
-  query: string | undefined,
-): ProductHitDisplay =>
-  query === undefined
-    ? display
-    : { ...display, titleParts: splitTitleMatch(display.title, query) };
-
 interface ProductCardViewProps {
   /** `hits[index]` of the hits connector. */
   entry: ProductHit;
   index: number;
   tracking: Pick<HitsConnector, "observe" | "select">;
-  /** Query emphasized inside the title; the answered query when omitted. */
-  query?: string;
 }
 
 export const ProductCardView: FC<ProductCardViewProps> = ({
   entry,
   index,
   tracking,
-  query,
 }) => {
   const cardRef = useRef<HTMLLIElement>(null);
 
@@ -62,10 +48,7 @@ export const ProductCardView: FC<ProductCardViewProps> = ({
     }
   };
 
-  const { href, image, titleParts, price, compareAtPrice } = highlightedDisplay(
-    entry,
-    query,
-  );
+  const { href, image, titleParts, price, compareAtPrice } = entry.display;
 
   const content = (
     <>
@@ -119,7 +102,7 @@ interface DialogSearchProductCardProps {
   index: number;
   /** @deprecated Ignored: prices are formatted by the server in the shopper's market. */
   locale?: string;
-  /** Query emphasized inside the title; the answered query when omitted. */
+  /** @deprecated Ignored: the title shows what the engine matched. */
   query?: string;
 }
 
@@ -128,18 +111,12 @@ export const DialogSearchProductCard: FC<DialogSearchProductCardProps> = ({
   controller,
   hit,
   index,
-  query,
 }) => {
   const [{ hits }, connector] = useConnector(connectHits, controller);
   const entry = hits.at(index);
 
   // Only a hit of the shown results can be displayed and tracked.
   return entry?.hit.objectID === hit.objectID ? (
-    <ProductCardView
-      entry={entry}
-      index={index}
-      tracking={connector}
-      query={query}
-    />
+    <ProductCardView entry={entry} index={index} tracking={connector} />
   ) : null;
 };
