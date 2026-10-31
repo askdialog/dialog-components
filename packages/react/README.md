@@ -203,8 +203,6 @@ One product card, as `DialogSearchResults` renders it, for custom layouts. It re
 - `controller` (SearchController) - From `useDialogSearch` (required)
 - `hit` (SearchProductHit) - `state.results.products.hits[index]` (required)
 - `index` (number) - The hit's position in the shown results (required)
-- `locale` (string, optional) - Deprecated and ignored: prices are formatted by the server
-- `query` (string, optional) - Query emphasized inside the title; the answered query when omitted
 
 #### Upgrading from 2.x
 

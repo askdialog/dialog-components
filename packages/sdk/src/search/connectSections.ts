@@ -7,7 +7,7 @@ import {
 } from "../types/search";
 import { SearchDisplayImage } from "../types/searchDisplay";
 import { hitHref, hitTitle, sectionHitImage } from "../utils/searchDisplay";
-import { splitTitleMatch, TitleParts } from "../utils/titleHighlight";
+import { highlightedTitleParts, TitlePart } from "../utils/titleHighlight";
 import { Connector, createConnector } from "./connector";
 import { productsEntry } from "./searchState";
 import { SearchController } from "./types";
@@ -15,8 +15,8 @@ import { SearchController } from "./types";
 /** What a surface renders for a section hit, all from the server's `_display`. */
 export interface SectionHitDisplay {
   readonly title: string;
-  /** The title split around the answered query, for highlighting. */
-  readonly titleParts: TitleParts;
+  /** The title in runs, those the engine matched `highlighted`. */
+  readonly titleParts: readonly TitlePart[];
   /** HTTP(S) link on the storefront or beyond. */
   readonly href: string;
   /** Draw `image.url` in `image.shape`. */
@@ -55,7 +55,7 @@ const withDisplay = <THit extends SectionSearchHit>(
       return [];
     }
     const title = hitTitle(hit);
-    const titleParts = splitTitleMatch(title, result?.query ?? "");
+    const titleParts = highlightedTitleParts(title, hit._highlightResult);
 
     return [
       {

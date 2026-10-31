@@ -44,7 +44,6 @@
           <DialogSearchProducts
             :controller="props.controller"
             :hits="hits.hits"
-            :query="hits.query"
             :nb-hits="products.nbHits"
             :title="productsTitle"
             :texts="texts"

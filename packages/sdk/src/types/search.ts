@@ -37,6 +37,17 @@ export interface SearchOptions {
   signal?: AbortSignal;
 }
 
+/** Algolia's `_highlightResult` on a lexical hit. */
+export interface SearchHighlightResult {
+  title: {
+    /** The title with each matched part wrapped in `<em>…</em>`, the rest HTML-escaped. */
+    value: string;
+    matchLevel: "none" | "partial" | "full";
+    matchedWords: string[];
+    fullyHighlighted: boolean;
+  };
+}
+
 /** Algolia's collection record, plus `url`. */
 export interface SearchCollectionHit {
   /** Collection id, the last segment of the Shopify GID. */
@@ -50,6 +61,8 @@ export interface SearchCollectionHit {
   products_count?: number;
   template_suffix?: string;
   updated_at?: string;
+  /** The title's parts the query matched; absent on hits without a lexical match. */
+  _highlightResult?: SearchHighlightResult;
   /** What to display, computed by the server; the SDK displays nothing from the raw record. */
   _display: SearchHitDisplay;
 }
@@ -73,6 +86,8 @@ export interface SearchArticleHit {
   updated_at?: string;
   body_html_safe?: string;
   url?: string;
+  /** The title's parts the query matched; absent on hits without a lexical match. */
+  _highlightResult?: SearchHighlightResult;
   /** What to display, computed by the server; the SDK displays nothing from the raw record. */
   _display: SearchHitDisplay;
 }
@@ -87,6 +102,8 @@ export interface SearchPageHit {
   updated_at?: string;
   body_html_safe?: string;
   url?: string;
+  /** The title's parts the query matched; absent on hits without a lexical match. */
+  _highlightResult?: SearchHighlightResult;
   /** What to display, computed by the server; the SDK displays nothing from the raw record. */
   _display: SearchHitDisplay;
 }
@@ -143,6 +160,8 @@ export interface SearchProductHit {
   created_at?: string;
   updated_at?: string;
   published_at?: string;
+  /** The title's parts the query matched; absent on hits without a lexical match. */
+  _highlightResult?: SearchHighlightResult;
   /** What to display, computed by the server; the SDK displays nothing from the raw record. */
   _display: SearchProductHitDisplay;
 }
