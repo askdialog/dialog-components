@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 220] */
+/* eslint max-lines: ["error", 240] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { connectHits } from "../search/connectHits";
 import { createSearchController } from "../search/createSearchController";
@@ -99,8 +99,16 @@ describe("connectHits", () => {
           product_image: "raw.jpg",
           variants_min_price: 1,
           currency: "EUR",
+          _highlightResult: {
+            title: {
+              value: "<em>Crème</em> mains &amp; <em>pieds</em>",
+              matchLevel: "partial",
+              matchedWords: ["creme", "pieds"],
+              fullyHighlighted: false,
+            },
+          },
           _display: {
-            title: "Crème mains",
+            title: "Crème mains & pieds",
             url: "products/creme-mains",
             image: { url: "product.jpg", shape: "round" },
             price: "12,50 €",
@@ -123,8 +131,12 @@ describe("connectHits", () => {
       .getRenderState()
       .hits.map(({ display }) => display);
     expect(first).toEqual({
-      title: "Crème mains",
-      titleParts: { before: "", match: "Crème", after: " mains" },
+      title: "Crème mains & pieds",
+      titleParts: [
+        { text: "Crème", highlighted: true },
+        { text: " mains & ", highlighted: false },
+        { text: "pieds", highlighted: true },
+      ],
       href: `${window.location.origin}/fr-be/products/creme-mains`,
       image: { url: "product.jpg", shape: "round" },
       price: "12,50 €",
@@ -133,6 +145,7 @@ describe("connectHits", () => {
       lineBelowTitle: "Bio",
     });
     expect(second).toMatchObject({
+      titleParts: [{ text: "Produit", highlighted: false }],
       image: undefined,
       price: "",
       compareAtPrice: "",

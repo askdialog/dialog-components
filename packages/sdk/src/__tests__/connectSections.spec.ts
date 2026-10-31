@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 210] */
+/* eslint max-lines: ["error", 230] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { connectSections } from "../search/connectSections";
 import { createSearchController } from "../search/createSearchController";
@@ -45,6 +45,14 @@ const answer: SearchResponse = {
         title: "Raw",
         url: "/collections/raw",
         image: "raw.jpg",
+        _highlightResult: {
+          title: {
+            value: "<em>Crème</em> visage",
+            matchLevel: "partial",
+            matchedWords: ["creme"],
+            fullyHighlighted: false,
+          },
+        },
         _display: { title: "Crème visage", url: "/collections/creme" },
       },
       unlinked("c2"),
@@ -54,6 +62,14 @@ const answer: SearchResponse = {
         objectID: "a1",
         image: "raw.jpg",
         tags: [],
+        _highlightResult: {
+          title: {
+            value: "La crème",
+            matchLevel: "none",
+            matchedWords: [],
+            fullyHighlighted: false,
+          },
+        },
         _display: {
           title: "La crème",
           url: "https://blog.test/creme",
@@ -134,7 +150,10 @@ describe("connectSections", () => {
           hit: expect.objectContaining({ objectID: "c1" }),
           display: {
             title: "Crème visage",
-            titleParts: { before: "", match: "Crème", after: " visage" },
+            titleParts: [
+              { text: "Crème", highlighted: true },
+              { text: " visage", highlighted: false },
+            ],
             href: "/collections/creme",
             image: undefined,
           },
@@ -145,7 +164,7 @@ describe("connectSections", () => {
           hit: expect.objectContaining({ objectID: "a1" }),
           display: {
             title: "La crème",
-            titleParts: { before: "La ", match: "crème", after: "" },
+            titleParts: [{ text: "La crème", highlighted: false }],
             href: "https://blog.test/creme",
             image: { url: "a.jpg", shape: "rounded" },
           },
@@ -156,7 +175,7 @@ describe("connectSections", () => {
           hit: expect.objectContaining({ objectID: "g1" }),
           display: {
             title: "creme-faq",
-            titleParts: { before: "", match: "creme", after: "-faq" },
+            titleParts: [{ text: "creme-faq", highlighted: false }],
             href: `${window.location.origin}/fr-be/pages/faq`,
             image: undefined,
           },
