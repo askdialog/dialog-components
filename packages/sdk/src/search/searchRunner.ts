@@ -35,16 +35,20 @@ export const createSearchRunner = ({
 }: SearchRunnerOptions): {
   run: (entry: ReadIndexState) => Promise<void>;
   cancel: () => void;
+  /** Send the last request again when it carries refinements, read against a new search config. */
+  refresh: () => void;
   /** The last request when it failed, else undefined. */
   failed: () => ReadIndexState | undefined;
 } => {
   let abortController: AbortController | undefined;
   let requestId = 0;
   let failed: ReadIndexState | undefined;
+  let last: ReadIndexState | undefined;
 
   const cancel = (): void => {
     requestId += 1;
     failed = undefined;
+    last = undefined;
     abortController?.abort();
     abortController = undefined;
   };
@@ -53,6 +57,7 @@ export const createSearchRunner = ({
     cancel();
     const controller = new AbortController();
     abortController = controller;
+    last = entry;
     const id = requestId;
     const query = entry.query.trim();
     const requested = requestedSections(query, sections);
@@ -91,5 +96,11 @@ export const createSearchRunner = ({
     }
   };
 
-  return { run, cancel, failed: () => failed };
+  const refresh = (): void => {
+    if (last?.refinementList !== undefined || last?.range !== undefined) {
+      void run(last);
+    }
+  };
+
+  return { run, cancel, refresh, failed: () => failed };
 };

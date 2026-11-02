@@ -7,6 +7,7 @@ import {
   applySearchState,
   readIndexState,
   searchStateChange,
+  withIndexState,
 } from "./searchState";
 import {
   SearchController,
@@ -36,13 +37,8 @@ export function createSearchController(
   const indexName = searchIndexName("products", language, country);
   const merchant = createMerchantContext(controllerOptions);
   const listeners = new Set<(snapshot: SearchSnapshot) => void>();
-  // The products entry is always present, with its query and page.
-  const withProductsEntry = (searchState: SearchState): SearchState => ({
-    ...searchState,
-    [indexName]: readIndexState(searchState, indexName),
-  });
   let snapshot: SearchSnapshot = {
-    searchState: withProductsEntry(initialSearchState),
+    searchState: withIndexState(initialSearchState, indexName),
     results: IDLE,
     context: merchant.context,
   };
@@ -80,11 +76,13 @@ export function createSearchController(
     },
   });
 
-  // The merchant config loads at the first open or search.
+  // The merchant config loads at the first open or search; the refinements
+  // the last request dropped as unknown are sent once it is there.
   const loadConfig = (): void => {
     merchant.load((loaded) => {
       if (!disposed) {
         update({ context: { ...snapshot.context, ...loaded } });
+        runner.refresh();
       }
     });
   };
@@ -116,8 +114,9 @@ export function createSearchController(
       if (disposed) {
         return;
       }
-      const searchState = withProductsEntry(
+      const searchState = withIndexState(
         applySearchState(snapshot.searchState, updater),
+        indexName,
       );
       const change = searchStateChange(
         snapshot.searchState,

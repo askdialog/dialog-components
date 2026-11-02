@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+/* eslint max-lines: ["error", 220] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import {
@@ -6,7 +7,7 @@ import {
   SearchControllerOptions,
   SearchSnapshot,
 } from "../search/types";
-import { SearchResponse } from "../types/search";
+import { SearchRequest, SearchResponse } from "../types/search";
 import { SearchStatus } from "../types/searchController";
 
 const INDEX = "products_fr_be";
@@ -38,7 +39,9 @@ const jsonResponse = (body: unknown, status = 200): Response =>
   });
 
 const fetchMock = vi.fn<typeof fetch>();
-const transport = vi.fn(() => Promise.resolve(answer));
+const transport = vi.fn<(request: SearchRequest) => Promise<SearchResponse>>(
+  () => Promise.resolve(answer),
+);
 // The loads are cached per page: each test uses its own API key.
 let apiKey = 0;
 
@@ -140,6 +143,29 @@ describe("search controller context", () => {
 
     expect(configRequests()).toHaveLength(2);
     expect(context(controller).businessRanking).toBe("best_sellers");
+  });
+
+  it("sends again, once the config loads, the refinements its first search dropped", async () => {
+    const controller = create();
+    controller.setSearchState({
+      [INDEX]: { query: "", refinementList: { color: ["Rouge"] } },
+    });
+    await vi.runAllTimersAsync();
+
+    expect(transport.mock.calls.map(([request]) => request)).toEqual([
+      {
+        requests: [
+          expect.not.objectContaining({ facetFilters: expect.anything() }),
+        ],
+      },
+      {
+        requests: [
+          expect.objectContaining({
+            facetFilters: [[{ attribute: "color", value: "Rouge" }]],
+          }),
+        ],
+      },
+    ]);
   });
 
   it("shares one load between controllers with the same API key and language", async () => {

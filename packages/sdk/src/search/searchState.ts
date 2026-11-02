@@ -31,6 +31,15 @@ export const readIndexState = (
   return { ...entry, query: entry?.query ?? "", page: entry?.page ?? 0 };
 };
 
+/** The search state with the index entry present, its query and page set. */
+export const withIndexState = (
+  searchState: SearchState,
+  indexName: string,
+): SearchState => ({
+  ...searchState,
+  [indexName]: readIndexState(searchState, indexName),
+});
+
 /** Apply an update; each entry changed elsewhere than its page goes back to page 0. */
 export const applySearchState = (
   previous: SearchState,

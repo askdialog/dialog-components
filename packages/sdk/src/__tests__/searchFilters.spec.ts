@@ -135,9 +135,9 @@ describe("products filters", () => {
     const previous = { [INDEX]: { query: "shoes", page: 3 } };
 
     expect(
-      applySearchState(previous, { [INDEX]: { ...previous[INDEX], ...change } })[
-        INDEX
-      ].page,
+      applySearchState(previous, {
+        [INDEX]: { ...previous[INDEX], ...change },
+      })[INDEX].page,
     ).toBe(0);
   });
 });
