@@ -466,6 +466,8 @@ A hit's `display` is ready to render, from its `_display` and, for `titleParts`,
 
 **AI transports.** `searchAi(apiKey, request, options?)` posts to `/public/search/ai` and `searchAiOverview(apiKey, request, options?)` to `/public/search/ai/overview` (the text and filter suggestions about an AI search's first page). Both send the request as is, extra fields included, with the API key header and `options.signal`; an HTTP error rejects with `DialogSearchError`, and past 30 s the request aborts and rejects with a `TimeoutError` `DOMException`.
 
+**AI Overview.** `connectAiOverview(controller, { apiKey })`, on an `ai` controller, requests the overview once page 0 answers, with its query, filters, hit count and first 3 object IDs, and keeps it while later pages load. Pass `{ transport }` instead of `apiKey` to send it your way, e.g. with the visitor's session added. A request is sent once per page and transport, whichever connector or search asks for it again; one no connector waits for any more is aborted. Render state: `status` (`idle` without an AI search, `loading` until page 0 and its overview answer, `success`, `error` when either fails), `text`, `suggestions` (`{ label, filters }[]`) and `attributeLabels`. `applySuggestion(suggestion)` replaces every filter of the search state with the suggestion's, in one search: a group picking values of one attribute goes to `refinementList` and inclusive bounds to `range` when the search config declares the attribute with that type, the rest to `filters`. It writes no URL; a surface syncing the search state to its URL decides whether to.
+
 The raw JavaScript reference adapter, on this API, lives in [`packages/search-example`](../search-example).
 
 - Handler for fetch product

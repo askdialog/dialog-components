@@ -55,6 +55,14 @@ export {
   type SectionsConnector,
   type SectionsRenderState,
 } from "./connectSections";
+export {
+  connectAiOverview,
+  type AiOverviewConnector,
+  type AiOverviewParams,
+  type AiOverviewRenderState,
+  type AiOverviewStatus,
+} from "./connectAiOverview";
+export type { AiOverviewTransport } from "./aiOverviewRequests";
 
 export {
   connectRefinementList,
