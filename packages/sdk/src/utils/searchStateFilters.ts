@@ -4,13 +4,13 @@ import {
   SearchFilters,
   SearchNumericFilter,
 } from "../types/searchFilters";
+import { SearchFilter } from "./searchFilterLabels";
+import { attributeTypes, isFacetType, RangeBounds } from "./searchFilters";
 
 export type SearchStateFilters = Pick<
   IndexSearchState,
   "refinementList" | "range" | "filters"
 >;
-
-type Range = NonNullable<IndexSearchState["range"]>[string];
 
 interface Bounds {
   attribute: string;
@@ -18,18 +18,37 @@ interface Bounds {
   max?: number;
 }
 
-const FACET_TYPES: readonly FilterableAttribute["type"][] = [
-  "keyword",
-  "boolean",
-];
+/** The record, or undefined when it is empty. */
+const nonEmpty = <T extends object>(record: T): T | undefined =>
+  Object.keys(record).length > 0 ? record : undefined;
+
+/** The record with `key` set to `value`, or taken off when undefined; undefined once empty. */
+export const withKey = <T>(
+  record: Readonly<Record<string, T>> | undefined,
+  key: string,
+  value: T | undefined,
+): Record<string, T> | undefined =>
+  nonEmpty(
+    Object.fromEntries([
+      ...Object.entries(record ?? {}).filter(([other]) => other !== key),
+      ...(value === undefined ? [] : [[key, value] as const]),
+    ]),
+  );
+
+const isExclusion = (filter: SearchFilter): boolean =>
+  ("negated" in filter && filter.negated === true) ||
+  ("operator" in filter && filter.operator === "!=");
 
 /** The attribute of a group picking values of one attribute, none excluded. */
-const pickedAttribute = (group: SearchFacetFilter[]): string | undefined => {
-  const attributes = new Set(group.map((filter) => filter.attribute));
-  const [attribute] = attributes;
+export const pickedAttribute = (
+  group: readonly SearchFilter[],
+): string | undefined => {
+  const attribute = group[0]?.attribute;
 
-  return attributes.size === 1 &&
-    group.every((filter) => filter.negated !== true)
+  return group.length > 0 &&
+    group.every(
+      (filter) => filter.attribute === attribute && !isExclusion(filter),
+    )
     ? attribute
     : undefined;
 };
@@ -89,7 +108,7 @@ const facetPart = (
 const numericPart = (
   groups: SearchNumericFilter[][],
   isNumber: (attribute: string) => boolean,
-): { range: Record<string, Range>; raw: SearchNumericFilter[][] } => {
+): { range: Record<string, RangeBounds>; raw: SearchNumericFilter[][] } => {
   const bounds = new Map<string, Bounds>();
   const raw: SearchNumericFilter[][] = [];
   for (const group of groups) {
@@ -104,16 +123,13 @@ const numericPart = (
       bounds.set(next.attribute, next);
     }
   }
-  const range: Record<string, Range> = {};
+  const range: Record<string, RangeBounds> = {};
   for (const { attribute, min, max } of bounds.values()) {
     range[attribute] = `${min ?? ""}:${max ?? ""}`;
   }
 
   return { range, raw };
 };
-
-const nonEmpty = <T extends object>(record: T): T | undefined =>
-  Object.keys(record).length > 0 ? record : undefined;
 
 /**
  * Filters as a products entry's refinements: a group picking values of one
@@ -125,9 +141,9 @@ export const searchStateFilters = (
   filters: SearchFilters,
   filterableAttributes: readonly FilterableAttribute[],
 ): SearchStateFilters => {
-  const types = new Map(filterableAttributes.map((a) => [a.key, a.type]));
+  const types = attributeTypes(filterableAttributes);
   const facets = facetPart(filters.facetFilters, (attribute) =>
-    FACET_TYPES.some((type) => type === types.get(attribute)),
+    isFacetType(types.get(attribute)),
   );
   const numerics = numericPart(
     filters.numericFilters,

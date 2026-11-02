@@ -4,9 +4,11 @@ import {
   AttributeTypes,
   RangeBounds,
   rangeGroups,
+  rangeSides,
   sentRanges,
   sentRefinementList,
 } from "../utils/searchFilters";
+import { withKey } from "../utils/searchStateFilters";
 import { IndexSearchState } from "./types";
 
 /** The change of the products entry that takes a group off. */
@@ -21,17 +23,6 @@ export interface VisitorGroup {
 }
 
 type FilterKind = keyof SearchFilters;
-
-const orNone = <T extends object>(value: T): T | undefined =>
-  Object.keys(value).length > 0 ? value : undefined;
-
-const withoutKey = <T>(
-  record: Readonly<Record<string, T>> | undefined,
-  key: string,
-): Record<string, T> | undefined =>
-  orNone(
-    Object.fromEntries(Object.entries(record ?? {}).filter(([k]) => k !== key)),
-  );
 
 const withoutFilter =
   (kind: FilterKind, index: number): EntryChange =>
@@ -59,7 +50,7 @@ const boundsWithout = (
   if ("from" in filter) {
     return undefined;
   }
-  const [min = "", max = ""] = bounds.split(":");
+  const [min, max] = rangeSides(bounds);
   const kept = filter.operator === ">=" ? `:${max}` : `${min}:`;
 
   return kept === ":" ? undefined : (kept as RangeBounds);
@@ -71,11 +62,8 @@ const withoutRange =
     const bounds = entry.range?.[attribute];
     const kept =
       bounds === undefined ? undefined : boundsWithout(bounds, filter);
-    const range = withoutKey(entry.range, attribute);
 
-    return {
-      range: kept === undefined ? range : { ...range, [attribute]: kept },
-    };
+    return { range: withKey(entry.range, attribute, kept) };
   };
 
 /**
@@ -93,7 +81,7 @@ export const visitorGroups = (
   ...sentRefinementList(entry, typeOf).map(([attribute, values]) => ({
     group: values.map((value) => ({ attribute, value })),
     without: (current: IndexSearchState) => ({
-      refinementList: withoutKey(current.refinementList, attribute),
+      refinementList: withKey(current.refinementList, attribute, undefined),
     }),
   })),
   ...(entry.filters?.numericFilters ?? []).map((group, index) => ({

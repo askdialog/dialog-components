@@ -10,22 +10,27 @@ export type ProductsQuery = Pick<
 
 export type RangeBounds = NonNullable<IndexSearchState["range"]>[string];
 
-const FACET_TYPES: readonly FilterableAttribute["type"][] = [
-  "keyword",
-  "boolean",
-];
+/** The types a `refinementList` attribute is declared with. */
+export const isFacetType = (
+  type: FilterableAttribute["type"] | undefined,
+): boolean => type === "keyword" || type === "boolean";
 
-const bound = (text: string | undefined): number | undefined =>
-  text === undefined || text === "" || !Number.isFinite(Number(text))
-    ? undefined
-    : Number(text);
+/** A range's floor and ceiling as written, empty for none. */
+export const rangeSides = (bounds: RangeBounds): [string, string] => {
+  const [min = "", max = ""] = bounds.split(":");
+
+  return [min, max];
+};
+
+const bound = (text: string): number | undefined =>
+  text === "" || !Number.isFinite(Number(text)) ? undefined : Number(text);
 
 // A floor above the ceiling matches nothing, as two groups the route accepts.
 export const rangeGroups = (
   attribute: string,
   bounds: RangeBounds,
 ): SearchNumericFilter[][] => {
-  const [min, max] = bounds.split(":").map(bound);
+  const [min, max] = rangeSides(bounds).map(bound);
   if (min !== undefined && max !== undefined && min <= max) {
     return [[{ attribute, from: min, to: max }]];
   }
@@ -53,8 +58,7 @@ export const sentRefinementList = (
 ): [string, readonly string[]][] =>
   Object.entries(entry.refinementList ?? {}).filter(
     ([attribute, values]) =>
-      FACET_TYPES.some((type) => typeOf.get(attribute) === type) &&
-      values.length > 0,
+      isFacetType(typeOf.get(attribute)) && values.length > 0,
   );
 
 /** The `range` attributes a request sends: declared `number`. */

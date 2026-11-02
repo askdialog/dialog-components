@@ -1,4 +1,5 @@
 import { SearchFilterBlock } from "../types/aiSearch";
+import { pickedAttribute, withKey } from "../utils/searchStateFilters";
 import { Connector, createConnector } from "./connector";
 import { productsEntry } from "./searchState";
 import { SearchController } from "./types";
@@ -36,11 +37,7 @@ export const detectedValues = (
   (blocks ?? [])
     .filter((block) => block.source === DETECTED_SOURCE)
     .flatMap((block) => block.facetFilters)
-    .filter((group) =>
-      group.every(
-        (filter) => filter.attribute === attribute && filter.negated !== true,
-      ),
-    )
+    .filter((group) => pickedAttribute(group) === attribute)
     .flat()
     .map((filter) => filter.value);
 
@@ -96,20 +93,20 @@ export function connectRefinementList(
         return;
       }
       const { searchState, results } = controller.getSnapshot();
-      const { refinementList = {} } = entry.read(searchState);
+      const { refinementList } = entry.read(searchState);
       const detected = detectedValues(results.filters, attribute);
       const values = toggled(
-        checkedValues(refinementList[attribute], detected),
+        checkedValues(refinementList?.[attribute], detected),
         value,
       );
       // Without a detected value to hide, an emptied attribute leaves the search state.
       const kept = values.length > 0 || detected.length > 0;
-      const next = Object.fromEntries([
-        ...Object.entries(refinementList).filter(([key]) => key !== attribute),
-        ...(kept ? [[attribute, values] as const] : []),
-      ]);
       entry.set({
-        refinementList: Object.keys(next).length > 0 ? next : undefined,
+        refinementList: withKey(
+          refinementList,
+          attribute,
+          kept ? values : undefined,
+        ),
       });
     },
   };
