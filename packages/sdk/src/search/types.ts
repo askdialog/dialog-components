@@ -10,6 +10,7 @@ import {
   SearchSection,
   SearchStatus,
 } from "../types/searchController";
+import { SearchFilters } from "../types/searchFilters";
 import { SearchTexts } from "../utils/searchTexts";
 
 /** What the visitor asks for on one index, in InstantSearch's `uiState` entry shape. */
@@ -17,6 +18,21 @@ export interface IndexSearchState {
   readonly query: string;
   /** Zero-based page; absent means 0. */
   readonly page?: number;
+  /**
+   * Values picked per attribute: OR within an attribute, AND across. An attribute
+   * the search config does not declare as `keyword` or `boolean` is not sent.
+   */
+  readonly refinementList?: Readonly<Record<string, readonly string[]>>;
+  /**
+   * Inclusive bounds per attribute, `min:max`, either side empty. An attribute
+   * the search config does not declare as `number` is not sent.
+   */
+  readonly range?: Readonly<Record<string, `${number | ""}:${number | ""}`>>;
+  /**
+   * Filters the other two cannot express (an exclusion, a mix of attributes in
+   * one group, a strict or exact bound), sent as they are.
+   */
+  readonly filters?: SearchFilters;
 }
 
 /** InstantSearch's `uiState`: entries keyed by index name, e.g. `products_fr_be`. */

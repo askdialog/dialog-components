@@ -9,6 +9,7 @@ import {
 } from "../types/search";
 import { SearchControllerOptions } from "../search/types";
 import { SearchSection } from "../types/searchController";
+import { ProductsQuery } from "./searchFilters";
 
 export const requestedSections = (
   query: string,
@@ -33,17 +34,17 @@ interface SearchResults {
   sections: SearchSections | undefined;
 }
 
+/** Sections search the products query, never its filters. */
 export const buildSearchRequest = (
-  query: string,
-  page: number,
+  products: ProductsQuery,
   sections: readonly SearchSection[],
   { indexName, language, country, hitsPerPage }: SearchRequestConfig,
 ): SearchRequest => ({
   requests: [
-    { indexName, query, page, hitsPerPage },
+    { indexName, ...products, hitsPerPage },
     ...sections.map((section) => ({
       indexName: searchIndexName(section.index, language, country),
-      query,
+      query: products.query,
       page: 0,
       hitsPerPage: section.hitsPerPage ?? hitsPerPage,
     })),

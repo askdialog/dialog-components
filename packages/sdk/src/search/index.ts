@@ -61,6 +61,11 @@ export type {
   SearchSections,
 } from "../types/search";
 export type {
+  SearchFacetFilter,
+  SearchFilters,
+  SearchNumericFilter,
+} from "../types/searchFilters";
+export type {
   SearchDisplayImage,
   SearchDisplayLine,
   SearchHitDisplay,

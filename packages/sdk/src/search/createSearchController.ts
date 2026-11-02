@@ -67,6 +67,7 @@ export function createSearchController(
     transport,
     requestConfig: { indexName, language, country, hitsPerPage },
     sections,
+    filterableAttributes: () => snapshot.context.filterableAttributes,
     onResults: (next) => {
       const results = next(snapshot.results);
       if (
