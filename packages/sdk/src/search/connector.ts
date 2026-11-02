@@ -29,7 +29,8 @@ const sameInputs = (
 
 /**
  * Follow a controller and rebuild the render state only when one of its inputs changes.
- * `disposed()` lets a connector's actions do nothing once disposed.
+ * `disposed()` lets a connector's actions do nothing once disposed; `refresh()`
+ * reads again after a change of the connector's own UI state.
  */
 export const createConnector = <
   TInputs extends readonly unknown[],
@@ -37,13 +38,13 @@ export const createConnector = <
 >(
   controller: SearchController,
   { read, render }: ConnectorDefinition<TInputs, TRenderState>,
-): Connector<TRenderState> & { disposed(): boolean } => {
+): Connector<TRenderState> & { disposed(): boolean; refresh(): void } => {
   const listeners = new Set<(renderState: TRenderState) => void>();
   let inputs = read(controller.getSnapshot());
   let renderState = render(inputs);
   let disposed = false;
 
-  const unsubscribe = controller.subscribe((snapshot) => {
+  const update = (snapshot: SearchSnapshot): void => {
     const next = read(snapshot);
     if (sameInputs(inputs, next)) {
       return;
@@ -57,7 +58,8 @@ export const createConnector = <
     for (const listener of listeners) {
       listener(renderState);
     }
-  });
+  };
+  const unsubscribe = controller.subscribe(update);
 
   return {
     getRenderState: () => renderState,
@@ -77,5 +79,11 @@ export const createConnector = <
     },
 
     disposed: () => disposed,
+
+    refresh() {
+      if (!disposed) {
+        update(controller.getSnapshot());
+      }
+    },
   };
 };
