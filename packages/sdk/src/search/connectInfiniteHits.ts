@@ -96,16 +96,18 @@ export function connectInfiniteHits(
         queryOf(snapshot) !== answeredQuery,
       ] as const;
     },
-    render: ([fetched, total, pageCount, status]) => {
+    render: ([fetched, total, pageCount, status, pending]) => {
       const sorted = [...fetched.entries()].sort(([a], [b]) => a - b);
       const lastPage = sorted.at(-1)?.[0] ?? -1;
+      // A pending query cancelled the page request; its status stays until the next search starts.
+      const more = fetched.size > 0 && !pending;
 
       return {
         hits: sorted.flatMap(([, hits]) => hits),
         nbHits: total,
         isLastPage: lastPage + 1 >= pageCount,
-        loadingMore: status === SearchStatus.LOADING && fetched.size > 0,
-        failedMore: status === SearchStatus.ERROR && fetched.size > 0,
+        loadingMore: status === SearchStatus.LOADING && more,
+        failedMore: status === SearchStatus.ERROR && more,
       };
     },
   });

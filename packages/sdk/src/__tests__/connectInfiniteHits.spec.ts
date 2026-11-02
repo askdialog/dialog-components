@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 300] */
+/* eslint max-lines: ["error", 320] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   connectInfiniteHits,
@@ -195,6 +195,25 @@ describe("connectInfiniteHits", () => {
 
     expect(transport).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ["loading", (): void => undefined],
+    ["failed", (): Promise<void> => settle(new Error("network"))],
+  ])(
+    "shows no page %s more while a new query waits for its debounce",
+    async (_name, endPage) => {
+      await answer(0);
+      infiniteHits.showMore();
+      await endPage();
+
+      controller.setSearchState({ [INDEX]: { query: "jupe" } });
+
+      expect(infiniteHits.getRenderState()).toMatchObject({
+        loadingMore: false,
+        failedMore: false,
+      });
+    },
+  );
 
   it("keeps the fetched pages when the next one fails, and retryMore replays it", async () => {
     await answer(0);
