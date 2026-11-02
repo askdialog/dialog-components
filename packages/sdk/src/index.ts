@@ -2,6 +2,7 @@ export * from "./Dialog";
 export * from "./DialogSearchError";
 export * from "./EventsHandler";
 export * from "./search";
+export * from "./services/aiSearch";
 export * from "./services/search";
 export * from "./types";
 export {
