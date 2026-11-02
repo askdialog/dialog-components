@@ -3,7 +3,7 @@ import { Connector, createConnector } from "./connector";
 import { productsEntry } from "./searchState";
 import { SearchController } from "./types";
 
-const DETECTED_SOURCE = "query_constructor";
+export const DETECTED_SOURCE = "query_constructor";
 const NO_VALUES: readonly string[] = [];
 
 export interface RefinementListItem {

@@ -1,5 +1,15 @@
 import type { SearchBusinessRanking } from "../types/dialogConfig";
+import type { SearchNumericOperator } from "../types/searchFilters";
 import { SEARCH_TEXT_LANGUAGES } from "./searchTextLanguages";
+
+/** The attributes `filterFields` labels; `vendor` and `product_type` read as two of them. */
+export type SearchFilterField =
+  | "price"
+  | "brand"
+  | "category"
+  | "productType"
+  | "color"
+  | "size";
 
 /** Default storefront search texts, shared by every search surface. */
 export interface SearchTexts {
@@ -16,6 +26,20 @@ export interface SearchTexts {
   previous: string;
   next: string;
   pageOf: (page: number, pages: number) => string;
+  /** Label of a common filtered attribute the search publishes none for. */
+  filterFields: Readonly<Record<SearchFilterField, string>>;
+  /** A comparison in words, e.g. "Price below €30.00". */
+  filterComparison: (
+    field: string,
+    operator: SearchNumericOperator,
+    value: string,
+  ) => string;
+  /** An inclusive range in words, e.g. "Price between €10.00 and €20.00". */
+  filterBetween: (field: string, min: string, max: string) => string;
+  /** An excluded value in words, e.g. "Color: excluding red". */
+  filterExclusion: (field: string, value: string) => string;
+  /** A range's bounds alone, under its field's label, e.g. "€10.00 – €20.00". */
+  filterValueRange: (min: string, max: string) => string;
 }
 
 const formatCount = (count: number, locale: string | undefined): string => {

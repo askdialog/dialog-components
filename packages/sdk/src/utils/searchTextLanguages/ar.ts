@@ -39,4 +39,24 @@ export const ar: TextsFactory = (n, plural) => ({
   previous: "السابق",
   next: "التالي",
   pageOf: (page, pages) => `الصفحة ${n(page)} / ${n(pages)}`,
+  filterFields: {
+    price: "السعر",
+    brand: "العلامة التجارية",
+    category: "الفئة",
+    productType: "نوع المنتج",
+    color: "اللون",
+    size: "المقاس",
+  },
+  filterComparison: (field, operator, value) =>
+    ({
+      "<": `${field} أقل من ${value}`,
+      "<=": `${field} حتى ${value} شاملًا`,
+      "=": `${field}: ${value}`,
+      "!=": `${field} بخلاف ${value}`,
+      ">=": `${field} بدءًا من ${value}`,
+      ">": `${field} أكثر من ${value}`,
+    })[operator],
+  filterBetween: (field, min, max) => `${field} بين ${min} و${max}`,
+  filterExclusion: (field, value) => `${field}: باستثناء ${value}`,
+  filterValueRange: (min, max) => `${min} – ${max}`,
 });

@@ -8,7 +8,7 @@ export type ProductsQuery = Pick<
   "query" | "facetFilters" | "numericFilters"
 > & { page: number };
 
-type RangeBounds = NonNullable<IndexSearchState["range"]>[string];
+export type RangeBounds = NonNullable<IndexSearchState["range"]>[string];
 
 const FACET_TYPES: readonly FilterableAttribute["type"][] = [
   "keyword",
@@ -21,7 +21,7 @@ const bound = (text: string | undefined): number | undefined =>
     : Number(text);
 
 // A floor above the ceiling matches nothing, as two groups the route accepts.
-const rangeGroups = (
+export const rangeGroups = (
   attribute: string,
   bounds: RangeBounds,
 ): SearchNumericFilter[][] => {
@@ -40,22 +40,40 @@ const rangeGroups = (
   return groups;
 };
 
-type AttributeTypes = ReadonlyMap<string, FilterableAttribute["type"]>;
+export type AttributeTypes = ReadonlyMap<string, FilterableAttribute["type"]>;
+
+export const attributeTypes = (
+  filterableAttributes: readonly FilterableAttribute[],
+): AttributeTypes => new Map(filterableAttributes.map((a) => [a.key, a.type]));
+
+/** The `refinementList` attributes a request sends: declared `keyword` or `boolean`, with values. */
+export const sentRefinementList = (
+  entry: IndexSearchState,
+  typeOf: AttributeTypes,
+): [string, readonly string[]][] =>
+  Object.entries(entry.refinementList ?? {}).filter(
+    ([attribute, values]) =>
+      FACET_TYPES.some((type) => typeOf.get(attribute) === type) &&
+      values.length > 0,
+  );
+
+/** The `range` attributes a request sends: declared `number`. */
+export const sentRanges = (
+  entry: IndexSearchState,
+  typeOf: AttributeTypes,
+): [string, RangeBounds][] =>
+  Object.entries(entry.range ?? {}).filter(
+    ([attribute]) => typeOf.get(attribute) === "number",
+  );
 
 const facetFiltersOf = (
   entry: IndexSearchState,
   typeOf: AttributeTypes,
 ): SearchFacetFilter[][] => [
   ...(entry.filters?.facetFilters ?? []),
-  ...Object.entries(entry.refinementList ?? {})
-    .filter(
-      ([attribute, values]) =>
-        FACET_TYPES.some((type) => typeOf.get(attribute) === type) &&
-        values.length > 0,
-    )
-    .map(([attribute, values]) =>
-      values.map((value) => ({ attribute, value })),
-    ),
+  ...sentRefinementList(entry, typeOf).map(([attribute, values]) =>
+    values.map((value) => ({ attribute, value })),
+  ),
 ];
 
 const numericFiltersOf = (
@@ -63,9 +81,9 @@ const numericFiltersOf = (
   typeOf: AttributeTypes,
 ): SearchNumericFilter[][] => [
   ...(entry.filters?.numericFilters ?? []),
-  ...Object.entries(entry.range ?? {})
-    .filter(([attribute]) => typeOf.get(attribute) === "number")
-    .flatMap(([attribute, bounds]) => rangeGroups(attribute, bounds)),
+  ...sentRanges(entry, typeOf).flatMap(([attribute, bounds]) =>
+    rangeGroups(attribute, bounds),
+  ),
 ];
 
 /**
@@ -76,7 +94,7 @@ export const productsQuery = (
   entry: IndexSearchState & { page: number },
   filterableAttributes: readonly FilterableAttribute[],
 ): ProductsQuery => {
-  const typeOf = new Map(filterableAttributes.map((a) => [a.key, a.type]));
+  const typeOf = attributeTypes(filterableAttributes);
   const facetFilters = facetFiltersOf(entry, typeOf);
   const numericFilters = numericFiltersOf(entry, typeOf);
 

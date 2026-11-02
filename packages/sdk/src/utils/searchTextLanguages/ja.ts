@@ -21,4 +21,24 @@ export const ja: TextsFactory = (n) => ({
   previous: "前へ",
   next: "次へ",
   pageOf: (page, pages) => `${n(page)} / ${n(pages)} ページ`,
+  filterFields: {
+    price: "価格",
+    brand: "ブランド",
+    category: "カテゴリー",
+    productType: "商品タイプ",
+    color: "色",
+    size: "サイズ",
+  },
+  filterComparison: (field, operator, value) =>
+    ({
+      "<": `${field}：${value}未満`,
+      "<=": `${field}：${value}以下`,
+      "=": `${field}：${value}`,
+      "!=": `${field}：${value}以外`,
+      ">=": `${field}：${value}以上`,
+      ">": `${field}：${value}超`,
+    })[operator],
+  filterBetween: (field, min, max) => `${field}：${min}から${max}まで`,
+  filterExclusion: (field, value) => `${field}：${value}を除く`,
+  filterValueRange: (min, max) => `${min} – ${max}`,
 });

@@ -24,4 +24,24 @@ export const nl: TextsFactory = (n) => ({
   previous: "Vorige",
   next: "Volgende",
   pageOf: (page, pages) => `Pagina ${n(page)} / ${n(pages)}`,
+  filterFields: {
+    price: "Prijs",
+    brand: "Merk",
+    category: "Categorie",
+    productType: "Producttype",
+    color: "Kleur",
+    size: "Maat",
+  },
+  filterComparison: (field, operator, value) =>
+    ({
+      "<": `${field} onder ${value}`,
+      "<=": `${field} tot en met ${value}`,
+      "=": `${field}: ${value}`,
+      "!=": `${field} anders dan ${value}`,
+      ">=": `${field} vanaf ${value}`,
+      ">": `${field} boven ${value}`,
+    })[operator],
+  filterBetween: (field, min, max) => `${field} tussen ${min} en ${max}`,
+  filterExclusion: (field, value) => `${field}: behalve ${value}`,
+  filterValueRange: (min, max) => `${min} – ${max}`,
 });
