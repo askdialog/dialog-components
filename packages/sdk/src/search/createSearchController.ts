@@ -2,6 +2,7 @@ import { searchIndexName } from "../services/search";
 import { SearchStatus } from "../types/searchController";
 import { createHitTracking } from "./hitTracking";
 import { createMerchantContext } from "./merchantConfig";
+import { searchModeSetup } from "./searchMode";
 import { createSearchRunner } from "./searchRunner";
 import {
   applySearchState,
@@ -24,7 +25,6 @@ export function createSearchController(
   controllerOptions: SearchControllerOptions,
 ): SearchController {
   const {
-    transport,
     language,
     country,
     analytics,
@@ -32,7 +32,6 @@ export function createSearchController(
     initialSearchState = {},
     debounceMs = 100,
     hitsPerPage = 12,
-    sections = [],
   } = controllerOptions;
   const indexName = searchIndexName("products", language, country);
   const merchant = createMerchantContext(controllerOptions);
@@ -60,9 +59,8 @@ export function createSearchController(
   });
 
   const runner = createSearchRunner({
-    transport,
+    ...searchModeSetup(controllerOptions),
     requestConfig: { indexName, language, country, hitsPerPage },
-    sections,
     filterableAttributes: () => snapshot.context.filterableAttributes,
     onResults: (next) => {
       const results = next(snapshot.results);

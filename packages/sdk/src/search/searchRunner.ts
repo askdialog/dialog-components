@@ -1,21 +1,16 @@
-import { SearchFunction, SearchStatus } from "../types/searchController";
+import { SearchStatus } from "../types/searchController";
 import {
   buildSearchRequest,
   readSearchResults,
   requestedSections,
 } from "../utils/searchRequests";
 import { productsQuery } from "../utils/searchFilters";
+import { SearchModeSetup } from "./searchMode";
 import { ReadIndexState } from "./searchState";
-import {
-  FilterableAttribute,
-  SearchControllerOptions,
-  SearchResults,
-} from "./types";
+import { FilterableAttribute, SearchResults } from "./types";
 
-interface SearchRunnerOptions {
-  transport: SearchFunction;
+interface SearchRunnerOptions extends SearchModeSetup {
   requestConfig: Parameters<typeof buildSearchRequest>[2];
-  sections: SearchControllerOptions["sections"];
   /** Read when each request is built. */
   filterableAttributes: () => readonly FilterableAttribute[];
   /** Called with each results change; never after `cancel` for that request. */
@@ -31,6 +26,7 @@ export const createSearchRunner = ({
   requestConfig,
   sections,
   filterableAttributes,
+  minQueryLength,
   onResults,
 }: SearchRunnerOptions): {
   run: (entry: ReadIndexState) => Promise<void>;
@@ -55,11 +51,16 @@ export const createSearchRunner = ({
 
   const run = async (entry: ReadIndexState): Promise<void> => {
     cancel();
+    const query = entry.query.trim();
+    if ([...query].length < minQueryLength) {
+      onResults(() => ({ status: SearchStatus.IDLE }));
+
+      return;
+    }
     const controller = new AbortController();
     abortController = controller;
     last = entry;
     const id = requestId;
-    const query = entry.query.trim();
     const requested = requestedSections(query, sections);
     const request = buildSearchRequest(
       productsQuery({ ...entry, query }, filterableAttributes()),
@@ -86,6 +87,8 @@ export const createSearchRunner = ({
           products.nbHits === 0 ? SearchStatus.EMPTY : SearchStatus.SUCCESS,
         products,
         sections: answered,
+        filters: products.filters,
+        attributeLabels: products.attributeLabels,
       }));
     } catch (error) {
       if (isAbort(error) || id !== requestId) {
