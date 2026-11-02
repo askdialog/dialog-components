@@ -21,4 +21,24 @@ export const ko: TextsFactory = (n) => ({
   previous: "이전",
   next: "다음",
   pageOf: (page, pages) => `${n(page)} / ${n(pages)} 페이지`,
+  filterFields: {
+    price: "가격",
+    brand: "브랜드",
+    category: "카테고리",
+    productType: "상품 유형",
+    color: "색상",
+    size: "크기",
+  },
+  filterComparison: (field, operator, value) =>
+    ({
+      "<": `${field}: ${value} 미만`,
+      "<=": `${field}: ${value} 이하`,
+      "=": `${field}: ${value}`,
+      "!=": `${field}: ${value} 이외`,
+      ">=": `${field}: ${value} 이상`,
+      ">": `${field}: ${value} 초과`,
+    })[operator],
+  filterBetween: (field, min, max) => `${field}: ${min}부터 ${max}까지`,
+  filterExclusion: (field, value) => `${field}: ${value} 제외`,
+  filterValueRange: (min, max) => `${min} – ${max}`,
 });

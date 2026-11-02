@@ -24,4 +24,24 @@ export const es: TextsFactory = (n) => ({
   previous: "Anterior",
   next: "Siguiente",
   pageOf: (page, pages) => `Página ${n(page)} / ${n(pages)}`,
+  filterFields: {
+    price: "Precio",
+    brand: "Marca",
+    category: "Categoría",
+    productType: "Tipo de producto",
+    color: "Color",
+    size: "Talla",
+  },
+  filterComparison: (field, operator, value) =>
+    ({
+      "<": `${field} inferior a ${value}`,
+      "<=": `${field} hasta ${value} inclusive`,
+      "=": `${field}: ${value}`,
+      "!=": `${field} distinto de ${value}`,
+      ">=": `${field} a partir de ${value}`,
+      ">": `${field} superior a ${value}`,
+    })[operator],
+  filterBetween: (field, min, max) => `${field} entre ${min} y ${max}`,
+  filterExclusion: (field, value) => `${field}: excepto ${value}`,
+  filterValueRange: (min, max) => `${min} – ${max}`,
 });

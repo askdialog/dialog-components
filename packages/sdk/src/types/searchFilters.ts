@@ -5,13 +5,11 @@ export interface SearchFacetFilter {
   negated?: boolean;
 }
 
+export type SearchNumericOperator = "<" | "<=" | "=" | "!=" | ">=" | ">";
+
 /** A comparison, or an inclusive range, on a `number` attribute. */
 export type SearchNumericFilter =
-  | {
-      attribute: string;
-      operator: "<" | "<=" | "=" | "!=" | ">=" | ">";
-      value: number;
-    }
+  | { attribute: string; operator: SearchNumericOperator; value: number }
   | { attribute: string; from: number; to: number };
 
 /**

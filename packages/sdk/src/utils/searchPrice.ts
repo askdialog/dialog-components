@@ -1,7 +1,7 @@
 import type { SearchProductHit } from "../types/search";
 
-// Hide a missing or invalid amount; show a bare amount when currency is absent.
-const formatAmount = (
+/** A missing or invalid amount is empty; without a currency the amount shows bare. */
+export const formatAmount = (
   amount: number | undefined,
   currency: string | undefined,
   locale?: string,

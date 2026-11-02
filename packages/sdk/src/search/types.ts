@@ -84,6 +84,8 @@ export interface SearchContext {
   readonly language: string;
   /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`. */
   readonly country: string;
+  /** ISO 4217 currency of the shopper's market; prices show as bare amounts without it. */
+  readonly currency?: string;
   /** Undefined until loaded, without one, or when its loading failed. */
   readonly businessRanking?: SearchBusinessRanking;
   /** Empty until loaded or when its loading failed. */
@@ -122,6 +124,8 @@ export interface SearchControllerOptions {
   texts?: Partial<SearchTexts>;
   language: string;
   country: string;
+  /** ISO 4217 currency of the shopper's market, e.g. `EUR`, which filter prices are written in. */
+  currency?: string;
   /** Event callbacks; the controller batches and deduplicates impressions. */
   analytics: SearchControllerAnalytics;
   /** Navigate after recording a selection. Omit to use native link navigation. */

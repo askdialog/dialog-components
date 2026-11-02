@@ -58,6 +58,7 @@ type MerchantContextOptions = Pick<
   | "texts"
   | "language"
   | "country"
+  | "currency"
   | "storefrontRoot"
 >;
 
@@ -69,6 +70,7 @@ export const createMerchantContext = ({
   texts,
   language,
   country,
+  currency,
   storefrontRoot = "/",
 }: MerchantContextOptions): {
   context: SearchContext;
@@ -81,6 +83,7 @@ export const createMerchantContext = ({
       mode,
       language,
       country,
+      currency,
       ...fromConfig(config ?? {}),
       texts: getSearchTexts(`${language}-${country.toUpperCase()}`, texts),
       storefrontRoot,
