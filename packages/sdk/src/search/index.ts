@@ -48,6 +48,13 @@ export {
   type SectionsRenderState,
 } from "./connectSections";
 
+export {
+  connectRefinementList,
+  type RefinementListConnector,
+  type RefinementListItem,
+  type RefinementListRenderState,
+} from "./connectRefinementList";
+
 // Types the controller's snapshot and options are built from.
 export type { SearchBusinessRanking } from "../types/dialogConfig";
 export type {
