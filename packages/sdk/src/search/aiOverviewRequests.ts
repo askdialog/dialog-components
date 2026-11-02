@@ -49,7 +49,10 @@ const send = (
 ): SharedRequest => {
   const abortController = new AbortController();
   const shared: SharedRequest = {
-    promise: transport(request, { signal: abortController.signal }),
+    // A custom transport throwing at once rejects like a failed request.
+    promise: new Promise((resolve) => {
+      resolve(transport(request, { signal: abortController.signal }));
+    }),
     abortController,
     users: 0,
   };

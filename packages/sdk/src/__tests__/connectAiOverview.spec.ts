@@ -1,4 +1,4 @@
-/* eslint max-lines: ["error", 280] */
+/* eslint max-lines: ["error", 290] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { connectAiOverview } from "../search/connectAiOverview";
 import { createSearchController } from "../search/createSearchController";
@@ -207,6 +207,18 @@ describe("connectAiOverview", () => {
       text: undefined,
       suggestions: [],
     });
+  });
+
+  it("fails when a custom transport throws", async () => {
+    send.mockImplementation(() => {
+      throw new Error("bad request");
+    });
+    const controller = create();
+    const connector = connectAiOverview(controller, { transport: send });
+
+    await query(controller, "robe rouge");
+
+    expect(connector.getRenderState().status).toBe("error");
   });
 
   it("sends the same request once per page, for every connector and search", async () => {
