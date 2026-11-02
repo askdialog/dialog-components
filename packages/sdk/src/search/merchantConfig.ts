@@ -52,11 +52,18 @@ const fromConfig = (
 
 type MerchantContextOptions = Pick<
   SearchControllerOptions,
-  "apiKey" | "config" | "texts" | "language" | "country" | "storefrontRoot"
+  | "mode"
+  | "apiKey"
+  | "config"
+  | "texts"
+  | "language"
+  | "country"
+  | "storefrontRoot"
 >;
 
 /** The initial context, and `load`, which loads the config at its first call unless passed in. */
 export const createMerchantContext = ({
+  mode = "lexical",
   apiKey,
   config,
   texts,
@@ -71,6 +78,7 @@ export const createMerchantContext = ({
 
   return {
     context: {
+      mode,
       language,
       country,
       ...fromConfig(config ?? {}),
