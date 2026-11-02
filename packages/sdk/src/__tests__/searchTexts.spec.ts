@@ -65,8 +65,24 @@ describe("getSearchTexts", () => {
     ]).toEqual(titles);
   });
 
+  it.each([
+    ["ar-SA", "المنتجات"],
+    ["de-DE", "Produkte"],
+    ["en-US", "Products"],
+    ["es-ES", "Productos"],
+    ["fr-FR", "Produits"],
+    ["it-IT", "Prodotti"],
+    ["ja-JP", "商品"],
+    ["ko-KR", "상품"],
+    ["nl-NL", "Producten"],
+    ["pl-PL", "Produkty"],
+    ["pt-PT", "Produtos"],
+  ])("answers in the widget's language %s", (locale, productsLabel) => {
+    expect(getSearchTexts(locale).productsLabel).toBe(productsLabel);
+  });
+
   it("falls back to English for an unknown or missing language", () => {
-    expect(getSearchTexts("ja-JP").noResults).toBe("No matching products");
+    expect(getSearchTexts("sv-SE").noResults).toBe("No matching products");
     expect(getSearchTexts(undefined).noResults).toBe("No matching products");
     expect(getSearchTexts("constructor").noResults).toBe(
       "No matching products",
@@ -76,6 +92,25 @@ describe("getSearchTexts", () => {
 
   it("formats counts in the locale", () => {
     expect(getSearchTexts("de-DE").resultsCount(1234)).toBe("1.234 Ergebnisse");
+  });
+
+  it.each([
+    [1, "1 wynik"],
+    [3, "3 wyniki"],
+    [5, "5 wyników"],
+    [22, "22 wyniki"],
+  ])("counts %d results by Polish plural forms", (count, text) => {
+    expect(getSearchTexts("pl-PL").resultsCount(count)).toBe(text);
+  });
+
+  it.each([
+    [0, "لا نتائج"],
+    [1, "نتيجة واحدة"],
+    [2, "نتيجتان"],
+    [3, "3 نتائج"],
+    [11, "11 نتيجة"],
+  ])("counts %d results by Arabic plural forms", (count, text) => {
+    expect(getSearchTexts("ar").resultsCount(count)).toBe(text);
   });
 
   it("replaces only the keys an override names", () => {

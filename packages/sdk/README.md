@@ -436,7 +436,7 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 
   Change it with `setSearchState(updater)`, an object or a function of the previous state. Any change other than `page` resets the page to 0. A query change is sent after the debounce, any other change at once; `search()` sends a pending query now.
 - `results`: read-only. `status` (`idle`, `loading`, `success`, `empty` or `error`), `products` (the products `SearchResult`, kept while the next one loads, cleared on error and on `close()`), `sections` and `error`.
-- `context`: read-only. `language`, `country`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails) and `texts`: the default texts of the language (en, fr, de, es, it) with the `texts` overrides applied.
+- `context`: read-only. `language`, `country`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails) and `texts`: the default texts of the language (ar, de, en, es, fr, it, ja, ko, nl, pl, pt; English otherwise) with the `texts` overrides applied.
 
 `open()` emits the search opened signal on each focus and, with no query, runs the empty-query search. `close()` cancels requests, flushes the impressions already qualified and returns to idle with no query; the next `open()` runs the empty-query search again. `retry()` replays a failed request; `dispose()` cancels requests and removes subscribers and observers. `observeHit`, `selectHit` and `productUrl` are what connectors call. Create one controller per search surface.
 
