@@ -1,6 +1,7 @@
 // The search controller and connectors, exported by the SDK root and by its
 // `@askdialog/dialog-sdk/search` alias.
 export { createSearchController } from "./createSearchController";
+export { createSearchDraft } from "./createSearchDraft";
 export type {
   FilterableAttribute,
   IndexSearchState,
