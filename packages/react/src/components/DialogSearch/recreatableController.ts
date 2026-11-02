@@ -1,4 +1,8 @@
-import type { SearchController, SearchSnapshot } from "@askdialog/dialog-sdk";
+import {
+  createSearchDraft,
+  type SearchController,
+  type SearchSnapshot,
+} from "@askdialog/dialog-sdk";
 
 export interface RecreatableController extends SearchController {
   /** Undo `dispose`: the next call creates a new instance. */
@@ -39,7 +43,7 @@ export const createRecreatableController = (
     return current;
   };
 
-  return {
+  const controller: RecreatableController = {
     getSnapshot() {
       if (!disposed || lastSnapshot === undefined) {
         lastSnapshot = get().getSnapshot();
@@ -62,6 +66,8 @@ export const createRecreatableController = (
     selectHit: (index, options) => !disposed && get().selectHit(index, options),
     productUrl: (hit) => get().productUrl(hit),
     retry: () => run((c) => c.retry()),
+    // Over the wrapper, so a draft follows recreation and does nothing once disposed.
+    createDraft: () => createSearchDraft(controller),
     dispose() {
       disposed = true;
       current?.dispose();
@@ -71,4 +77,6 @@ export const createRecreatableController = (
       disposed = false;
     },
   };
+
+  return controller;
 };

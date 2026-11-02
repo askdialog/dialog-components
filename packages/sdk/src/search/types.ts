@@ -165,6 +165,20 @@ export interface SearchController {
   productUrl(hit: SearchProductHit): string | undefined;
   /** Replay the last request when it failed. */
   retry(): void;
+  /** A controller over a copy of this search state, sharing its context and results. */
+  createDraft(): SearchDraft;
   /** Cancel requests, remove subscribers and observers; the controller then does nothing. */
   dispose(): void;
+}
+
+/**
+ * A controller that collects search state changes, e.g. in a filters sheet, and
+ * sends no request: `search`, `open`, `close` and `retry` do nothing, and hits
+ * are tracked on the parent, whose context and results it shows.
+ */
+export interface SearchDraft extends SearchController {
+  /** Apply the draft's search state to the parent in one search, then end the draft. */
+  commit(): void;
+  /** End the draft without applying it. */
+  discard(): void;
 }

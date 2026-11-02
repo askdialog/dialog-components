@@ -443,6 +443,8 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 
 `open()` emits the search opened signal on each focus and, with no query, runs the empty-query search. `close()` cancels requests, flushes the impressions already qualified and returns to idle with no query; the next `open()` runs the empty-query search again. `retry()` replays a failed request; `dispose()` cancels requests and removes subscribers and observers. `observeHit`, `selectHit` and `productUrl` are what connectors call. Create one controller per search surface.
 
+**Draft.** `controller.createDraft()` returns a controller over a copy of the search state that shows the parent's results and context and sends no request, e.g. for a filters sheet: connectors work on it as on the controller. `commit()` applies its search state to the parent in one search; `discard()` drops it. Either ends the draft.
+
 **Connectors.** `connectX(controller)`, plus `{ attribute }` for the refinement list and the range, returns `getRenderState()`, `subscribe(listener)`, `dispose()` and its actions. The render state stays the same object while nothing it reads changes, so it fits React's `useSyncExternalStore` or a Vue `shallowRef`. Actions do nothing once disposed.
 
 | Connector | Render state | Actions |
