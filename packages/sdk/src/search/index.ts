@@ -54,6 +54,11 @@ export {
   type RefinementListItem,
   type RefinementListRenderState,
 } from "./connectRefinementList";
+export {
+  connectRange,
+  type RangeConnector,
+  type RangeRenderState,
+} from "./connectRange";
 
 // Types the controller's snapshot and options are built from.
 export type { SearchBusinessRanking } from "../types/dialogConfig";
