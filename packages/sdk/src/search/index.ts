@@ -67,6 +67,12 @@ export {
   type RangeConnector,
   type RangeRenderState,
 } from "./connectRange";
+export {
+  connectCurrentRefinements,
+  type CurrentRefinement,
+  type CurrentRefinementsConnector,
+  type CurrentRefinementsRenderState,
+} from "./connectCurrentRefinements";
 
 // Types the controller's snapshot and options are built from.
 export type { SearchBusinessRanking } from "../types/dialogConfig";
@@ -85,6 +91,7 @@ export type {
   SearchFacetFilter,
   SearchFilters,
   SearchNumericFilter,
+  SearchNumericOperator,
 } from "../types/searchFilters";
 export type {
   SearchDisplayImage,
@@ -112,7 +119,11 @@ export type {
 } from "../types/aiSearch";
 
 // Shared UI helpers: texts, display rules, highlight, price and theme.
-export { getSearchTexts, type SearchTexts } from "../utils/searchTexts";
+export {
+  getSearchTexts,
+  type SearchFilterField,
+  type SearchTexts,
+} from "../utils/searchTexts";
 export {
   hitHref,
   hitImage,
