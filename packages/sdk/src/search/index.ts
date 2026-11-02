@@ -9,6 +9,7 @@ export type {
   SearchContext,
   SearchController,
   SearchControllerOptions,
+  SearchMode,
   SearchResults,
   SearchSnapshot,
   SearchState,
@@ -79,6 +80,16 @@ export {
   type SearchSection,
 } from "../types/searchController";
 export { DialogSearchError } from "../DialogSearchError";
+
+// The AI transports, for a surface calling them outside a controller.
+export { searchAi, searchAiOverview } from "../services/aiSearch";
+export type {
+  AiOverviewRequest,
+  AiOverviewResponse,
+  AiOverviewSuggestion,
+  SearchAttributeLabels,
+  SearchFilterBlock,
+} from "../types/aiSearch";
 
 // Shared UI helpers: texts, display rules, highlight, price and theme.
 export { getSearchTexts, type SearchTexts } from "../utils/searchTexts";

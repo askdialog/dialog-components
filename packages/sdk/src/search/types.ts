@@ -1,3 +1,4 @@
+import { SearchAttributeLabels, SearchFilterBlock } from "../types/aiSearch";
 import { SearchBusinessRanking } from "../types/dialogConfig";
 import {
   SearchProductHit,
@@ -48,6 +49,10 @@ export interface SearchResults {
   /** Last products result; kept while the next one loads, cleared on error or close. */
   readonly products?: SearchResult<SearchProductHit>;
   readonly sections?: SearchSections;
+  /** AI mode: the filters the last products result applied, one block per source. */
+  readonly filters?: readonly SearchFilterBlock[];
+  /** AI mode: the label of each attribute in `filters`. */
+  readonly attributeLabels?: Readonly<SearchAttributeLabels>;
   readonly error?: unknown;
 }
 
@@ -93,10 +98,21 @@ export interface SearchSnapshot {
   readonly context: SearchContext;
 }
 
+/** Lexical matches product titles; AI extracts filters from a natural-language query. */
+export type SearchMode = "lexical" | "ai";
+
 export interface SearchControllerOptions {
-  /** Search function bound to its client, or a custom transport. */
-  transport: SearchFunction;
-  /** Loads the merchant config when `config` is absent; without either, the context keeps no config. */
+  /**
+   * Fixed at creation; default `lexical`. The AI mode searches products only,
+   * and sends no request for a query shorter than 2 characters.
+   */
+  mode?: SearchMode;
+  /** Replaces the mode's transport, which `apiKey` then needn't bind. */
+  transport?: SearchFunction;
+  /**
+   * Binds the mode's transport when `transport` is absent, and loads the
+   * merchant config when `config` is absent; without either, the context keeps no config.
+   */
   apiKey?: string;
   /** The merchant config when the surface already has it; nothing is then loaded. */
   config?: MerchantConfig;

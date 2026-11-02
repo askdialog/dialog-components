@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+import type { AiSearchResultFields } from "./aiSearch";
 import type {
   SearchHitDisplay,
   SearchProductHitDisplay,
@@ -175,7 +177,8 @@ export interface SearchHitByIndex {
   pages: SearchPageHit;
 }
 
-export interface SearchResult<THit = SearchHitByIndex[SearchIndex]> {
+export interface SearchResult<THit = SearchHitByIndex[SearchIndex]>
+  extends AiSearchResultFields {
   index: string;
   hits: THit[];
   nbHits: number;
