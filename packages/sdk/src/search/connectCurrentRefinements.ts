@@ -39,12 +39,15 @@ export interface CurrentRefinementsConnector
   remove(chip: CurrentRefinement): void;
 }
 
+const isExclusion = (filter: SearchFilter): boolean =>
+  ("negated" in filter && filter.negated === true) ||
+  ("operator" in filter && filter.operator === "!=");
+
 /** Alternatives of one attribute, which the visitor can take off as a whole. */
 const isPickable = (group: readonly SearchFilter[]): boolean =>
   group.every(
     (filter) =>
-      filter.attribute === group[0]?.attribute &&
-      !("negated" in filter && filter.negated === true),
+      filter.attribute === group[0]?.attribute && !isExclusion(filter),
   );
 
 const detectedGroups = (

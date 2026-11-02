@@ -220,7 +220,9 @@ describe("connectCurrentRefinements", () => {
           { attribute: "color", value: "bleu" },
         ],
       ],
-      numericFilters: [],
+      numericFilters: [
+        [{ attribute: "price", operator: "!=" as const, value: 0 }],
+      ],
     };
     await search(controller, { filters });
 
