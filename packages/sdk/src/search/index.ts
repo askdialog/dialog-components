@@ -32,6 +32,12 @@ export {
   type ProductHitDisplay,
 } from "./connectHits";
 export {
+  connectInfiniteHits,
+  type InfiniteHit,
+  type InfiniteHitsConnector,
+  type InfiniteHitsRenderState,
+} from "./connectInfiniteHits";
+export {
   connectStats,
   type StatsConnector,
   type StatsRenderState,

@@ -78,6 +78,8 @@ export interface MerchantConfig {
 
 /** Read-only context the requests and the UI are built from. */
 export interface SearchContext {
+  /** The controller's mode, fixed at its creation. */
+  readonly mode: SearchMode;
   /** Lowercase ISO 639-1 language code, e.g. `fr`. */
   readonly language: string;
   /** Shopper's ISO 3166-1 alpha-2 country, e.g. `BE`. */
