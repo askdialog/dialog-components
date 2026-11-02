@@ -35,7 +35,7 @@ export const withKey = <T>(
     ]),
   );
 
-export const isExclusion = (filter: SearchFilter): boolean =>
+const isExclusion = (filter: SearchFilter): boolean =>
   ("negated" in filter && filter.negated === true) ||
   ("operator" in filter && filter.operator === "!=");
 
