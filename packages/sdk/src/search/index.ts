@@ -1,6 +1,7 @@
 // The search controller and connectors, exported by the SDK root and by its
 // `@askdialog/dialog-sdk/search` alias.
 export { createSearchController } from "./createSearchController";
+export { createSearchDraft } from "./createSearchDraft";
 export type {
   FilterableAttribute,
   IndexSearchState,
@@ -9,6 +10,8 @@ export type {
   SearchContext,
   SearchController,
   SearchControllerOptions,
+  SearchDraft,
+  SearchMode,
   SearchResults,
   SearchSnapshot,
   SearchState,
@@ -29,6 +32,12 @@ export {
   type ProductHitDisplay,
 } from "./connectHits";
 export {
+  connectInfiniteHits,
+  type InfiniteHit,
+  type InfiniteHitsConnector,
+  type InfiniteHitsRenderState,
+} from "./connectInfiniteHits";
+export {
   connectStats,
   type StatsConnector,
   type StatsRenderState,
@@ -46,6 +55,32 @@ export {
   type SectionsConnector,
   type SectionsRenderState,
 } from "./connectSections";
+export {
+  connectAiOverview,
+  type AiOverviewConnector,
+  type AiOverviewParams,
+  type AiOverviewRenderState,
+  type AiOverviewStatus,
+} from "./connectAiOverview";
+export type { AiOverviewTransport } from "./aiOverviewRequests";
+
+export {
+  connectRefinementList,
+  type RefinementListConnector,
+  type RefinementListItem,
+  type RefinementListRenderState,
+} from "./connectRefinementList";
+export {
+  connectRange,
+  type RangeConnector,
+  type RangeRenderState,
+} from "./connectRange";
+export {
+  connectCurrentRefinements,
+  type CurrentRefinement,
+  type CurrentRefinementsConnector,
+  type CurrentRefinementsRenderState,
+} from "./connectCurrentRefinements";
 
 // Types the controller's snapshot and options are built from.
 export type { SearchBusinessRanking } from "../types/dialogConfig";
@@ -61,6 +96,12 @@ export type {
   SearchSections,
 } from "../types/search";
 export type {
+  SearchFacetFilter,
+  SearchFilters,
+  SearchNumericFilter,
+  SearchNumericOperator,
+} from "../types/searchFilters";
+export type {
   SearchDisplayImage,
   SearchDisplayLine,
   SearchHitDisplay,
@@ -75,8 +116,22 @@ export {
 } from "../types/searchController";
 export { DialogSearchError } from "../DialogSearchError";
 
+// The AI transports, for a surface calling them outside a controller.
+export { searchAi, searchAiOverview } from "../services/aiSearch";
+export type {
+  AiOverviewRequest,
+  AiOverviewResponse,
+  AiOverviewSuggestion,
+  SearchAttributeLabels,
+  SearchFilterBlock,
+} from "../types/aiSearch";
+
 // Shared UI helpers: texts, display rules, highlight, price and theme.
-export { getSearchTexts, type SearchTexts } from "../utils/searchTexts";
+export {
+  getSearchTexts,
+  type SearchFilterField,
+  type SearchTexts,
+} from "../utils/searchTexts";
 export {
   hitHref,
   hitImage,

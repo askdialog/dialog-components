@@ -1,7 +1,10 @@
+/* eslint-disable max-lines */
+import type { AiSearchResultFields } from "./aiSearch";
 import type {
   SearchHitDisplay,
   SearchProductHitDisplay,
 } from "./searchDisplay";
+import type { SearchFilters } from "./searchFilters";
 
 /** Supported indices before adding language and country. */
 export const SEARCH_INDICES = [
@@ -13,7 +16,7 @@ export const SEARCH_INDICES = [
 
 export type SearchIndex = (typeof SEARCH_INDICES)[number];
 
-export interface SearchQuery {
+export interface SearchQuery extends Partial<SearchFilters> {
   /**
    * `<index>_<lang>_<country>`, e.g. `products_fr_be`.
    * Use the same language and lowercase ISO 3166-1 alpha-2 country for every entry.
@@ -174,7 +177,8 @@ export interface SearchHitByIndex {
   pages: SearchPageHit;
 }
 
-export interface SearchResult<THit = SearchHitByIndex[SearchIndex]> {
+export interface SearchResult<THit = SearchHitByIndex[SearchIndex]>
+  extends AiSearchResultFields {
   index: string;
   hits: THit[];
   nbHits: number;

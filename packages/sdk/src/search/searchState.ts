@@ -18,15 +18,27 @@ const entryOf = (
 const withoutPage = (entry: IndexSearchState | undefined): string =>
   JSON.stringify({ ...entry, page: undefined });
 
+/** An index entry with its query and page, empty and 0 when absent. */
+export type ReadIndexState = IndexSearchState & { readonly page: number };
+
 /** An index entry, with an empty query and page 0 when absent. */
 export const readIndexState = (
   searchState: SearchState,
   indexName: string,
-): Required<IndexSearchState> => {
+): ReadIndexState => {
   const entry = entryOf(searchState, indexName);
 
-  return { query: entry?.query ?? "", page: entry?.page ?? 0 };
+  return { ...entry, query: entry?.query ?? "", page: entry?.page ?? 0 };
 };
+
+/** The search state with the index entry present, its query and page set. */
+export const withIndexState = (
+  searchState: SearchState,
+  indexName: string,
+): SearchState => ({
+  ...searchState,
+  [indexName]: readIndexState(searchState, indexName),
+});
 
 /** Apply an update; each entry changed elsewhere than its page goes back to page 0. */
 export const applySearchState = (
@@ -66,8 +78,8 @@ export const searchStateChange = (
 /** The products entry of a controller's search state. */
 export interface ProductsEntry {
   /** The entry, with an empty query and page 0 when absent. */
-  read(searchState: SearchState): Required<IndexSearchState>;
-  /** Change the entry's query or page; any change but the page resets it to 0. */
+  read(searchState: SearchState): ReadIndexState;
+  /** Change the entry; any change but the page resets it to 0. */
   set(change: Partial<IndexSearchState>): void;
 }
 

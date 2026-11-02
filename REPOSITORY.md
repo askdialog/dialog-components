@@ -152,7 +152,7 @@ packages/
 
 Storefront search runs on four surfaces: `@askdialog/dialog-react`, `@askdialog/dialog-vue`, the Shopify theme extension and the widget (both in `dialog-ecom`). It follows an InstantSearch-like architecture: the search logic lives once in `@askdialog/dialog-sdk`, and each surface keeps only its rendering and a thin subscription layer.
 
-> **Status:** this is the target architecture, built by the "Storefront search on SDK connectors" project. The SDK root exports the controller and the search box, hits, pagination, stats and sections connectors (`@askdialog/dialog-sdk/search` is an alias); the draft, the AI transports and the other connectors come with the widget milestones. The placement rules apply in review.
+> **Status:** this is the target architecture, built by the "Storefront search on SDK connectors" project. The SDK root exports the controller, its draft and the search box, hits, infinite hits, pagination, stats, sections, refinement list, range, current refinements and AI Overview connectors (`@askdialog/dialog-sdk/search` is an alias); its `ai` mode and the AI search and AI Overview transports are in; the other connectors come with the widget milestones. The placement rules apply in review.
 
 ### Search Controller
 
@@ -166,7 +166,7 @@ The controller builds and sends the requests through its transport (lexical or A
 
 ### Connectors
 
-A connector (`connectSearchBox`, `connectHits`, `connectPagination`, `connectStats`, `connectSections`, `connectInfiniteHits`, `connectRefinementList`, `connectRange`, `connectCurrentRefinements`, `connectAiOverview`) is headless: `connectX(controller, params)` returns a render state, actions, `subscribe` and `dispose`. It reads the controller's snapshot, applies the display rules (each hit carries a ready-to-render `display`) and turns actions into search state changes. It holds no state beyond UI state such as "show more" or accumulated pages.
+A connector (`connectSearchBox`, `connectHits`, `connectPagination`, `connectStats`, `connectSections`, `connectInfiniteHits`, `connectRefinementList`, `connectRange`, `connectCurrentRefinements`, `connectAiOverview`) is headless: `connectX(controller, params)` returns a render state, actions, `subscribe` and `dispose`. It reads the controller's snapshot, applies the display rules (each hit carries a ready-to-render `display`, but the AI mode's infinite hits, which carry no `_display` and come raw) and turns actions into search state changes. It holds no state beyond UI state such as "show more" or accumulated pages.
 
 React and Vue wrap connectors in a `useConnector`; the extension and the widget call them directly.
 

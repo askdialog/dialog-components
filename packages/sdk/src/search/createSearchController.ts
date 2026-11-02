@@ -1,12 +1,16 @@
 import { searchIndexName } from "../services/search";
 import { SearchStatus } from "../types/searchController";
+import { createSearchDraft } from "./createSearchDraft";
 import { createHitTracking } from "./hitTracking";
+import { createListeners } from "./listeners";
 import { createMerchantContext } from "./merchantConfig";
+import { searchModeSetup } from "./searchMode";
 import { createSearchRunner } from "./searchRunner";
 import {
   applySearchState,
   readIndexState,
   searchStateChange,
+  withIndexState,
 } from "./searchState";
 import {
   SearchController,
@@ -23,7 +27,6 @@ export function createSearchController(
   controllerOptions: SearchControllerOptions,
 ): SearchController {
   const {
-    transport,
     language,
     country,
     analytics,
@@ -31,18 +34,12 @@ export function createSearchController(
     initialSearchState = {},
     debounceMs = 100,
     hitsPerPage = 12,
-    sections = [],
   } = controllerOptions;
   const indexName = searchIndexName("products", language, country);
   const merchant = createMerchantContext(controllerOptions);
-  const listeners = new Set<(snapshot: SearchSnapshot) => void>();
-  // The products entry is always present, with its query and page.
-  const withProductsEntry = (searchState: SearchState): SearchState => ({
-    ...searchState,
-    [indexName]: readIndexState(searchState, indexName),
-  });
+  const listeners = createListeners<SearchSnapshot>();
   let snapshot: SearchSnapshot = {
-    searchState: withProductsEntry(initialSearchState),
+    searchState: withIndexState(initialSearchState, indexName),
     results: IDLE,
     context: merchant.context,
   };
@@ -51,9 +48,7 @@ export function createSearchController(
 
   const update = (patch: Partial<SearchSnapshot>): void => {
     snapshot = { ...snapshot, ...patch };
-    for (const listener of listeners) {
-      listener(snapshot);
-    }
+    listeners.notify(snapshot);
   };
 
   const hitTracking = createHitTracking({
@@ -64,9 +59,9 @@ export function createSearchController(
   });
 
   const runner = createSearchRunner({
-    transport,
+    ...searchModeSetup(controllerOptions),
     requestConfig: { indexName, language, country, hitsPerPage },
-    sections,
+    filterableAttributes: () => snapshot.context.filterableAttributes,
     onResults: (next) => {
       const results = next(snapshot.results);
       if (
@@ -79,11 +74,13 @@ export function createSearchController(
     },
   });
 
-  // The merchant config loads at the first open or search.
+  // The merchant config loads at the first open or search; the refinements
+  // the last request dropped as unknown are sent once it is there.
   const loadConfig = (): void => {
     merchant.load((loaded) => {
       if (!disposed) {
         update({ context: { ...snapshot.context, ...loaded } });
+        runner.refresh();
       }
     });
   };
@@ -100,23 +97,17 @@ export function createSearchController(
     void runner.run(readIndexState(snapshot.searchState, indexName));
   };
 
-  return {
+  const controller: SearchController = {
     getSnapshot: () => snapshot,
-
-    subscribe(listener) {
-      listeners.add(listener);
-
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe: listeners.subscribe,
 
     setSearchState(updater) {
       if (disposed) {
         return;
       }
-      const searchState = withProductsEntry(
+      const searchState = withIndexState(
         applySearchState(snapshot.searchState, updater),
+        indexName,
       );
       const change = searchStateChange(
         snapshot.searchState,
@@ -189,6 +180,8 @@ export function createSearchController(
     selectHit: hitTracking.selectHit,
     productUrl: hitTracking.productUrl,
 
+    createDraft: () => createSearchDraft(controller),
+
     dispose() {
       disposed = true;
       cancel();
@@ -196,4 +189,6 @@ export function createSearchController(
       hitTracking.dispose();
     },
   };
+
+  return controller;
 }

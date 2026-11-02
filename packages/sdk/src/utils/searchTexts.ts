@@ -1,4 +1,15 @@
 import type { SearchBusinessRanking } from "../types/dialogConfig";
+import type { SearchNumericOperator } from "../types/searchFilters";
+import { SEARCH_TEXT_LANGUAGES } from "./searchTextLanguages";
+
+/** The attributes `filterFields` labels; `vendor` and `product_type` read as two of them. */
+export type SearchFilterField =
+  | "price"
+  | "brand"
+  | "category"
+  | "productType"
+  | "color"
+  | "size";
 
 /** Default storefront search texts, shared by every search surface. */
 export interface SearchTexts {
@@ -15,6 +26,20 @@ export interface SearchTexts {
   previous: string;
   next: string;
   pageOf: (page: number, pages: number) => string;
+  /** Label of a common filtered attribute the search publishes none for. */
+  filterFields: Readonly<Record<SearchFilterField, string>>;
+  /** A comparison in words, e.g. "Price below €30.00". */
+  filterComparison: (
+    field: string,
+    operator: SearchNumericOperator,
+    value: string,
+  ) => string;
+  /** An inclusive range in words, e.g. "Price between €10.00 and €20.00". */
+  filterBetween: (field: string, min: string, max: string) => string;
+  /** An excluded value in words, e.g. "Color: excluding red". */
+  filterExclusion: (field: string, value: string) => string;
+  /** A range's bounds alone, under its field's label, e.g. "€10.00 – €20.00". */
+  filterValueRange: (min: string, max: string) => string;
 }
 
 const formatCount = (count: number, locale: string | undefined): string => {
@@ -25,137 +50,6 @@ const formatCount = (count: number, locale: string | undefined): string => {
   }
 };
 
-type TextsFactory = (n: (count: number) => string) => SearchTexts;
-
-const TEXTS: Record<string, TextsFactory> = {
-  en: (n) => ({
-    searching: (query) => `Searching “${query}”…`,
-    noResults: "No matching products",
-    retry: "Retry",
-    collectionsLabel: "Collections",
-    productsLabel: "Products",
-    rankingLabel: (ranking) =>
-      ranking === undefined
-        ? "Our products"
-        : {
-            best_sellers: "Best sellers",
-            newest: "New arrivals",
-            price_asc: "Low prices",
-            price_desc: "High prices",
-          }[ranking],
-    collectionsCount: (count) =>
-      count === 1 ? "1 collection" : `${n(count)} collections`,
-    resultsCount: (count) => (count === 1 ? "1 result" : `${n(count)} results`),
-    seeAllLabel: (count) =>
-      count === 1 ? "See the result" : `See all ${n(count)} results`,
-    previous: "Previous",
-    next: "Next",
-    pageOf: (page, pages) => `Page ${n(page)} / ${n(pages)}`,
-  }),
-  fr: (n) => ({
-    searching: (query) => `Recherche de « ${query} »…`,
-    noResults: "Aucun produit correspondant",
-    retry: "Réessayer",
-    collectionsLabel: "Collections",
-    productsLabel: "Produits",
-    rankingLabel: (ranking) =>
-      ranking === undefined
-        ? "Nos produits"
-        : {
-            best_sellers: "Meilleures ventes",
-            newest: "Nouveautés",
-            price_asc: "Petits prix",
-            price_desc: "Prix décroissants",
-          }[ranking],
-    collectionsCount: (count) =>
-      count === 1 ? "1 collection" : `${n(count)} collections`,
-    resultsCount: (count) =>
-      count === 1 ? "1 résultat" : `${n(count)} résultats`,
-    seeAllLabel: (count) =>
-      count === 1 ? "Voir le résultat" : `Voir les ${n(count)} résultats`,
-    previous: "Précédent",
-    next: "Suivant",
-    pageOf: (page, pages) => `Page ${n(page)} / ${n(pages)}`,
-  }),
-  de: (n) => ({
-    searching: (query) => `Suche nach „${query}“…`,
-    noResults: "Keine passenden Produkte",
-    retry: "Erneut versuchen",
-    collectionsLabel: "Kollektionen",
-    productsLabel: "Produkte",
-    rankingLabel: (ranking) =>
-      ranking === undefined
-        ? "Unsere Produkte"
-        : {
-            best_sellers: "Bestseller",
-            newest: "Neuheiten",
-            price_asc: "Niedrige Preise",
-            price_desc: "Hohe Preise",
-          }[ranking],
-    collectionsCount: (count) =>
-      count === 1 ? "1 Kollektion" : `${n(count)} Kollektionen`,
-    resultsCount: (count) =>
-      count === 1 ? "1 Ergebnis" : `${n(count)} Ergebnisse`,
-    seeAllLabel: (count) =>
-      count === 1
-        ? "Das Ergebnis anzeigen"
-        : `Alle ${n(count)} Ergebnisse anzeigen`,
-    previous: "Zurück",
-    next: "Weiter",
-    pageOf: (page, pages) => `Seite ${n(page)} / ${n(pages)}`,
-  }),
-  es: (n) => ({
-    searching: (query) => `Buscando «${query}»…`,
-    noResults: "No hay productos que coincidan",
-    retry: "Reintentar",
-    collectionsLabel: "Colecciones",
-    productsLabel: "Productos",
-    rankingLabel: (ranking) =>
-      ranking === undefined
-        ? "Nuestros productos"
-        : {
-            best_sellers: "Más vendidos",
-            newest: "Novedades",
-            price_asc: "Precios bajos",
-            price_desc: "Precios altos",
-          }[ranking],
-    collectionsCount: (count) =>
-      count === 1 ? "1 colección" : `${n(count)} colecciones`,
-    resultsCount: (count) =>
-      count === 1 ? "1 resultado" : `${n(count)} resultados`,
-    seeAllLabel: (count) =>
-      count === 1 ? "Ver el resultado" : `Ver los ${n(count)} resultados`,
-    previous: "Anterior",
-    next: "Siguiente",
-    pageOf: (page, pages) => `Página ${n(page)} / ${n(pages)}`,
-  }),
-  it: (n) => ({
-    searching: (query) => `Ricerca di “${query}”…`,
-    noResults: "Nessun prodotto corrispondente",
-    retry: "Riprova",
-    collectionsLabel: "Collezioni",
-    productsLabel: "Prodotti",
-    rankingLabel: (ranking) =>
-      ranking === undefined
-        ? "I nostri prodotti"
-        : {
-            best_sellers: "Più venduti",
-            newest: "Novità",
-            price_asc: "Prezzi bassi",
-            price_desc: "Prezzi alti",
-          }[ranking],
-    collectionsCount: (count) =>
-      count === 1 ? "1 collezione" : `${n(count)} collezioni`,
-    resultsCount: (count) =>
-      count === 1 ? "1 risultato" : `${n(count)} risultati`,
-    seeAllLabel: (count) =>
-      count === 1 ? "Vedi il risultato" : `Vedi tutti i ${n(count)} risultati`,
-    previous: "Precedente",
-    next: "Successivo",
-    pageOf: (page, pages) => `Pagina ${n(page)} / ${n(pages)}`,
-  }),
-};
-
 /**
  * Texts for a locale (`fr`, `fr-BE`…), English when its language is unknown.
  * An override replaces only the keys it names.
@@ -164,9 +58,18 @@ export const getSearchTexts = (
   locale: string | undefined,
   overrides: Partial<SearchTexts> = {},
 ): SearchTexts => {
-  const language = locale?.split("-")[0]?.toLowerCase() ?? "en";
+  const requested = locale?.split("-")[0]?.toLowerCase() ?? "en";
   // An own property only: "constructor" or "__proto__" must fall back too.
-  const factory = Object.hasOwn(TEXTS, language) ? TEXTS[language] : TEXTS.en;
+  const language = Object.hasOwn(SEARCH_TEXT_LANGUAGES, requested)
+    ? requested
+    : "en";
+  const pluralRules = new Intl.PluralRules(language);
 
-  return { ...factory((count) => formatCount(count, locale)), ...overrides };
+  return {
+    ...SEARCH_TEXT_LANGUAGES[language](
+      (count) => formatCount(count, locale),
+      (count, forms) => forms[pluralRules.select(count)] ?? forms.other,
+    ),
+    ...overrides,
+  };
 };

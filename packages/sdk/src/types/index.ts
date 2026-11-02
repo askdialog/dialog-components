@@ -4,6 +4,8 @@ export * from "./suggestion";
 export * from "./theme";
 export * from "./constructor";
 export * from "./search";
+export * from "./searchFilters";
+export * from "./aiSearch";
 export * from "./searchAnalytics";
 export * from "./searchController";
 export * from "./assistantEvent";
