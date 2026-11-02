@@ -434,6 +434,8 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
   { products_fr_be: { query: 'shampoo', page: 2 } } // zero-based page, absent means 0
   ```
 
+  The products entry also takes InstantSearch's `refinementList` (`{ color: ['red', 'blue'] }`: OR within an attribute, AND across) and `range` (`{ price: '10:50' }`, bounds inclusive, either side empty), plus `filters`: raw `facetFilters` and `numericFilters` (`SearchFilters`) for what the other two cannot express, an exclusion, a mix of attributes in one OR group, a strict or exact bound. All three are sent as the products request's `facetFilters` and `numericFilters`, `filters` as they are; sections are never filtered. A `refinementList` attribute the search config does not declare as `keyword` or `boolean`, or a `range` one it does not declare as `number`, is dropped when the request is built.
+
   Change it with `setSearchState(updater)`, an object or a function of the previous state. Any change other than `page` resets the page to 0. A query change is sent after the debounce, any other change at once; `search()` sends a pending query now.
 - `results`: read-only. `status` (`idle`, `loading`, `success`, `empty` or `error`), `products` (the products `SearchResult`, kept while the next one loads, cleared on error and on `close()`), `sections` and `error`.
 - `context`: read-only. `language`, `country`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails) and `texts`: the default texts of the language (ar, de, en, es, fr, it, ja, ko, nl, pl, pt; English otherwise) with the `texts` overrides applied.

@@ -4,16 +4,20 @@ import {
   readSearchResults,
   requestedSections,
 } from "../utils/searchRequests";
+import { productsQuery } from "../utils/searchFilters";
+import { ReadIndexState } from "./searchState";
 import {
-  IndexSearchState,
+  FilterableAttribute,
   SearchControllerOptions,
   SearchResults,
 } from "./types";
 
 interface SearchRunnerOptions {
   transport: SearchFunction;
-  requestConfig: Parameters<typeof buildSearchRequest>[3];
+  requestConfig: Parameters<typeof buildSearchRequest>[2];
   sections: SearchControllerOptions["sections"];
+  /** Read when each request is built. */
+  filterableAttributes: () => readonly FilterableAttribute[];
   /** Called with each results change; never after `cancel` for that request. */
   onResults: (update: (results: SearchResults) => SearchResults) => void;
 }
@@ -26,34 +30,39 @@ export const createSearchRunner = ({
   transport,
   requestConfig,
   sections,
+  filterableAttributes,
   onResults,
 }: SearchRunnerOptions): {
-  run: (entry: Required<IndexSearchState>) => Promise<void>;
+  run: (entry: ReadIndexState) => Promise<void>;
   cancel: () => void;
+  /** Send the last request again when it carries refinements, read against a new search config. */
+  refresh: () => void;
   /** The last request when it failed, else undefined. */
-  failed: () => Required<IndexSearchState> | undefined;
+  failed: () => ReadIndexState | undefined;
 } => {
   let abortController: AbortController | undefined;
   let requestId = 0;
-  let failed: Required<IndexSearchState> | undefined;
+  let failed: ReadIndexState | undefined;
+  let last: ReadIndexState | undefined;
 
   const cancel = (): void => {
     requestId += 1;
     failed = undefined;
+    last = undefined;
     abortController?.abort();
     abortController = undefined;
   };
 
-  const run = async (entry: Required<IndexSearchState>): Promise<void> => {
+  const run = async (entry: ReadIndexState): Promise<void> => {
     cancel();
     const controller = new AbortController();
     abortController = controller;
+    last = entry;
     const id = requestId;
     const query = entry.query.trim();
     const requested = requestedSections(query, sections);
     const request = buildSearchRequest(
-      query,
-      entry.page,
+      productsQuery({ ...entry, query }, filterableAttributes()),
       requested,
       requestConfig,
     );
@@ -87,5 +96,11 @@ export const createSearchRunner = ({
     }
   };
 
-  return { run, cancel, failed: () => failed };
+  const refresh = (): void => {
+    if (last?.refinementList !== undefined || last?.range !== undefined) {
+      void run(last);
+    }
+  };
+
+  return { run, cancel, refresh, failed: () => failed };
 };
