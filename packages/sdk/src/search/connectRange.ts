@@ -1,8 +1,8 @@
+import { RangeBounds, rangeSides } from "../utils/searchFilters";
+import { withKey } from "../utils/searchStateFilters";
 import { Connector, createConnector } from "./connector";
 import { productsEntry } from "./searchState";
-import { IndexSearchState, SearchController, SearchState } from "./types";
-
-type RangeBounds = NonNullable<IndexSearchState["range"]>[string];
+import { SearchController, SearchState } from "./types";
 
 export interface RangeRenderState {
   readonly attribute: string;
@@ -39,11 +39,8 @@ export const parseRangeField = (text: string): number | undefined => {
   return trimmed === "" || !Number.isFinite(value) ? undefined : value;
 };
 
-const fieldsOf = (bounds: RangeBounds | undefined): [string, string] => {
-  const [min = "", max = ""] = bounds?.split(":") ?? [];
-
-  return [min, max];
-};
+const fieldsOf = (bounds: RangeBounds | undefined): [string, string] =>
+  bounds === undefined ? ["", ""] : rangeSides(bounds);
 
 const isMinAboveMax = (min: string, max: string): boolean => {
   const floor = parseRangeField(min);
@@ -89,12 +86,8 @@ export function connectRange(
   const { getRenderState, subscribe, dispose } = connector;
 
   const writeBounds = (bounds: RangeBounds | undefined): void => {
-    const { range = {} } = entry.read(controller.getSnapshot().searchState);
-    const next = Object.fromEntries([
-      ...Object.entries(range).filter(([key]) => key !== attribute),
-      ...(bounds === undefined ? [] : [[attribute, bounds] as const]),
-    ]);
-    entry.set({ range: Object.keys(next).length > 0 ? next : undefined });
+    const { range } = entry.read(controller.getSnapshot().searchState);
+    entry.set({ range: withKey(range, attribute, bounds) });
   };
 
   return {

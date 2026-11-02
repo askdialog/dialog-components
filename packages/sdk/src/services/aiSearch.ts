@@ -7,6 +7,17 @@ const AI_OVERVIEW_PATH = "/public/search/ai/overview";
 // Both routes call a model; the monolith allows them 30 s upstream.
 const AI_TIMEOUT_MS = 30_000;
 
+const postAi = <TResponse>(
+  apiKey: string,
+  path: string,
+  request: unknown,
+  options: SearchOptions | undefined,
+): Promise<TResponse> =>
+  postSearchApi<TResponse>(apiKey, path, request, {
+    signal: options?.signal,
+    timeoutMs: AI_TIMEOUT_MS,
+  });
+
 /**
  * Natural-language search on one products index: the engine extracts the
  * query's filters ("under 40 €") before ranking, and echoes them back in the
@@ -18,10 +29,7 @@ export const searchAi = (
   request: SearchRequest,
   options?: SearchOptions,
 ): Promise<SearchResponse> =>
-  postSearchApi<SearchResponse>(apiKey, AI_SEARCH_PATH, request, {
-    signal: options?.signal,
-    timeoutMs: AI_TIMEOUT_MS,
-  });
+  postAi<SearchResponse>(apiKey, AI_SEARCH_PATH, request, options);
 
 /** The text and filter suggestions written about the first page of an AI search. */
 export const searchAiOverview = (
@@ -29,7 +37,4 @@ export const searchAiOverview = (
   request: AiOverviewRequest,
   options?: SearchOptions,
 ): Promise<AiOverviewResponse> =>
-  postSearchApi<AiOverviewResponse>(apiKey, AI_OVERVIEW_PATH, request, {
-    signal: options?.signal,
-    timeoutMs: AI_TIMEOUT_MS,
-  });
+  postAi<AiOverviewResponse>(apiKey, AI_OVERVIEW_PATH, request, options);

@@ -6,6 +6,7 @@ import {
   SearchFilter,
 } from "../utils/searchFilterLabels";
 import { attributeTypes } from "../utils/searchFilters";
+import { pickedAttribute } from "../utils/searchStateFilters";
 import { DETECTED_SOURCE } from "./connectRefinementList";
 import { Connector, createConnector } from "./connector";
 import { productsEntry } from "./searchState";
@@ -38,17 +39,6 @@ export interface CurrentRefinementsConnector
   /** Take a removable chip's filter off the search state; any other chip does nothing. */
   remove(chip: CurrentRefinement): void;
 }
-
-const isExclusion = (filter: SearchFilter): boolean =>
-  ("negated" in filter && filter.negated === true) ||
-  ("operator" in filter && filter.operator === "!=");
-
-/** Alternatives of one attribute, which the visitor can take off as a whole. */
-const isPickable = (group: readonly SearchFilter[]): boolean =>
-  group.every(
-    (filter) =>
-      filter.attribute === group[0]?.attribute && !isExclusion(filter),
-  );
 
 const detectedGroups = (
   blocks: SearchResults["filters"],
@@ -120,8 +110,10 @@ export function connectCurrentRefinements(
       )
         .filter(({ group }) => group.length > 0)
         .map(({ group, without }) => {
+          // Alternatives of one attribute, which the visitor can take off as a whole.
+          const removable = pickedAttribute(group) !== undefined;
           const chip = {
-            ...chipOf(group, writing, isPickable(group)),
+            ...chipOf(group, writing, removable),
             detected: false,
           };
           removals.set(chip, without);
