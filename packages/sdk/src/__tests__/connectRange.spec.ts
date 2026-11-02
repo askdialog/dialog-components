@@ -125,4 +125,18 @@ describe("connectRange", () => {
       minAboveMax: false,
     });
   });
+
+  it("clears an error typed with no bounds once the search state changes", () => {
+    price.refine("", "");
+    price.refine("80", "20");
+    expect(price.getRenderState().minAboveMax).toBe(true);
+
+    controller.close();
+
+    expect(price.getRenderState()).toMatchObject({
+      min: "",
+      max: "",
+      minAboveMax: false,
+    });
+  });
 });

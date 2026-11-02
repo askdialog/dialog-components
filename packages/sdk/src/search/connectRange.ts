@@ -1,6 +1,6 @@
 import { Connector, createConnector } from "./connector";
 import { productsEntry } from "./searchState";
-import { IndexSearchState, SearchController } from "./types";
+import { IndexSearchState, SearchController, SearchState } from "./types";
 
 type RangeBounds = NonNullable<IndexSearchState["range"]>[string];
 
@@ -27,6 +27,8 @@ interface TypedFields {
   readonly max: string;
   /** The bounds the search state held once these fields were refined. */
   readonly bounds: RangeBounds | undefined;
+  /** The search state they were refined in, set at the next read. */
+  searchState?: SearchState;
 }
 
 /** A field's number, a comma read as the decimal separator; none when empty or not a number. */
@@ -58,14 +60,21 @@ export function connectRange(
   const entry = productsEntry(controller);
   const boundsOf = (searchState = controller.getSnapshot().searchState) =>
     entry.read(searchState).range?.[attribute];
-  // What the visitor typed, until the search state's bounds change elsewhere.
+  // What the visitor typed, until the search state's bounds change elsewhere;
+  // fields without bounds to compare go at any search state change.
   let typed: TypedFields | undefined;
 
   const connector = createConnector(controller, {
     read: ({ searchState }) => {
       const bounds = boundsOf(searchState);
-      if (typed !== undefined && typed.bounds !== bounds) {
-        typed = undefined;
+      if (typed !== undefined) {
+        typed.searchState ??= searchState;
+        const stale =
+          typed.bounds !== bounds ||
+          (bounds === undefined && typed.searchState !== searchState);
+        if (stale) {
+          typed = undefined;
+        }
       }
 
       return [bounds, typed] as const;
