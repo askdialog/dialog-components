@@ -1,6 +1,8 @@
 import { searchIndexName } from "../services/search";
 import { SearchStatus } from "../types/searchController";
+import { createSearchDraft } from "./createSearchDraft";
 import { createHitTracking } from "./hitTracking";
+import { createListeners } from "./listeners";
 import { createMerchantContext } from "./merchantConfig";
 import { searchModeSetup } from "./searchMode";
 import { createSearchRunner } from "./searchRunner";
@@ -35,7 +37,7 @@ export function createSearchController(
   } = controllerOptions;
   const indexName = searchIndexName("products", language, country);
   const merchant = createMerchantContext(controllerOptions);
-  const listeners = new Set<(snapshot: SearchSnapshot) => void>();
+  const listeners = createListeners<SearchSnapshot>();
   let snapshot: SearchSnapshot = {
     searchState: withIndexState(initialSearchState, indexName),
     results: IDLE,
@@ -46,9 +48,7 @@ export function createSearchController(
 
   const update = (patch: Partial<SearchSnapshot>): void => {
     snapshot = { ...snapshot, ...patch };
-    for (const listener of listeners) {
-      listener(snapshot);
-    }
+    listeners.notify(snapshot);
   };
 
   const hitTracking = createHitTracking({
@@ -97,16 +97,9 @@ export function createSearchController(
     void runner.run(readIndexState(snapshot.searchState, indexName));
   };
 
-  return {
+  const controller: SearchController = {
     getSnapshot: () => snapshot,
-
-    subscribe(listener) {
-      listeners.add(listener);
-
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe: listeners.subscribe,
 
     setSearchState(updater) {
       if (disposed) {
@@ -187,6 +180,8 @@ export function createSearchController(
     selectHit: hitTracking.selectHit,
     productUrl: hitTracking.productUrl,
 
+    createDraft: () => createSearchDraft(controller),
+
     dispose() {
       disposed = true;
       cancel();
@@ -194,4 +189,6 @@ export function createSearchController(
       hitTracking.dispose();
     },
   };
+
+  return controller;
 }

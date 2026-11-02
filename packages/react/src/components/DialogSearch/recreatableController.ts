@@ -62,6 +62,7 @@ export const createRecreatableController = (
     selectHit: (index, options) => !disposed && get().selectHit(index, options),
     productUrl: (hit) => get().productUrl(hit),
     retry: () => run((c) => c.retry()),
+    createDraft: () => get().createDraft(),
     dispose() {
       disposed = true;
       current?.dispose();

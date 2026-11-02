@@ -9,6 +9,7 @@ export type {
   SearchContext,
   SearchController,
   SearchControllerOptions,
+  SearchDraft,
   SearchMode,
   SearchResults,
   SearchSnapshot,
