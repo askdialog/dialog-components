@@ -58,10 +58,7 @@ const fromConfig = (
  * A loaded search config's attributes, then `price` as a number, so a range
  * on it is sent; a `price` the config publishes gives way to it.
  */
-const withPrice = (
-  config: MerchantConfig,
-  label: string,
-): MerchantConfig => {
+const withPrice = (config: MerchantConfig, label: string): MerchantConfig => {
   const { searchConfig } = config;
   if (searchConfig === undefined) {
     return config;

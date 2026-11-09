@@ -68,6 +68,7 @@ export {
   connectRefinementList,
   type RefinementListConnector,
   type RefinementListItem,
+  type RefinementListOptions,
   type RefinementListRenderState,
 } from "./connectRefinementList";
 export {
@@ -75,6 +76,11 @@ export {
   type RangeConnector,
   type RangeRenderState,
 } from "./connectRange";
+export {
+  connectDynamicWidgets,
+  type DynamicWidgetsConnector,
+  type DynamicWidgetsRenderState,
+} from "./connectDynamicWidgets";
 export {
   connectCurrentRefinements,
   type CurrentRefinement,
