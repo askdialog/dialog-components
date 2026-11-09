@@ -17,6 +17,7 @@ export type {
   SearchState,
   SearchStateUpdater,
 } from "./types";
+export type { SearchRouteState, SearchRouting } from "./routeUrl";
 export type { Connector } from "./connector";
 export {
   connectSearchBox,

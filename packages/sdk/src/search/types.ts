@@ -13,6 +13,7 @@ import {
 } from "../types/searchController";
 import { SearchFilters } from "../types/searchFilters";
 import { SearchTexts } from "../utils/searchTexts";
+import { SearchRouting } from "./routeUrl";
 
 /** What the visitor asks for on one index, in InstantSearch's `uiState` entry shape. */
 export interface IndexSearchState {
@@ -140,6 +141,12 @@ export interface SearchControllerOptions {
    */
   storefrontRoot?: string;
   initialSearchState?: SearchState;
+  /**
+   * Keep the products entry's query, page and refinements in the URL, pushing
+   * a history entry on each change but a query's, and follow back and forward.
+   * `true` reads and writes `q`, `page`, `f.<attribute>` and `price`.
+   */
+  routing?: boolean | SearchRouting;
   /** Delay before a query change is sent; other changes are sent at once. */
   debounceMs?: number;
   hitsPerPage?: number;
