@@ -77,6 +77,11 @@ export {
   type RangeRenderState,
 } from "./connectRange";
 export {
+  connectClearRefinements,
+  type ClearRefinementsConnector,
+  type ClearRefinementsRenderState,
+} from "./connectClearRefinements";
+export {
   connectDynamicWidgets,
   type DynamicWidgetsConnector,
   type DynamicWidgetsRenderState,
