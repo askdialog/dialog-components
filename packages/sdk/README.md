@@ -420,7 +420,8 @@ controller.dispose();
 | `apiKey` | Binds the mode's transport when `transport` is absent (one of the two is required), and loads the merchant config at the first `open()` or search, once per API key and language for all the page's controllers |
 | `config` | The merchant config (`{ businessRanking?, searchConfig? }`) when the surface already has it; nothing is then loaded |
 | `texts` | Overrides of the default texts |
-| `initialSearchState` | The search state to start from, e.g. read from the URL |
+| `initialSearchState` | The search state to start from |
+| `routing` | Keep the products entry's query, page and refinements in the URL (see **Routing**) |
 
 The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Search controllers and React/Vue hooks require explicit `language` (ISO 639-1) and `country` (the shopper's ISO 3166-1 alpha-2 country), independently of the client locale.
 
@@ -443,6 +444,29 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 - `context`: read-only. `mode`, `language`, `country`, `currency`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails; a loaded search config gains `price` as a `number` attribute, last, labelled `texts.filterFields.price`, so a range on price is sent; an attribute may carry `showInSearch: false`, the merchant hiding it from the search page) and `texts`: the default texts of the language (ar, de, en, es, fr, it, ja, ko, nl, pl, pt; English otherwise) with the `texts` overrides applied.
 
 `open()` emits the search opened signal on each focus and, with no query, runs the empty-query search. `close()` cancels requests, flushes the impressions already qualified and returns to idle with no query; the next `open()` runs the empty-query search again. `retry()` replays a failed request; `dispose()` cancels requests and removes subscribers and observers. `observeHit`, `selectHit` and `productUrl` are what connectors call. Create one controller per search surface.
+
+**Routing.** With `routing: true`, the controller starts its products entry from the URL and writes it back with each request: `q`, `page` (1-indexed, absent on page 1), `f.<attribute>=<value>` once per `refinementList` value and `price=<min>:<max>` for the `price` range, keeping the other params and the hash. A query change replaces the history entry; any other change (filters, page) pushes one. Back and forward search the state they lead to, pushing nothing. A refinement on an attribute the search config does not declare with its type, and a malformed or reversed `price`, are ignored; with the config loaded rather than passed, the URL's refinements are kept until it arrives. Call `search()` to run the search the URL describes.
+
+```typescript
+const controller = createSearchController({ ...options, apiKey, routing: true });
+controller.search(); // /search?q=chemise&f.color=Bleu&price=:50&page=2
+
+// Another URL format, e.g. /search/chemise?colors=Bleu,Rouge
+createSearchController({
+  ...options,
+  routing: {
+    createURL: ({ routeState, location }) =>
+      `/search/${encodeURIComponent(routeState.query)}?colors=${(routeState.refinementList?.color ?? []).join(',')}`,
+    parseURL: ({ location }) => ({
+      query: decodeURIComponent(location.pathname.split('/')[2] ?? ''),
+      page: 0,
+      refinementList: { color: new URLSearchParams(location.search).get('colors')?.split(',') ?? [] },
+    }),
+  },
+});
+```
+
+`routeState` is `{ query, page, refinementList?, range? }` (`SearchRouteState`, zero-based `page`); `createURL` returns a URL absolute or relative to `location`. Outside a browser, `routing` does nothing.
 
 **Draft.** `controller.createDraft()` returns a controller over a copy of the search state that shows the parent's results and context and sends no request, e.g. for a filters sheet: connectors work on it as on the controller. `commit()` applies its search state to the parent in one search; `discard()` drops it. Either ends the draft.
 
