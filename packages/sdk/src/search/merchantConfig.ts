@@ -2,10 +2,14 @@ import { loadDialogConfig } from "../services/dialogConfig";
 import { loadSearchConfig } from "../services/searchConfig";
 import { getSearchTexts } from "../utils/searchTexts";
 import {
+  FilterableAttribute,
   MerchantConfig,
   SearchContext,
   SearchControllerOptions,
 } from "./types";
+
+/** Filterable on every products entry, outside the merchant's published attributes. */
+export const PRICE_ATTRIBUTE = "price";
 
 // One load per API key and language, shared by the page's controllers.
 const loads = new Map<string, Promise<MerchantConfig>>();
@@ -50,6 +54,39 @@ const fromConfig = (
   filterableAttributes: config.searchConfig?.filterableAttributes ?? [],
 });
 
+/**
+ * A loaded search config's attributes, then `price` as a number, so a range
+ * on it is sent; a `price` the config publishes gives way to it.
+ */
+const withPrice = (
+  config: MerchantConfig,
+  label: string,
+): MerchantConfig => {
+  const { searchConfig } = config;
+  if (searchConfig === undefined) {
+    return config;
+  }
+  const price: FilterableAttribute = {
+    key: PRICE_ATTRIBUTE,
+    label,
+    type: "number",
+    values: [],
+  };
+
+  return {
+    ...config,
+    searchConfig: {
+      ...searchConfig,
+      filterableAttributes: [
+        ...searchConfig.filterableAttributes.filter(
+          ({ key }) => key !== PRICE_ATTRIBUTE,
+        ),
+        price,
+      ],
+    },
+  };
+};
+
 type MerchantContextOptions = Pick<
   SearchControllerOptions,
   | "mode"
@@ -77,6 +114,10 @@ export const createMerchantContext = ({
   load: (onLoaded: (loaded: Partial<SearchContext>) => void) => void;
 } => {
   let loading = config !== undefined;
+  const searchTexts = getSearchTexts(
+    `${language}-${country.toUpperCase()}`,
+    texts,
+  );
 
   return {
     context: {
@@ -85,7 +126,7 @@ export const createMerchantContext = ({
       country,
       currency,
       ...fromConfig(config ?? {}),
-      texts: getSearchTexts(`${language}-${country.toUpperCase()}`, texts),
+      texts: searchTexts,
       storefrontRoot,
     },
     load(onLoaded) {
@@ -94,7 +135,7 @@ export const createMerchantContext = ({
       }
       loading = true;
       void loadMerchantConfig(apiKey, language).then((loaded) => {
-        onLoaded(fromConfig(loaded));
+        onLoaded(fromConfig(withPrice(loaded, searchTexts.filterFields.price)));
       });
     },
   };
