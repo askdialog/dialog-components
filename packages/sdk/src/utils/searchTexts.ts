@@ -40,6 +40,30 @@ export interface SearchTexts {
   filterExclusion: (field: string, value: string) => string;
   /** A range's bounds alone, under its field's label, e.g. "€10.00 – €20.00". */
   filterValueRange: (min: string, max: string) => string;
+  /** The fold of a filter's values while folded, with how many it hides, e.g. "See more (4)". */
+  seeMore: (count: number) => string;
+  /** The fold once unfolded. */
+  seeLess: string;
+  /** Next to the applied filters: removes them all. */
+  clearAll: string;
+  /** In the empty state under filters: removes them all. */
+  clearFilters: string;
+  /** Title of the empty state when the filters leave no result. */
+  filteredEmptyTitle: string;
+  /** Body of the empty state when the filters leave no result. */
+  filteredEmptyBody: string;
+  /** Label of the price floor field. */
+  priceMin: string;
+  /** Label of the price ceiling field. */
+  priceMax: string;
+  /** The error under a price floor above its ceiling. */
+  priceMinAboveMax: string;
+  /** Name of a chip's remove button, from the chip's text, e.g. "Remove filter: Color: red". */
+  removeFilter: (text: string) => string;
+  /** Label of the filters landmark. */
+  filtersLabel: string;
+  /** Label of the applied filters list. */
+  appliedFiltersLabel: string;
 }
 
 const formatCount = (count: number, locale: string | undefined): string => {

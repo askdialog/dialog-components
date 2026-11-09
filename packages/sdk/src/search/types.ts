@@ -62,6 +62,8 @@ export interface FilterableAttribute {
   readonly label: string;
   readonly type: "keyword" | "number" | "boolean" | "date";
   readonly values: readonly string[];
+  /** False when the merchant hides it from the search page; absent means shown. */
+  readonly showInSearch?: boolean;
 }
 
 /** The part of the storefront search config the SDK reads. */

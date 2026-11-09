@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+/* eslint max-lines: ["error", 220] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   connectRefinementList,
@@ -25,6 +26,11 @@ vi.mock("../utils/searchImpressions", () => ({
 }));
 
 const INDEX = "products_fr_be";
+const NO_FOLD = {
+  isShowingMore: false,
+  canToggleShowMore: false,
+  foldedCount: 0,
+};
 
 const result = (filters?: SearchFilterBlock[]): SearchResult => ({
   index: INDEX,
@@ -115,6 +121,7 @@ describe("connectRefinementList", () => {
         { value: "blue", isRefined: false },
         { value: "green", isRefined: false },
       ],
+      ...NO_FOLD,
     });
   });
 
@@ -125,6 +132,7 @@ describe("connectRefinementList", () => {
       attribute: "size",
       label: "size",
       items: [],
+      ...NO_FOLD,
     });
     sizes.dispose();
   });
