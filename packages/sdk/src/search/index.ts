@@ -2,6 +2,7 @@
 // `@askdialog/dialog-sdk/search` alias.
 export { createSearchController } from "./createSearchController";
 export { createSearchDraft } from "./createSearchDraft";
+export { loadMerchantConfig, storedMerchantConfig } from "./merchantConfig";
 export type {
   FilterableAttribute,
   IndexSearchState,
@@ -162,3 +163,12 @@ export {
   type SearchPanelVariables,
 } from "../utils/searchTheme";
 export type { Theme } from "../types/theme";
+export {
+  resolveSearchAppearanceVariables,
+  type SearchAppearanceVariables,
+} from "../utils/searchAppearance";
+export type {
+  SearchAppearance,
+  SearchAppearanceFiltersStyle,
+  SearchAppearanceImageRatio,
+} from "../types/searchAppearance";

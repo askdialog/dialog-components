@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 240] */
+/* eslint max-lines: ["error", 280] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { connectHits } from "../search/connectHits";
 import { createSearchController } from "../search/createSearchController";
@@ -183,6 +183,35 @@ describe("connectHits", () => {
       expect(hits.getRenderState().title).toBe(title);
     },
   );
+
+  it("carries the vendor when the appearance shows it, empty for a hit without one", async () => {
+    const searchConfig = { filterableAttributes: [] };
+    const shown = create({
+      config: {
+        searchConfig: {
+          ...searchConfig,
+          appearance: { card: { showVendor: true } },
+        },
+      },
+    });
+    const hidden = create({ config: { searchConfig } });
+    transport.mockResolvedValue(
+      answer("products_fr_be", "", [
+        hit({ vendor: " Avène " }),
+        hit({ objectID: "v2" }),
+      ]),
+    );
+    const vendors = async (controller: ReturnType<typeof create>) => {
+      const hits = connectHits(controller);
+      controller.open();
+      await vi.runAllTimersAsync();
+
+      return hits.getRenderState().hits.map(({ display }) => display.vendor);
+    };
+
+    expect(await vendors(shown)).toEqual(["Avène", ""]);
+    expect(await vendors(hidden)).toEqual([undefined, undefined]);
+  });
 
   it("tracks impressions and selections, and reports whether navigation ran", async () => {
     const navigate = vi.fn();
