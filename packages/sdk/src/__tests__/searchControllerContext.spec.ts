@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 280] */
+/* eslint max-lines: ["error", 300] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import {
@@ -244,6 +244,27 @@ describe("search controller context", () => {
         }),
       ],
     });
+  });
+
+  it("keeps the merchant's choice to hide the price from the search page", async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(
+        jsonResponse({
+          filterableAttributes: [
+            { ...PRICE, showInSearch: false },
+            ...ATTRIBUTES,
+          ],
+        }),
+      ),
+    );
+    const controller = create();
+    controller.open();
+    await vi.runAllTimersAsync();
+
+    expect(context(controller).filterableAttributes).toEqual([
+      ...ATTRIBUTES,
+      { ...PRICE, showInSearch: false },
+    ]);
   });
 
   it("adds no price attribute when the search config fails", async () => {

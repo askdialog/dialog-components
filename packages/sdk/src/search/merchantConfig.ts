@@ -56,18 +56,24 @@ const fromConfig = (
 
 /**
  * A loaded search config's attributes, then `price` as a number, so a range
- * on it is sent; a `price` the config publishes gives way to it.
+ * on it is sent; a `price` the config publishes gives way to it, keeping
+ * its `showInSearch: false`.
  */
 const withPrice = (config: MerchantConfig, label: string): MerchantConfig => {
   const { searchConfig } = config;
   if (searchConfig === undefined) {
     return config;
   }
+  const served = searchConfig.filterableAttributes.find(
+    ({ key }) => key === PRICE_ATTRIBUTE,
+  );
   const price: FilterableAttribute = {
     key: PRICE_ATTRIBUTE,
     label,
     type: "number",
     values: [],
+    // The merchant's choice to hide it from the search page stands.
+    ...(served?.showInSearch === false ? { showInSearch: false } : {}),
   };
 
   return {
