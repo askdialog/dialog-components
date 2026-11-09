@@ -6,6 +6,8 @@ import { SearchController } from "./types";
 
 export const DETECTED_SOURCE = "query_constructor";
 const NO_VALUES: readonly string[] = [];
+/** A fold hiding fewer values than this shows them all. */
+const MIN_FOLDED = 2;
 
 export interface RefinementListItem {
   readonly value: string;
@@ -16,14 +18,31 @@ export interface RefinementListRenderState {
   readonly attribute: string;
   /** The search config's label; the attribute until the config loads. */
   readonly label: string;
-  /** The search config's values in its order; none until the config loads. */
+  /**
+   * The search config's values in its order; none until the config loads.
+   * Folded, the first `limit` values and every checked one further down.
+   */
   readonly items: readonly RefinementListItem[];
+  /** The visitor unfolded the values. */
+  readonly isShowingMore: boolean;
+  /** The fold hides values, or would once folded again: show the toggle. */
+  readonly canToggleShowMore: boolean;
+  /** How many values the fold hides, e.g. for "See more (n)"; 0 when it hides none. */
+  readonly foldedCount: number;
+}
+
+export interface RefinementListOptions {
+  readonly attribute: string;
+  /** The values shown while folded; without it, every value shows. */
+  readonly limit?: number;
 }
 
 export interface RefinementListConnector
   extends Connector<RefinementListRenderState> {
   /** Check or uncheck a value, starting from the values shown checked. */
   refine(value: string): void;
+  /** Unfold the values, or fold them again. */
+  toggleShowMore(): void;
 }
 
 /**
@@ -55,29 +74,56 @@ const toggled = (values: readonly string[], value: string): string[] =>
     ? values.filter((item) => item !== value)
     : [...values, value];
 
-/** The search config's values of one attribute, checked or not, and the action that toggles one. */
+/**
+ * The values shown folded: the first `limit`, and every checked one further
+ * down in its place; all of them when the fold would hide fewer than 2.
+ */
+export const foldedValues = (
+  values: readonly string[],
+  checked: readonly string[],
+  limit: number | undefined,
+): readonly string[] => {
+  if (limit === undefined) {
+    return values;
+  }
+  const shown = values.filter(
+    (value, index) => index < limit || checked.includes(value),
+  );
+
+  return values.length - shown.length < MIN_FOLDED ? values : shown;
+};
+
+/** The search config's values of one attribute, checked or not, folded past `limit`, and the actions that toggle a value or the fold. */
 export function connectRefinementList(
   controller: SearchController,
-  { attribute }: { attribute: string },
+  { attribute, limit }: RefinementListOptions,
 ): RefinementListConnector {
   const entry = productsEntry(controller);
+  let isShowingMore = false;
   const connector = createConnector(controller, {
     read: ({ searchState, results, context }) =>
       [
         context.filterableAttributes.find(({ key }) => key === attribute),
         entry.read(searchState).refinementList?.[attribute],
         results.filters,
+        isShowingMore,
       ] as const,
-    render: ([config, picked, blocks]) => {
+    render: ([config, picked, blocks, showingMore]) => {
       const checked = checkedValues(picked, detectedValues(blocks, attribute));
+      const values = config?.values ?? NO_VALUES;
+      const folded = foldedValues(values, checked, limit);
+      const foldedCount = values.length - folded.length;
 
       return {
         attribute,
         label: config?.label ?? attribute,
-        items: (config?.values ?? NO_VALUES).map((value) => ({
+        items: (showingMore ? values : folded).map((value) => ({
           value,
           isRefined: checked.includes(value),
         })),
+        isShowingMore: showingMore,
+        canToggleShowMore: foldedCount > 0,
+        foldedCount,
       };
     },
   });
@@ -108,6 +154,14 @@ export function connectRefinementList(
           kept ? values : undefined,
         ),
       });
+    },
+
+    toggleShowMore() {
+      if (connector.disposed() || !getRenderState().canToggleShowMore) {
+        return;
+      }
+      isShowingMore = !isShowingMore;
+      connector.refresh();
     },
   };
 }
