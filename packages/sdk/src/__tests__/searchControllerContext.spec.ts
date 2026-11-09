@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 300] */
+/* eslint max-lines: ["error", 370] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
+import { loadMerchantConfig } from "../search/merchantConfig";
 import {
   SearchController,
   SearchControllerOptions,
@@ -27,6 +28,10 @@ const PRICE_FIELDS = {
 const PRICE = { key: "price", label: "Prix", type: "number", values: [] };
 // A loaded config gains the price attribute.
 const LOADED = [...ATTRIBUTES, PRICE];
+const APPEARANCE = {
+  colors: { accent: "#1a2b3c" },
+  card: { showVendor: true },
+};
 
 const answer: SearchResponse = {
   results: [
@@ -96,7 +101,10 @@ beforeEach(() => {
     Promise.resolve(
       String(url).includes("/widget/dialog-config")
         ? jsonResponse({ searchBusinessRanking: "best_sellers" })
-        : jsonResponse({ filterableAttributes: ATTRIBUTES }),
+        : jsonResponse({
+            filterableAttributes: ATTRIBUTES,
+            appearance: APPEARANCE,
+          }),
     ),
   );
 });
@@ -289,5 +297,53 @@ describe("search controller context", () => {
 
     expect(texts.noResults).toBe("Keine passenden Produkte");
     expect(texts.retry).toBe("Nochmal");
+  });
+});
+
+describe("merchant config kept for the session", () => {
+  it("gives the next page's controller the loaded config before its own load answers", async () => {
+    await loadMerchantConfig(`pk_test_${apiKey}`, "fr");
+
+    const nextPage = create();
+
+    expect(context(nextPage)).toMatchObject({
+      businessRanking: "best_sellers",
+      filterableAttributes: LOADED,
+      appearance: APPEARANCE,
+    });
+  });
+
+  it("keeps the session's copy of a part whose loading fails", async () => {
+    await loadMerchantConfig(`pk_test_${apiKey}`, "fr");
+    fetchMock.mockImplementation((url) =>
+      Promise.resolve(
+        String(url).includes("/widget/dialog-config")
+          ? jsonResponse({ searchBusinessRanking: "newest" })
+          : jsonResponse({}, 500),
+      ),
+    );
+
+    expect(await loadMerchantConfig(`pk_test_${apiKey}`, "fr")).toEqual({
+      businessRanking: "best_sellers",
+      searchConfig: {
+        filterableAttributes: LOADED,
+        appearance: APPEARANCE,
+      },
+    });
+  });
+
+  it("reads an appearance absent from the config as empty", async () => {
+    fetchMock.mockImplementation((url) =>
+      Promise.resolve(
+        String(url).includes("/widget/dialog-config")
+          ? jsonResponse({})
+          : jsonResponse({ filterableAttributes: ATTRIBUTES }),
+      ),
+    );
+    const controller = create();
+    controller.open();
+    await vi.runAllTimersAsync();
+
+    expect(context(controller).appearance).toEqual({});
   });
 });

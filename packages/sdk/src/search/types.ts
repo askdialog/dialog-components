@@ -11,9 +11,17 @@ import {
   SearchSection,
   SearchStatus,
 } from "../types/searchController";
+import { SearchAppearance } from "../types/searchAppearance";
 import { SearchFilters } from "../types/searchFilters";
 import { SearchTexts } from "../utils/searchTexts";
+import { FilterableAttribute, MerchantConfig } from "./merchantConfigTypes";
 import { SearchRouting } from "./routeUrl";
+
+export type {
+  FilterableAttribute,
+  MerchantConfig,
+  SearchConfig,
+} from "./merchantConfigTypes";
 
 /** What the visitor asks for on one index, in InstantSearch's `uiState` entry shape. */
 export interface IndexSearchState {
@@ -57,28 +65,6 @@ export interface SearchResults {
   readonly error?: unknown;
 }
 
-/** An attribute the shopper can filter products on, from the search config. */
-export interface FilterableAttribute {
-  readonly key: string;
-  readonly label: string;
-  readonly type: "keyword" | "number" | "boolean" | "date";
-  readonly values: readonly string[];
-  /** False when the merchant hides it from the search page; absent means shown. */
-  readonly showInSearch?: boolean;
-}
-
-/** The part of the storefront search config the SDK reads. */
-export interface SearchConfig {
-  readonly filterableAttributes: readonly FilterableAttribute[];
-}
-
-/** The merchant's configuration, passed in or loaded once per page. */
-export interface MerchantConfig {
-  /** Absent when the merchant chose none or its loading failed. */
-  readonly businessRanking?: SearchBusinessRanking;
-  readonly searchConfig?: SearchConfig;
-}
-
 /** Read-only context the requests and the UI are built from. */
 export interface SearchContext {
   /** The controller's mode, fixed at its creation. */
@@ -93,6 +79,8 @@ export interface SearchContext {
   readonly businessRanking?: SearchBusinessRanking;
   /** Empty until loaded or when its loading failed. */
   readonly filterableAttributes: readonly FilterableAttribute[];
+  /** The merchant's search appearance; `{}` until loaded, without one, or when its loading failed. */
+  readonly appearance: SearchAppearance;
   /** Default texts of the language, overrides applied. */
   readonly texts: SearchTexts;
   /** The path a hit's relative `_display.url` resolves under. */
@@ -121,7 +109,10 @@ export interface SearchControllerOptions {
    * merchant config when `config` is absent; without either, the context keeps no config.
    */
   apiKey?: string;
-  /** The merchant config when the surface already has it; nothing is then loaded. */
+  /**
+   * The merchant config when the surface already has it, e.g. from
+   * `loadMerchantConfig`; nothing is then loaded.
+   */
   config?: MerchantConfig;
   /** Replace some of the default texts. */
   texts?: Partial<SearchTexts>;
