@@ -22,6 +22,11 @@ export interface ProductHitDisplay {
   readonly lineAboveTitle?: string;
   /** The first line the merchant shows below the title. */
   readonly lineBelowTitle?: string;
+  /**
+   * Present when the search appearance shows the vendor (`card.showVendor`):
+   * the hit's vendor, empty when it has none, so titles stay aligned.
+   */
+  readonly vendor?: string;
 }
 
 export interface ProductHit {
@@ -53,6 +58,14 @@ const lineText = (
   position: SearchDisplayLine["position"],
 ): string | undefined => lines.find((line) => line.position === position)?.text;
 
+const vendorLine = (
+  controller: SearchController,
+  hit: SearchProductHit,
+): Pick<ProductHitDisplay, "vendor"> =>
+  controller.getSnapshot().context.appearance.card?.showVendor === true
+    ? { vendor: hit.vendor?.trim() ?? "" }
+    : {};
+
 /** The display `connectHits` gives `hit`. */
 export const productHitDisplay = (
   controller: SearchController,
@@ -69,6 +82,7 @@ export const productHitDisplay = (
     compareAtPrice: compare_at_price ?? "",
     lineAboveTitle: lineText(lines, "above_title"),
     lineBelowTitle: lineText(lines, "below_title"),
+    ...vendorLine(controller, hit),
   };
 };
 
