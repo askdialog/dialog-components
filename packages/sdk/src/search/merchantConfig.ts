@@ -47,9 +47,12 @@ const loadMerchantConfig = (
   return load;
 };
 
-const fromConfig = (
-  config: MerchantConfig,
-): Pick<SearchContext, "businessRanking" | "filterableAttributes"> => ({
+type LoadedContext = Pick<
+  SearchContext,
+  "businessRanking" | "filterableAttributes"
+>;
+
+const fromConfig = (config: MerchantConfig): LoadedContext => ({
   businessRanking: config.businessRanking,
   filterableAttributes: config.searchConfig?.filterableAttributes ?? [],
 });
@@ -114,7 +117,7 @@ export const createMerchantContext = ({
   storefrontRoot = "/",
 }: MerchantContextOptions): {
   context: SearchContext;
-  load: (onLoaded: (loaded: Partial<SearchContext>) => void) => void;
+  load: (onLoaded: (loaded: LoadedContext) => void) => void;
 } => {
   let loading = config !== undefined;
   const searchTexts = getSearchTexts(

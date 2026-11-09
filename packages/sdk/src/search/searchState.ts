@@ -75,6 +75,23 @@ export const searchStateChange = (
   return unchanged ? "none" : "other";
 };
 
+/** The search state an update leads to, with its products entry present, and how that entry changed. */
+export const nextSearchState = (
+  previous: SearchState,
+  updater: SearchStateUpdater,
+  indexName: string,
+): { searchState: SearchState; change: SearchStateChange } => {
+  const searchState = withIndexState(
+    applySearchState(previous, updater),
+    indexName,
+  );
+
+  return {
+    searchState,
+    change: searchStateChange(previous, searchState, indexName),
+  };
+};
+
 /** The products entry of a controller's search state. */
 export interface ProductsEntry {
   /** The entry, with an empty query and page 0 when absent. */
