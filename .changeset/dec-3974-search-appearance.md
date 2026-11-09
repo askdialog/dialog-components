@@ -1,0 +1,5 @@
+---
+"@askdialog/dialog-sdk": minor
+---
+
+The merchant's search appearance from the public search config (DEC-3974). The controller's `context.appearance` is the merchant's `SearchAppearance` (colours, radii, card options, filters style), `{}` until loaded or without one; a malformed key, or a malformed filterable attribute, is dropped on its own rather than with the whole config. `resolveSearchAppearanceVariables(appearance, theme?)` returns its `--dialog-search-*` CSS variables, one per key set; an absent accent or button text colour takes the assistant theme's primary or CTA text colour when `theme` is given, any other absent key writes nothing. New exports: `loadMerchantConfig(apiKey, language)`, the checked dialog and search configs a surface can load before creating its controller and pass as `config`, and `storedMerchantConfig(apiKey, language)`. The loaded config is kept in the session storage: the next page's controller starts with it, and a part whose loading fails keeps the session's copy. `ProductHitDisplay.vendor` carries the hit's vendor when the appearance's `card.showVendor` is on (empty when the hit has none).
