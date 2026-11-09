@@ -165,6 +165,7 @@ export function createSearchController(
         [indexName]: { query: "", page: 0 },
       };
       update({ searchState, results: IDLE });
+      router.write(searchState);
     },
 
     retry() {

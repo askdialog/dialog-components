@@ -221,9 +221,18 @@ describe("search controller routing", () => {
     await vi.runAllTimersAsync();
     expect(pushState).not.toHaveBeenCalled();
 
-    setEntry(controller, { refinementList: { color: ["Bleu"] } });
+    setEntry(controller, { refinementList: { color: ["Bleu"], size: ["S"] } });
     await vi.runAllTimersAsync();
     expect(params()).toEqual({ q: ["chemise"], "f.color": ["Bleu"] });
+  });
+
+  it("clears the URL's search on close, replacing the entry", () => {
+    const controller = create();
+    controller.close();
+
+    expect(replaceState).toHaveBeenCalledTimes(1);
+    expect(pushState).not.toHaveBeenCalled();
+    expect(params()).toEqual({ utm_source: ["mail"] });
   });
 
   it("keeps the URL's refinements until the loaded config declares them", async () => {

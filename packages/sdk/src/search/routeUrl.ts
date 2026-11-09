@@ -113,7 +113,11 @@ const writeRefinements = (
       params.append(`${FILTER_PREFIX}${attribute}`, value);
     }
   }
-  if (PRICE_ATTRIBUTE in range) {
+  // Only a price the URL reads back, e.g. not a reversed one.
+  if (
+    PRICE_ATTRIBUTE in range &&
+    readPrice(range[PRICE_ATTRIBUTE]) !== undefined
+  ) {
     params.set(PRICE_PARAM, range[PRICE_ATTRIBUTE]);
   }
 };

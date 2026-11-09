@@ -70,6 +70,15 @@ describe("createSearchURL", () => {
     ).toBe("/search?type=product#grid");
   });
 
+  it("leaves out a price it would not read back", () => {
+    expect(
+      createSearchURL({
+        routeState: { query: "", page: 0, range: { price: "50:10" } },
+        location: at("/search?price=1:2"),
+      }),
+    ).toBe("/search");
+  });
+
   it("reads back what it writes", () => {
     const routeState = {
       query: "a&b=c",

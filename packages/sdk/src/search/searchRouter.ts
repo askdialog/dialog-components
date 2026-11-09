@@ -102,7 +102,7 @@ export const createSearchRouter = (
   const read = (): SearchRouteState =>
     declaredOnly(parseURL({ location: window.location }), attributes);
   const routeOf = (searchState: SearchState): SearchRouteState =>
-    declaredOnly(readIndexState(searchState, indexName), undefined);
+    declaredOnly(readIndexState(searchState, indexName), attributes);
   const urlOf = (routeState: SearchRouteState): string =>
     new URL(
       createURL({ routeState, location: window.location }),
@@ -128,10 +128,7 @@ export const createSearchRouter = (
     declare(searchState, { filterableAttributes }) {
       attributes = filterableAttributes;
 
-      return withRoute(
-        searchState,
-        declaredOnly(routeOf(searchState), filterableAttributes),
-      );
+      return withRoute(searchState, routeOf(searchState));
     },
     write(searchState) {
       const route = routeOf(searchState);
