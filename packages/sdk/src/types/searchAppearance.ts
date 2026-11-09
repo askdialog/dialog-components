@@ -3,7 +3,8 @@ export type SearchAppearanceFiltersStyle = "list" | "pills";
 
 /**
  * The merchant's search appearance, from the storefront search config. Every
- * key is optional: an absent one inherits, the assistant theme then the surface.
+ * key is optional: an absent one takes the surface's default, except the
+ * accent and button text colours, which take the assistant theme's first.
  */
 export interface SearchAppearance {
   /** Hex colours: `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`. */
