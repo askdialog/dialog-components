@@ -18,6 +18,13 @@ describe("highlightedPrefixParts", () => {
     ]);
   });
 
+  it("folds the typed text as the suggestion, letter by letter", () => {
+    expect(highlightedPrefixParts("ασπίδα", "ΑΣ")).toEqual([
+      { text: "ασ", highlighted: true },
+      { text: "πίδα", highlighted: false },
+    ]);
+  });
+
   it("highlights nothing when the text does not start with the typed one", () => {
     expect(highlightedPrefixParts("savon", "crème")).toEqual([
       { text: "savon", highlighted: false },

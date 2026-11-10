@@ -7,7 +7,8 @@ const fold = (text: string): string =>
 
 /** The length of `text`'s leading run that folds to `typed`, else 0. */
 const matchedPrefixLength = (text: string, typed: string): number => {
-  const target = fold(typed);
+  // Per character on both sides: a whole-string fold differs (Greek final sigma).
+  const target = [...typed].map(fold).join("");
   if (target === "") {
     return 0;
   }
