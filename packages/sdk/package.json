@@ -1,6 +1,6 @@
 {
   "name": "@askdialog/dialog-sdk",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "private": false,
   "description": "Dialog SDK",
   "main": "dist/index.js",

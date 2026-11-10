@@ -1,5 +1,19 @@
 # @askdialog/dialog-sdk
 
+## 3.5.0
+
+### Minor Changes
+
+- 4de01e1: Filter rules for a filters UI (DEC-3969), following InstantSearch:
+  - `connectRefinementList(controller, { attribute, limit })` folds the values past `limit`: it renders the first `limit` values in the search config's order and every checked one further down, in its place, and all of them when the fold would hide fewer than 2. The render state gains `isShowingMore`, `canToggleShowMore` and `foldedCount` (the values the fold hides, for "See more (n)"), and the connector gains `toggleShowMore()`. Without `limit`, every value shows, as before.
+  - `connectDynamicWidgets(controller)` renders `attributesToRender`: the keyword attributes with values, in the config's order, then `price` when declared as a number. Boolean, date and valueless attributes are left out, and so is one whose config entry carries `showInSearch: false`, a new optional field of `FilterableAttribute` (absent means shown).
+  - `connectClearRefinements(controller)` renders `canRefine`, true when the products request sends a value or a bound the visitor picked; `refine()` removes every refinement list and range in one search state change, keeping the query.
+  - A loaded search config gains the `price` number attribute, last, labelled with `texts.filterFields.price`, so a range on price is sent without the surface adding it. A `price` the config publishes gives way to it, its `showInSearch: false` kept; a config passed in with `config` is left as it is.
+  - `getSearchTexts` gains `seeMore(count)`, `seeLess`, `clearAll`, `clearFilters`, `filteredEmptyTitle`, `filteredEmptyBody`, `priceMin`, `priceMax`, `priceMinAboveMax`, `removeFilter(text)`, `filtersLabel` and `appliedFiltersLabel`, in every language it ships.
+
+- bb05332: Add the `routing` option of `createSearchController` (DEC-3970). `routing: true` starts the products entry from the URL and keeps it there: `q`, `page` (1-indexed, absent on page 1), `f.<attribute>=<value>` per value and `price=<min>:<max>`, the other params kept. A filter or page change pushes a history entry, a query change replaces it, and back and forward restore the query, the filters and the page without pushing one. Attributes the search config does not declare and a malformed `price` are ignored. `routing: { createURL, parseURL }` writes another URL format.
+- 03fac82: The merchant's search appearance from the public search config (DEC-3974). The controller's `context.appearance` is the merchant's `SearchAppearance` (colours, radii, card options, filters style), `{}` until loaded or without one; a malformed key, or a malformed filterable attribute, is dropped on its own rather than with the whole config. `resolveSearchAppearanceVariables(appearance, theme?)` returns its `--dialog-search-*` CSS variables, one per key set; an absent accent or button text colour takes the assistant theme's primary or CTA text colour when `theme` is given, any other absent key writes nothing. New exports: `loadMerchantConfig(apiKey, language)`, the checked dialog and search configs, the `price` attribute included, that a surface can load before creating its controller and pass as `config`, and `storedMerchantConfig(apiKey, language)`. The loaded config is kept in the session storage: the next page's controller starts with it, and a part whose loading fails keeps the session's copy. `ProductHitDisplay.vendor` carries the hit's vendor when the appearance's `card.showVendor` is on (empty when the hit has none).
+
 ## 3.4.0
 
 ### Minor Changes
