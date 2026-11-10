@@ -58,6 +58,12 @@ export {
   type SectionsRenderState,
 } from "./connectSections";
 export {
+  connectQuerySuggestions,
+  type QuerySuggestion,
+  type QuerySuggestionsConnector,
+  type QuerySuggestionsRenderState,
+} from "./connectQuerySuggestions";
+export {
   connectAiOverview,
   type AiOverviewConnector,
   type AiOverviewParams,
@@ -105,6 +111,7 @@ export type {
   SearchIndex,
   SearchPageHit,
   SearchProductHit,
+  SearchQuerySuggestionHit,
   SearchResult,
   SearchSections,
 } from "../types/search";
