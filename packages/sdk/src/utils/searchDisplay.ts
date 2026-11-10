@@ -8,7 +8,8 @@ import type {
 } from "../types/search";
 import type { SearchDisplayImage } from "../types/searchDisplay";
 
-type SearchHit = SearchHitByIndex[SearchIndex];
+// Query suggestions carry no `_display`: they are not displayed as records.
+type SearchHit = SearchHitByIndex[Exclude<SearchIndex, "query_suggestions">];
 
 const withUrl = (
   image: SearchDisplayImage | undefined,

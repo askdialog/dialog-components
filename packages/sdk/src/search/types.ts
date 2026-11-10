@@ -141,7 +141,10 @@ export interface SearchControllerOptions {
   /** Delay before a query change is sent; other changes are sent at once. */
   debounceMs?: number;
   hitsPerPage?: number;
-  /** Sections searched next to products; the empty query searches none. */
+  /**
+   * Sections searched next to products; the empty query searches only
+   * `query_suggestions`. Each section gets `hitsPerPage`, 5 for `query_suggestions`.
+   */
   sections?: readonly SearchSection[] | (() => readonly SearchSection[]);
 }
 

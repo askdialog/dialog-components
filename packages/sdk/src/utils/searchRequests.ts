@@ -11,15 +11,20 @@ import { SearchControllerOptions } from "../search/types";
 import { SearchSection } from "../types/searchController";
 import { ProductsQuery } from "./searchFilters";
 
+/** Query suggestions answer the empty query too: the most popular, when the merchant chose them. */
+const answersEmptyQuery = (section: SearchSection): boolean =>
+  section.index === "query_suggestions";
+
+const QUERY_SUGGESTIONS_PER_PAGE = 5;
+
 export const requestedSections = (
   query: string,
   sections: SearchControllerOptions["sections"] = [],
 ): readonly SearchSection[] => {
-  if (query === "") {
-    return []; // The empty query only lists products.
-  }
+  const resolved = typeof sections === "function" ? sections() : sections;
 
-  return typeof sections === "function" ? sections() : sections;
+  // The empty query lists products, and query suggestions alone beside them.
+  return query === "" ? resolved.filter(answersEmptyQuery) : resolved;
 };
 
 interface SearchRequestConfig {
@@ -46,7 +51,11 @@ export const buildSearchRequest = (
       indexName: searchIndexName(section.index, language, country),
       query: products.query,
       page: 0,
-      hitsPerPage: section.hitsPerPage ?? hitsPerPage,
+      hitsPerPage:
+        section.hitsPerPage ??
+        (section.index === "query_suggestions"
+          ? QUERY_SUGGESTIONS_PER_PAGE
+          : hitsPerPage),
     })),
   ],
 });

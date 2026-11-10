@@ -12,6 +12,7 @@ import {
   SearchOptions,
   SearchPageHit,
   SearchProductHit,
+  SearchQuerySuggestionHit,
   SearchRequest,
   SearchResponse,
   SearchResult,
@@ -97,6 +98,7 @@ describe("public API types", () => {
         | SearchCollectionHit
         | SearchArticleHit
         | SearchPageHit
+        | SearchQuerySuggestionHit
       )[]
     >();
     expectTypeOf<
@@ -123,6 +125,14 @@ describe("public API types", () => {
     expectTypeOf<
       NonNullable<SearchResults["sections"]>["pages"]
     >().toEqualTypeOf<SearchResult<SearchPageHit> | undefined>();
+    expectTypeOf<
+      NonNullable<SearchResults["sections"]>["query_suggestions"]
+    >().toEqualTypeOf<SearchResult<SearchQuerySuggestionHit> | undefined>();
+    expectTypeOf<SearchQuerySuggestionHit>().toEqualTypeOf<{
+      objectID: string;
+      query: string;
+      popularity: number;
+    }>();
 
     const error = new DialogSearchError({ status: 404, message: "not found" });
     expectTypeOf(error.status).toEqualTypeOf<number>();
