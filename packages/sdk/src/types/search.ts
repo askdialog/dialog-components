@@ -12,6 +12,7 @@ export const SEARCH_INDICES = [
   "collections",
   "articles",
   "pages",
+  "query_suggestions",
 ] as const;
 
 export type SearchIndex = (typeof SEARCH_INDICES)[number];
@@ -169,12 +170,22 @@ export interface SearchProductHit {
   _display: SearchProductHitDisplay;
 }
 
+/** A popular query of the merchant's shoppers starting with the typed text. */
+export interface SearchQuerySuggestionHit {
+  objectID: string;
+  /** The query to display and search. */
+  query: string;
+  /** How many shoppers searched it lately; hits come most popular first. */
+  popularity: number;
+}
+
 /** The hit each index answers. */
 export interface SearchHitByIndex {
   products: SearchProductHit;
   collections: SearchCollectionHit;
   articles: SearchArticleHit;
   pages: SearchPageHit;
+  query_suggestions: SearchQuerySuggestionHit;
 }
 
 export interface SearchResult<THit = SearchHitByIndex[SearchIndex]>
