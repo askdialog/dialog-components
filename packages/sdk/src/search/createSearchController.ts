@@ -5,13 +5,9 @@ import { createHitTracking } from "./hitTracking";
 import { createListeners } from "./listeners";
 import { createMerchantContext } from "./merchantConfig";
 import { searchModeSetup } from "./searchMode";
+import { createSearchRouter } from "./searchRouter";
 import { createSearchRunner } from "./searchRunner";
-import {
-  applySearchState,
-  readIndexState,
-  searchStateChange,
-  withIndexState,
-} from "./searchState";
+import { nextSearchState, readIndexState, withIndexState } from "./searchState";
 import {
   SearchController,
   SearchControllerOptions,
@@ -38,8 +34,12 @@ export function createSearchController(
   const indexName = searchIndexName("products", language, country);
   const merchant = createMerchantContext(controllerOptions);
   const listeners = createListeners<SearchSnapshot>();
+  const router = createSearchRouter(controllerOptions, indexName, (restore) => {
+    update({ searchState: restore(snapshot.searchState) });
+    controller.search();
+  });
   let snapshot: SearchSnapshot = {
-    searchState: withIndexState(initialSearchState, indexName),
+    searchState: withIndexState(router.restore(initialSearchState), indexName),
     results: IDLE,
     context: merchant.context,
   };
@@ -79,7 +79,10 @@ export function createSearchController(
   const loadConfig = (): void => {
     merchant.load((loaded) => {
       if (!disposed) {
-        update({ context: { ...snapshot.context, ...loaded } });
+        update({
+          context: { ...snapshot.context, ...loaded },
+          searchState: router.declare(snapshot.searchState, loaded),
+        });
         runner.refresh();
       }
     });
@@ -94,6 +97,7 @@ export function createSearchController(
   const send = (): void => {
     debounceTimer = undefined;
     loadConfig();
+    router.write(snapshot.searchState);
     void runner.run(readIndexState(snapshot.searchState, indexName));
   };
 
@@ -105,13 +109,9 @@ export function createSearchController(
       if (disposed) {
         return;
       }
-      const searchState = withIndexState(
-        applySearchState(snapshot.searchState, updater),
-        indexName,
-      );
-      const change = searchStateChange(
+      const { searchState, change } = nextSearchState(
         snapshot.searchState,
-        searchState,
+        updater,
         indexName,
       );
       update({ searchState });
@@ -165,6 +165,7 @@ export function createSearchController(
         [indexName]: { query: "", page: 0 },
       };
       update({ searchState, results: IDLE });
+      router.write(searchState);
     },
 
     retry() {
@@ -185,6 +186,7 @@ export function createSearchController(
     dispose() {
       disposed = true;
       cancel();
+      router.stop();
       listeners.clear();
       hitTracking.dispose();
     },

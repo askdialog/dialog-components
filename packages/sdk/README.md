@@ -420,7 +420,8 @@ controller.dispose();
 | `apiKey` | Binds the mode's transport when `transport` is absent (one of the two is required), and loads the merchant config at the first `open()` or search, once per API key and language for all the page's controllers |
 | `config` | The merchant config (`{ businessRanking?, searchConfig? }`) when the surface already has it; nothing is then loaded |
 | `texts` | Overrides of the default texts |
-| `initialSearchState` | The search state to start from, e.g. read from the URL |
+| `initialSearchState` | The search state to start from |
+| `routing` | Keep the products entry's query, page and refinements in the URL (see **Routing**) |
 
 The client uses a BCP-47 `locale` such as `fr-FR` for assistant localization. Search controllers and React/Vue hooks require explicit `language` (ISO 639-1) and `country` (the shopper's ISO 3166-1 alpha-2 country), independently of the client locale.
 
@@ -440,13 +441,36 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 
   Change it with `setSearchState(updater)`, an object or a function of the previous state. Any change other than `page` resets the page to 0. A query change is sent after the debounce, any other change at once; `search()` sends a pending query now.
 - `results`: read-only. `status` (`idle`, `loading`, `success`, `empty` or `error`), `products` (the products `SearchResult`, kept while the next one loads, cleared on error and on `close()`), `sections` and `error`. On the `ai` mode, also `filters` (the filters the products result applied, one block per `source`: `query_constructor` for those the engine read from the query, `user` for the shopper's) and `attributeLabels` (each filtered attribute's label).
-- `context`: read-only. `mode`, `language`, `country`, `currency`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails) and `texts`: the default texts of the language (ar, de, en, es, fr, it, ja, ko, nl, pl, pt; English otherwise) with the `texts` overrides applied.
+- `context`: read-only. `mode`, `language`, `country`, `currency`, `businessRanking`, `filterableAttributes` (empty until the config loads, or when its loading fails; a loaded search config gains `price` as a `number` attribute, last, labelled `texts.filterFields.price`, so a range on price is sent; an attribute may carry `showInSearch: false`, the merchant hiding it from the search page) and `texts`: the default texts of the language (ar, de, en, es, fr, it, ja, ko, nl, pl, pt; English otherwise) with the `texts` overrides applied.
 
 `open()` emits the search opened signal on each focus and, with no query, runs the empty-query search. `close()` cancels requests, flushes the impressions already qualified and returns to idle with no query; the next `open()` runs the empty-query search again. `retry()` replays a failed request; `dispose()` cancels requests and removes subscribers and observers. `observeHit`, `selectHit` and `productUrl` are what connectors call. Create one controller per search surface.
 
+**Routing.** With `routing: true`, the controller starts its products entry from the URL and writes it back with each request: `q`, `page` (1-indexed, absent on page 1), `f.<attribute>=<value>` once per `refinementList` value and `price=<min>:<max>` for the `price` range, keeping the other params and the hash. A query change replaces the history entry; any other change (filters, page) pushes one. Back and forward search the state they lead to, pushing nothing. A refinement on an attribute the search config does not declare with its type, and a malformed or reversed `price`, are ignored; with the config loaded rather than passed, the URL's refinements are kept until it arrives. Call `search()` to run the search the URL describes.
+
+```typescript
+const controller = createSearchController({ ...options, apiKey, routing: true });
+controller.search(); // /search?q=chemise&f.color=Bleu&price=:50&page=2
+
+// Another URL format, e.g. /search/chemise?colors=Bleu,Rouge
+createSearchController({
+  ...options,
+  routing: {
+    createURL: ({ routeState, location }) =>
+      `/search/${encodeURIComponent(routeState.query)}?colors=${(routeState.refinementList?.color ?? []).join(',')}`,
+    parseURL: ({ location }) => ({
+      query: decodeURIComponent(location.pathname.split('/')[2] ?? ''),
+      page: 0,
+      refinementList: { color: new URLSearchParams(location.search).get('colors')?.split(',') ?? [] },
+    }),
+  },
+});
+```
+
+`routeState` is `{ query, page, refinementList?, range? }` (`SearchRouteState`, zero-based `page`); `createURL` returns a URL absolute or relative to `location`. Outside a browser, `routing` does nothing.
+
 **Draft.** `controller.createDraft()` returns a controller over a copy of the search state that shows the parent's results and context and sends no request, e.g. for a filters sheet: connectors work on it as on the controller. `commit()` applies its search state to the parent in one search; `discard()` drops it. Either ends the draft.
 
-**Connectors.** `connectX(controller)`, plus `{ attribute }` for the refinement list and the range and `{ apiKey }` or `{ transport }` for the AI Overview, returns `getRenderState()`, `subscribe(listener)`, `dispose()` and its actions. The render state stays the same object while nothing it reads changes, so it fits React's `useSyncExternalStore` or a Vue `shallowRef`. Actions do nothing once disposed.
+**Connectors.** `connectX(controller)`, plus `{ attribute }` for the refinement list (and an optional `limit`) and the range and `{ apiKey }` or `{ transport }` for the AI Overview, returns `getRenderState()`, `subscribe(listener)`, `dispose()` and its actions. The render state stays the same object while nothing it reads changes, so it fits React's `useSyncExternalStore` or a Vue `shallowRef`. Actions do nothing once disposed.
 
 | Connector | Render state | Actions |
 |-----------|--------------|---------|
@@ -456,9 +480,11 @@ Analytics send each product hit's `id` (the product id) as `product_id`; `naviga
 | `connectStats` | `nbHits`, `text` (the count in the shopper's language) | — |
 | `connectPagination` | `visible` (false while loading, with a query pending or with a single page), `currentPage` (zero-based), `nbPages`, `isFirstPage`, `isLastPage`, `pages`: the first, the last and the current ±2 as `{ type: 'page', page }`, with an `{ type: 'ellipsis' }` for each gap | `refine(page)`: ignored while hidden or out of range |
 | `connectSections` | `collections`, `articles`, `pages` (only hits with a link): `{ hit, display }[]`, empty on the empty query | — |
-| `connectRefinementList(controller, { attribute })` | `attribute`, `label` (the search config's), `items`: the search config's values as `{ value, isRefined }`. Checked are the visitor's values in `refinementList`, else, on an AI result, the ones the engine detected in the query | `refine(value)`: checks or unchecks it in `refinementList`, starting from the values shown checked; unchecking the last detected value keeps the attribute as `[]` |
+| `connectRefinementList(controller, { attribute, limit? })` | `attribute`, `label` (the search config's), `items`: the search config's values as `{ value, isRefined }`. Checked are the visitor's values in `refinementList`, else, on an AI result, the ones the engine detected in the query. With `limit`, folded: the first `limit` values and every checked one further down, in its place; all of them when the fold would hide fewer than 2. `isShowingMore`, `canToggleShowMore` (the fold hides values), `foldedCount` (how many, for `texts.seeMore(count)`) | `refine(value)`: checks or unchecks it in `refinementList`, starting from the values shown checked; unchecking the last detected value keeps the attribute as `[]`. `toggleShowMore()`: unfolds or folds again |
 | `connectRange(controller, { attribute })` | `attribute`, `min` and `max` (the fields as typed, else the search state's bounds; empty for none), `minAboveMax` | `refine(min, max)`: writes the fields to `range`, an empty field removing its bound; a floor above the ceiling only shows the error |
 | `connectCurrentRefinements` | `items`: one chip per filter group the products search sent, `{ attribute, label, value, text, detected, removable }`. `label` is the attribute's published label (`results.attributeLabels`, else the search config's), else the default one of the language; `value` the group's values alone (`≤ 30,00 €`, `Nike or Puma`); `text` the whole group in words (`Price up to €30.00`); prices are written in `currency`. On the `ai` mode, the groups the engine detected in the query come first, `detected` and read-only; then the shopper's from `filters`, `refinementList` and `range`, in the request's order. An exclusion or a group mixing attributes is read-only | `remove(chip)`: takes a removable chip of the current render state off the search state (its `filters` group, its `refinementList` attribute or its `range` bound); does nothing for any other chip |
+| `connectClearRefinements` | `canRefine`: the products request sends a value or a bound the visitor picked | `refine()`: removes every `refinementList` and `range` in one change, keeping the query |
+| `connectDynamicWidgets` | `attributesToRender`: the attributes to give a filter section, the `keyword` ones with values in the search config's order, then `price` when declared as a `number`; boolean, date and valueless ones, and any with `showInSearch: false`, are left out | — |
 
 A hit's `display` is ready to render, from its `_display` and, for `titleParts`, its `_highlightResult`. A product's: `title`, `titleParts` (the title in runs `{ text, highlighted }`, `highlighted` on the parts the engine wrapped in `<em>` in `_highlightResult.title.value`, text unescaped; one plain run when the hit has no `_highlightResult` or its `matchLevel` is `none`; render each run as text, never `value` as HTML), `href` (`_display.url`, a relative one resolved under `storefrontRoot` and kept only on the storefront's origin; http(s) only), `image`, `price`, `compareAtPrice` (empty unless higher than the price), `lineAboveTitle` and `lineBelowTitle` (the first display line at each position). A section hit's: `title`, `titleParts`, `href` and `image`. `image` is `_display.image`, `{ url, shape }`: draw `url` in `shape`, `theme` with the surface's own corners, `square` with straight ones, `rounded` with rounded ones and `round` as a circle.
 

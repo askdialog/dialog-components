@@ -2,6 +2,7 @@
 // `@askdialog/dialog-sdk/search` alias.
 export { createSearchController } from "./createSearchController";
 export { createSearchDraft } from "./createSearchDraft";
+export { loadMerchantConfig, storedMerchantConfig } from "./merchantConfig";
 export type {
   FilterableAttribute,
   IndexSearchState,
@@ -17,6 +18,7 @@ export type {
   SearchState,
   SearchStateUpdater,
 } from "./types";
+export type { SearchRouteState, SearchRouting } from "./routeUrl";
 export type { Connector } from "./connector";
 export {
   connectSearchBox,
@@ -68,6 +70,7 @@ export {
   connectRefinementList,
   type RefinementListConnector,
   type RefinementListItem,
+  type RefinementListOptions,
   type RefinementListRenderState,
 } from "./connectRefinementList";
 export {
@@ -75,6 +78,16 @@ export {
   type RangeConnector,
   type RangeRenderState,
 } from "./connectRange";
+export {
+  connectClearRefinements,
+  type ClearRefinementsConnector,
+  type ClearRefinementsRenderState,
+} from "./connectClearRefinements";
+export {
+  connectDynamicWidgets,
+  type DynamicWidgetsConnector,
+  type DynamicWidgetsRenderState,
+} from "./connectDynamicWidgets";
 export {
   connectCurrentRefinements,
   type CurrentRefinement,
@@ -150,3 +163,12 @@ export {
   type SearchPanelVariables,
 } from "../utils/searchTheme";
 export type { Theme } from "../types/theme";
+export {
+  resolveSearchAppearanceVariables,
+  type SearchAppearanceVariables,
+} from "../utils/searchAppearance";
+export type {
+  SearchAppearance,
+  SearchAppearanceFiltersStyle,
+  SearchAppearanceImageRatio,
+} from "../types/searchAppearance";

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 220] */
+/* eslint max-lines: ["error", 370] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
+import { loadMerchantConfig } from "../search/merchantConfig";
 import {
   SearchController,
   SearchControllerOptions,
@@ -15,6 +16,22 @@ const INDEX = "products_fr_be";
 const ATTRIBUTES = [
   { key: "color", label: "Couleur", type: "keyword", values: ["Rouge"] },
 ] as const;
+
+const PRICE_FIELDS = {
+  price: "Tarif public",
+  brand: "Marque",
+  category: "Catégorie",
+  productType: "Type",
+  color: "Couleur",
+  size: "Taille",
+};
+const PRICE = { key: "price", label: "Prix", type: "number", values: [] };
+// A loaded config gains the price attribute.
+const LOADED = [...ATTRIBUTES, PRICE];
+const APPEARANCE = {
+  colors: { accent: "#1a2b3c" },
+  card: { showVendor: true },
+};
 
 const answer: SearchResponse = {
   results: [
@@ -84,7 +101,10 @@ beforeEach(() => {
     Promise.resolve(
       String(url).includes("/widget/dialog-config")
         ? jsonResponse({ searchBusinessRanking: "best_sellers" })
-        : jsonResponse({ filterableAttributes: ATTRIBUTES }),
+        : jsonResponse({
+            filterableAttributes: ATTRIBUTES,
+            appearance: APPEARANCE,
+          }),
     ),
   );
 });
@@ -132,7 +152,7 @@ describe("search controller context", () => {
     ]);
     expect(context(controller)).toMatchObject({
       businessRanking: "best_sellers",
-      filterableAttributes: ATTRIBUTES,
+      filterableAttributes: LOADED,
     });
   });
 
@@ -200,8 +220,74 @@ describe("search controller context", () => {
     expect(controller.getSnapshot().results.status).toBe(SearchStatus.SUCCESS);
     expect(context(controller)).toMatchObject({
       businessRanking: undefined,
-      filterableAttributes: ATTRIBUTES,
+      filterableAttributes: LOADED,
     });
+  });
+
+  it("puts the price attribute last, in place of one the config publishes, and sends a range on it", async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(
+        jsonResponse({
+          filterableAttributes: [
+            { key: "price", label: "Tarif", type: "keyword", values: ["10"] },
+            ...ATTRIBUTES,
+          ],
+        }),
+      ),
+    );
+    const controller = create({ texts: { filterFields: { ...PRICE_FIELDS } } });
+    controller.setSearchState({
+      [INDEX]: { query: "", range: { price: "10:20" } },
+    });
+    await vi.runAllTimersAsync();
+
+    expect(context(controller).filterableAttributes).toEqual([
+      ...ATTRIBUTES,
+      { ...PRICE, label: "Tarif public" },
+    ]);
+    expect(transport.mock.lastCall?.[0]).toEqual({
+      requests: [
+        expect.objectContaining({
+          numericFilters: [[{ attribute: "price", from: 10, to: 20 }]],
+        }),
+      ],
+    });
+  });
+
+  it("keeps the merchant's choice to hide the price from the search page", async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(
+        jsonResponse({
+          filterableAttributes: [
+            { ...PRICE, showInSearch: false },
+            ...ATTRIBUTES,
+          ],
+        }),
+      ),
+    );
+    const controller = create();
+    controller.open();
+    await vi.runAllTimersAsync();
+
+    expect(context(controller).filterableAttributes).toEqual([
+      ...ATTRIBUTES,
+      { ...PRICE, showInSearch: false },
+    ]);
+  });
+
+  it("adds no price attribute when the search config fails", async () => {
+    fetchMock.mockImplementation((url) =>
+      Promise.resolve(
+        String(url).includes("/widget/dialog-config")
+          ? jsonResponse({})
+          : jsonResponse({}, 500),
+      ),
+    );
+    const controller = create();
+    controller.open();
+    await vi.runAllTimersAsync();
+
+    expect(context(controller).filterableAttributes).toEqual([]);
   });
 
   it("exposes the texts of its language with the overrides applied", () => {
@@ -211,5 +297,53 @@ describe("search controller context", () => {
 
     expect(texts.noResults).toBe("Keine passenden Produkte");
     expect(texts.retry).toBe("Nochmal");
+  });
+});
+
+describe("merchant config kept for the session", () => {
+  it("gives the next page's controller the loaded config before its own load answers", async () => {
+    await loadMerchantConfig(`pk_test_${apiKey}`, "fr");
+
+    const nextPage = create();
+
+    expect(context(nextPage)).toMatchObject({
+      businessRanking: "best_sellers",
+      filterableAttributes: LOADED,
+      appearance: APPEARANCE,
+    });
+  });
+
+  it("keeps the session's copy of a part whose loading fails", async () => {
+    await loadMerchantConfig(`pk_test_${apiKey}`, "fr");
+    fetchMock.mockImplementation((url) =>
+      Promise.resolve(
+        String(url).includes("/widget/dialog-config")
+          ? jsonResponse({ searchBusinessRanking: "newest" })
+          : jsonResponse({}, 500),
+      ),
+    );
+
+    expect(await loadMerchantConfig(`pk_test_${apiKey}`, "fr")).toEqual({
+      businessRanking: "best_sellers",
+      searchConfig: {
+        filterableAttributes: LOADED,
+        appearance: APPEARANCE,
+      },
+    });
+  });
+
+  it("reads an appearance absent from the config as empty", async () => {
+    fetchMock.mockImplementation((url) =>
+      Promise.resolve(
+        String(url).includes("/widget/dialog-config")
+          ? jsonResponse({})
+          : jsonResponse({ filterableAttributes: ATTRIBUTES }),
+      ),
+    );
+    const controller = create();
+    controller.open();
+    await vi.runAllTimersAsync();
+
+    expect(context(controller).appearance).toEqual({});
   });
 });
