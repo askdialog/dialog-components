@@ -5,6 +5,7 @@ import {
   SearchProductHit,
   SearchResult,
   SearchSections,
+  SearchSort,
 } from "../types/search";
 import {
   SearchControllerAnalytics,
@@ -45,6 +46,7 @@ export interface IndexSearchState {
    * one group, a strict or exact bound), sent as they are.
    */
   readonly filters?: SearchFilters;
+  readonly sort?: SearchSort;
 }
 
 /** InstantSearch's `uiState`: entries keyed by index name, e.g. `products_fr_be`. */

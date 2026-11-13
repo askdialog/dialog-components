@@ -1,4 +1,5 @@
 import type { SearchBusinessRanking } from "../types/dialogConfig";
+import type { SearchSort } from "../types/search";
 import type { SearchNumericOperator } from "../types/searchFilters";
 import { SEARCH_TEXT_LANGUAGES } from "./searchTextLanguages";
 
@@ -64,6 +65,10 @@ export interface SearchTexts {
   filtersLabel: string;
   /** Label of the applied filters list. */
   appliedFiltersLabel: string;
+  /** Label of the products' order control. */
+  sortLabel: string;
+  /** Name of each order the shopper can pick. */
+  sortOptions: Readonly<Record<SearchSort, string>>;
 }
 
 const formatCount = (count: number, locale: string | undefined): string => {

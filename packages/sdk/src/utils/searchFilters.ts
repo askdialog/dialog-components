@@ -5,7 +5,7 @@ import { SearchFacetFilter, SearchNumericFilter } from "../types/searchFilters";
 /** The products request's own part: its query, page and filters. */
 export type ProductsQuery = Pick<
   SearchQuery,
-  "query" | "facetFilters" | "numericFilters"
+  "query" | "facetFilters" | "numericFilters" | "sort"
 > & { page: number };
 
 export type RangeBounds = NonNullable<IndexSearchState["range"]>[string];
@@ -107,5 +107,8 @@ export const productsQuery = (
     page: entry.page,
     ...(facetFilters.length > 0 ? { facetFilters } : {}),
     ...(numericFilters.length > 0 ? { numericFilters } : {}),
+    ...(entry.sort === undefined || entry.sort === "relevance"
+      ? {}
+      : { sort: entry.sort }),
   };
 };

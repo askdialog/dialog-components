@@ -54,6 +54,7 @@ export const createSearchRunner = ({
   filterableAttributes,
   facetsTransport,
   minQueryLength,
+  sortable,
   onResults,
 }: SearchRunnerOptions): {
   run: (entry: ReadIndexState) => Promise<void>;
@@ -86,7 +87,11 @@ export const createSearchRunner = ({
 
   const queryOf = (entry: ReadIndexState) =>
     productsQuery(
-      { ...entry, query: entry.query.trim() },
+      {
+        ...entry,
+        query: entry.query.trim(),
+        sort: sortable ? entry.sort : undefined,
+      },
       filterableAttributes(),
     );
 
