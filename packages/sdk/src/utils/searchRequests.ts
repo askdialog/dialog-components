@@ -11,15 +11,20 @@ import { SearchControllerOptions } from "../search/types";
 import { SearchSection } from "../types/searchController";
 import { ProductsQuery } from "./searchFilters";
 
+const QUERY_SUGGESTIONS_PER_PAGE = 5;
+
+const isQuerySuggestions = (section: SearchSection): boolean =>
+  section.index === "query_suggestions";
+
 export const requestedSections = (
   query: string,
   sections: SearchControllerOptions["sections"] = [],
 ): readonly SearchSection[] => {
-  if (query === "") {
-    return []; // The empty query only lists products.
-  }
+  const resolved = typeof sections === "function" ? sections() : sections;
 
-  return typeof sections === "function" ? sections() : sections;
+  // The empty query lists products, and beside them only query suggestions:
+  // the most popular, when the merchant chose them.
+  return query === "" ? resolved.filter(isQuerySuggestions) : resolved;
 };
 
 interface SearchRequestConfig {
@@ -46,7 +51,11 @@ export const buildSearchRequest = (
       indexName: searchIndexName(section.index, language, country),
       query: products.query,
       page: 0,
-      hitsPerPage: section.hitsPerPage ?? hitsPerPage,
+      hitsPerPage:
+        section.hitsPerPage ??
+        (isQuerySuggestions(section)
+          ? QUERY_SUGGESTIONS_PER_PAGE
+          : hitsPerPage),
     })),
   ],
 });
