@@ -94,8 +94,8 @@ export const createFacetCounts = ({
         if (id !== requestId || isAbort(error)) {
           return;
         }
+        // Kept: the same search, e.g. on another page, does not ask them again.
         abortController = undefined;
-        sentKey = undefined; // The next search asks them again.
         onCounts(undefined);
       },
     );

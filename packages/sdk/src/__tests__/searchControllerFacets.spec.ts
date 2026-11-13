@@ -1,4 +1,4 @@
-/* eslint max-lines: ["error", 360] */
+/* eslint max-lines: ["error", 380] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import { SearchController, SearchControllerOptions } from "../search/types";
@@ -280,6 +280,17 @@ describe("search controller facets option", () => {
     expect(results.products?.nbHits).toBe(4);
     expect(results).not.toHaveProperty("facets");
     expect(results).not.toHaveProperty("facetsStats");
+  });
+
+  it("asks no counts again on a page change after they failed", async () => {
+    controller = create({ facets: true });
+    controller.search();
+    counts[0].reject(new Error("502"));
+    await settle();
+    setPage(controller, 1);
+
+    expect(hits).toHaveLength(2);
+    expect(counts).toHaveLength(1);
   });
 
   it("asks the hits alone on a page change, and keeps the counts", async () => {
