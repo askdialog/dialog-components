@@ -22,7 +22,9 @@ describe("createImpressionTracker", () => {
     expect(onImpressions).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(1 + 1500);
-    expect(onImpressions).toHaveBeenCalledWith(["item-1"]);
+    expect(onImpressions).toHaveBeenCalledWith([
+      { itemId: "item-1", element: card },
+    ]);
   });
 
   it("does not count an item less than half visible, or visible for less than a continuous second", () => {
@@ -60,7 +62,9 @@ describe("createImpressionTracker", () => {
 
     vi.advanceTimersByTime(1);
     tracker.flush();
-    expect(onImpressions.mock.calls).toEqual([[["item-2"]]]);
+    expect(onImpressions.mock.calls).toEqual([
+      [[{ itemId: "item-2", element: card }]],
+    ]);
   });
 
   it("counts an item once per context, even from several elements or a forced record", () => {
@@ -79,7 +83,9 @@ describe("createImpressionTracker", () => {
     vi.advanceTimersByTime(1000);
     tracker.record("item-1");
     tracker.flush();
-    expect(onImpressions.mock.calls).toEqual([[["item-1"]]]);
+    expect(onImpressions.mock.calls).toEqual([
+      [[{ itemId: "item-1", element: card }]],
+    ]);
 
     tracker.reset();
     tracker.observe(card, "item-1");
@@ -104,9 +110,9 @@ describe("createImpressionTracker", () => {
     fireWindowEvent("pagehide");
 
     expect(onImpressions.mock.calls).toEqual([
-      [["item-1"]],
-      [["item-2", "item-3"]],
-      [["item-4"]],
+      [[{ itemId: "item-1" }]],
+      [[{ itemId: "item-2" }, { itemId: "item-3" }]],
+      [[{ itemId: "item-4" }]],
     ]);
   });
 
@@ -128,10 +134,17 @@ describe("createImpressionTracker", () => {
     intersect(other, 0.6);
     vi.advanceTimersByTime(999);
     tracker.flush();
-    expect(onImpressions.mock.calls).toEqual([[["item-1"]]]);
+    expect(onImpressions.mock.calls).toEqual([
+      [[{ itemId: "item-1", element: card }]],
+    ]);
 
     vi.advanceTimersByTime(1);
     tracker.flush();
-    expect(onImpressions.mock.calls[1]).toEqual([["item-1", "item-2"]]);
+    expect(onImpressions.mock.calls[1]).toEqual([
+      [
+        { itemId: "item-1", element: card },
+        { itemId: "item-2", element: other },
+      ],
+    ]);
   });
 });

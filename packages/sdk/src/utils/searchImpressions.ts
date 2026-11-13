@@ -34,48 +34,50 @@ export function createSearchImpressionTracker({
   ...rule
 }: SearchImpressionTrackerOptions): SearchImpressionTracker {
   let envelope: SearchAnalyticsEnvelope | undefined;
-  // Impressions count products: one result per product id in the current response.
-  const items = new Map<string, SearchResultItem>();
+  // The result each element shows, and each clicked result: the event reports the one counted.
+  const elementItems = new Map<Element, SearchResultItem>();
+  const forcedItems = new Map<string, SearchResultItem>();
 
+  // Impressions count products: the product id is the item id.
   const impressions = createImpressionTracker({
     ...rule,
     maxItemsPerBatch: maxItemsPerEvent,
-    onImpressions(productIds) {
+    onImpressions(batch) {
       if (envelope === undefined) {
         return;
       }
       emit({
         ...envelope,
-        items: productIds.flatMap((id) => items.get(id) ?? []),
+        items: batch.flatMap(
+          ({ itemId, element }) =>
+            (element === undefined
+              ? forcedItems.get(itemId)
+              : elementItems.get(element)) ?? [],
+        ),
       });
     },
   });
-
-  const track = (item: SearchResultItem): void => {
-    if (!items.has(item.product_id)) {
-      items.set(item.product_id, item);
-    }
-  };
 
   return {
     setContext(nextEnvelope) {
       // Flush under the previous context before replacing it.
       impressions.reset();
-      items.clear();
+      elementItems.clear();
+      forcedItems.clear();
       envelope = nextEnvelope;
     },
     observe(element, item) {
       if (envelope === undefined) {
         return;
       }
-      track(item);
+      elementItems.set(element, item);
       impressions.observe(element, item.product_id);
     },
     forceImpression(item) {
       if (envelope === undefined) {
         return;
       }
-      track(item);
+      forcedItems.set(item.product_id, item);
       impressions.record(item.product_id);
       impressions.flush();
     },
