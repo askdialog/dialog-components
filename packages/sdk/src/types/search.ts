@@ -248,7 +248,9 @@ export interface SearchFacetsResponse {
 /** A products search's counts, as a search controller keeps them. */
 export interface SearchFacetCounts {
   /** Products per value of each counted attribute; an attribute not counted has no entry. */
-  readonly facets: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  readonly facets: Readonly<
+    Partial<Record<string, Readonly<Partial<Record<string, number>>>>>
+  >;
   /** The results' bounds, `price` only; absent when not answered. */
   readonly facetsStats?: Readonly<Record<string, SearchFacetStats>>;
 }

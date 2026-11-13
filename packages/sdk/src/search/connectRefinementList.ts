@@ -107,7 +107,7 @@ export const foldedValues = (
 export const offeredValues = (
   values: readonly string[],
   checked: readonly string[],
-  counts: Readonly<Record<string, number>> | undefined,
+  counts: Readonly<Partial<Record<string, number>>> | undefined,
 ): readonly { value: string; count?: number }[] =>
   counts === undefined
     ? values.map((value) => ({ value }))

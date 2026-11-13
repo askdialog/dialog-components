@@ -98,10 +98,17 @@ export const createSearchRunner = ({
     abortController = undefined;
   };
 
+  const stop = (): void => {
+    cancel();
+    facetCounts?.stop();
+    counts = undefined;
+  };
+
   const run = async (entry: ReadIndexState): Promise<void> => {
     cancel();
     const query = entry.query.trim();
     if ([...query].length < minQueryLength) {
+      stop();
       onResults(() => ({ status: SearchStatus.IDLE }));
 
       return;
@@ -150,12 +157,6 @@ export const createSearchRunner = ({
       failed = entry;
       onResults(() => ({ status: SearchStatus.ERROR, error }));
     }
-  };
-
-  const stop = (): void => {
-    cancel();
-    facetCounts?.stop();
-    counts = undefined;
   };
 
   // Counts already asked for the same search and attributes are not asked again.
