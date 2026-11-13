@@ -1,12 +1,14 @@
 import { SearchAttributeLabels, SearchFilterBlock } from "../types/aiSearch";
 import { SearchBusinessRanking } from "../types/dialogConfig";
 import {
+  SearchFacetCounts,
   SearchProductHit,
   SearchResult,
   SearchSections,
 } from "../types/search";
 import {
   SearchControllerAnalytics,
+  SearchFacetsOptions,
   SearchFunction,
   SearchSection,
   SearchStatus,
@@ -52,8 +54,11 @@ export type SearchStateUpdater =
   | SearchState
   | ((searchState: SearchState) => SearchState);
 
-/** Read-only answer to the last request. */
-export interface SearchResults {
+/**
+ * Read-only answer to the last request. With the `facets` option, the last
+ * counts answered, kept while the next load; absent until then and when they fail.
+ */
+export interface SearchResults extends Partial<SearchFacetCounts> {
   readonly status: SearchStatus;
   /** Last products result; kept while the next one loads, cleared on error or close. */
   readonly products?: SearchResult<SearchProductHit>;
@@ -96,7 +101,7 @@ export interface SearchSnapshot {
 /** Lexical matches product titles; AI extracts filters from a natural-language query. */
 export type SearchMode = "lexical" | "ai";
 
-export interface SearchControllerOptions {
+export interface SearchControllerOptions extends SearchFacetsOptions {
   /**
    * Fixed at creation; default `lexical`. The AI mode searches products only,
    * and sends no request for a query shorter than 2 characters.

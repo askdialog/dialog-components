@@ -1,6 +1,10 @@
 import { searchAi } from "../services/aiSearch";
-import { searchLexical } from "../services/search";
-import { SearchFunction, SearchSection } from "../types/searchController";
+import { searchLexical, searchLexicalFacets } from "../services/search";
+import {
+  SearchFacetsFunction,
+  SearchFunction,
+  SearchSection,
+} from "../types/searchController";
 import { SearchControllerOptions, SearchMode } from "./types";
 
 /** What the mode decides of the requests the controller sends. */
@@ -9,6 +13,8 @@ export interface SearchModeSetup {
   sections: SearchControllerOptions["sections"];
   /** A shorter trimmed query, in code points, sends no request. */
   minQueryLength: number;
+  /** Sends the counts of the `facets` option; absent when it is off and in AI mode. */
+  facetsTransport?: SearchFacetsFunction;
 }
 
 // The AI route answers one products request, and its engine needs two
@@ -28,17 +34,44 @@ const modeTransport = (
   return (request, options) => search(apiKey, request, options);
 };
 
-export const searchModeSetup = ({
-  mode = "lexical",
-  transport,
+// Only the lexical route has counts.
+const countsTransport = ({
+  mode,
+  facets,
+  facetsTransport,
   apiKey,
-  sections = NO_SECTIONS,
-}: SearchControllerOptions): SearchModeSetup => {
+}: SearchControllerOptions): SearchFacetsFunction | undefined => {
+  if (facets !== true || mode === "ai") {
+    return undefined;
+  }
+  if (facetsTransport !== undefined) {
+    return facetsTransport;
+  }
+  if (apiKey === undefined) {
+    throw new Error(
+      "createSearchController needs a facetsTransport or an apiKey for facets.",
+    );
+  }
+
+  return (request, options) => searchLexicalFacets(apiKey, request, options);
+};
+
+export const searchModeSetup = (
+  options: SearchControllerOptions,
+): SearchModeSetup => {
+  const {
+    mode = "lexical",
+    transport,
+    apiKey,
+    sections = NO_SECTIONS,
+  } = options;
   const ai = mode === "ai";
+  const facetsTransport = countsTransport(options);
 
   return {
     transport: transport ?? modeTransport(mode, apiKey),
     sections: ai ? NO_SECTIONS : sections,
     minQueryLength: ai ? AI_MIN_QUERY_LENGTH : 0,
+    ...(facetsTransport === undefined ? {} : { facetsTransport }),
   };
 };
