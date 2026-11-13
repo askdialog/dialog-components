@@ -136,7 +136,16 @@ export function createImpressionTracker({
 
   return {
     observe(element, itemId) {
+      const previousItemId = observedItems.get(element);
+      if (previousItemId === itemId) {
+        return;
+      }
       observedItems.set(element, itemId);
+      if (previousItemId !== undefined) {
+        // A recycled element shows a new item: its visible time starts again.
+        cancelDwell(element);
+        observer.unobserve(element);
+      }
       observer.observe(element);
     },
     record,

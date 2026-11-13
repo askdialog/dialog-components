@@ -44,6 +44,25 @@ describe("createImpressionTracker", () => {
     expect(onImpressions).not.toHaveBeenCalled();
   });
 
+  it("restarts the visible second when an element is reused for another item", () => {
+    const onImpressions = vi.fn();
+    const tracker = createImpressionTracker({ onImpressions });
+    const card = element();
+    tracker.observe(card, "item-1");
+    intersect(card, 0.6);
+    vi.advanceTimersByTime(600);
+
+    tracker.observe(card, "item-2");
+    intersect(card, 0.6);
+    vi.advanceTimersByTime(999);
+    tracker.flush();
+    expect(onImpressions).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    tracker.flush();
+    expect(onImpressions.mock.calls).toEqual([[["item-2"]]]);
+  });
+
   it("counts an item once per context, even from several elements or a forced record", () => {
     const onImpressions = vi.fn();
     const tracker = createImpressionTracker({ onImpressions });
