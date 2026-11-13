@@ -15,6 +15,8 @@ export interface SearchModeSetup {
   minQueryLength: number;
   /** Sends the counts of the `facets` option; absent when it is off and in AI mode. */
   facetsTransport?: SearchFacetsFunction;
+  /** Whether the route takes the shopper's sort: the AI route does not. */
+  sortable: boolean;
 }
 
 // The AI route answers one products request, and its engine needs two
@@ -72,6 +74,7 @@ export const searchModeSetup = (
     transport: transport ?? modeTransport(mode, apiKey),
     sections: ai ? NO_SECTIONS : sections,
     minQueryLength: ai ? AI_MIN_QUERY_LENGTH : 0,
+    sortable: !ai,
     ...(facetsTransport === undefined ? {} : { facetsTransport }),
   };
 };

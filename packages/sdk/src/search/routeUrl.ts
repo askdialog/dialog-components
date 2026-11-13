@@ -1,3 +1,4 @@
+import { SEARCH_SORTS, SearchSort } from "../types/search";
 import { IndexSearchState } from "./types";
 
 /** The part of the products entry the URL carries. */
@@ -7,6 +8,8 @@ export interface SearchRouteState {
   readonly page: number;
   readonly refinementList?: IndexSearchState["refinementList"];
   readonly range?: IndexSearchState["range"];
+  /** Absent means `relevance`. */
+  readonly sort?: SearchSort;
 }
 
 /** Another URL format for `routing`: each function absent keeps the default one. */
@@ -29,6 +32,7 @@ const QUERY_PARAM = "q";
 const PAGE_PARAM = "page";
 const FILTER_PREFIX = "f.";
 const PRICE_PARAM = "price";
+const SORT_PARAM = "sort";
 const PRICE_ATTRIBUTE = "price";
 const PRICE_PATTERN = /^(\d+(?:\.\d+)?)?:(\d+(?:\.\d+)?)?$/;
 
@@ -56,6 +60,13 @@ const readPrice = (value: string | null): RangeBounds | undefined => {
   return `${min}:${max}`;
 };
 
+const isSort = (value: string | null): value is SearchSort =>
+  SEARCH_SORTS.some((sort) => sort === value);
+
+/** A sort the SDK knows other than `relevance`; anything else is none. */
+const readSort = (value: string | null): SearchSort | undefined =>
+  isSort(value) && value !== "relevance" ? value : undefined;
+
 const readRefinementList = (
   params: URLSearchParams,
 ): Record<string, string[]> | undefined => {
@@ -76,7 +87,7 @@ const readRefinementList = (
 
 /**
  * The default format: `q`, `page` (1-indexed), `f.<attribute>=<value>` once
- * per value and `price=<min>:<max>`.
+ * per value, `price=<min>:<max>` and `sort=<sort>`.
  */
 export const parseSearchURL = ({
   location,
@@ -91,6 +102,7 @@ export const parseSearchURL = ({
     page: readPage(params.get(PAGE_PARAM)),
     refinementList: readRefinementList(params),
     range: price === undefined ? undefined : { [PRICE_ATTRIBUTE]: price },
+    sort: readSort(params.get(SORT_PARAM)),
   };
 };
 
@@ -122,7 +134,7 @@ const writeRefinements = (
   }
 };
 
-/** The default format, keeping the location's other params and its hash; page 1 and an empty query are left out. */
+/** The default format, keeping the location's other params and its hash; page 1, an empty query and `relevance` are left out. */
 export const createSearchURL = ({
   routeState,
   location,
@@ -142,6 +154,12 @@ export const createSearchURL = ({
     params.delete(PAGE_PARAM);
   }
   writeRefinements(params, routeState);
+  const sort = readSort(routeState.sort ?? null);
+  if (sort === undefined) {
+    params.delete(SORT_PARAM);
+  } else {
+    params.set(SORT_PARAM, sort);
+  }
   const search = params.toString();
 
   return `${location.pathname}${search === "" ? "" : `?${search}`}${location.hash}`;

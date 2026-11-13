@@ -71,4 +71,10 @@ export const ar: TextsFactory = (n, plural) => ({
   removeFilter: (text) => `إزالة الفلتر: ${text}`,
   filtersLabel: "الفلاتر",
   appliedFiltersLabel: "الفلاتر المطبقة",
+  sortLabel: "ترتيب حسب",
+  sortOptions: {
+    relevance: "الأكثر صلة",
+    price_asc: "السعر: من الأقل إلى الأعلى",
+    price_desc: "السعر: من الأعلى إلى الأقل",
+  },
 });

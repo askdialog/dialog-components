@@ -17,6 +17,11 @@ export const SEARCH_INDICES = [
 
 export type SearchIndex = (typeof SEARCH_INDICES)[number];
 
+/** The shopper's order of the products, by the price the card shows; absent means relevance. Lexical mode only. */
+export const SEARCH_SORTS = ["relevance", "price_asc", "price_desc"] as const;
+
+export type SearchSort = (typeof SEARCH_SORTS)[number];
+
 export interface SearchQuery extends Partial<SearchFilters> {
   /**
    * `<index>_<lang>_<country>`, e.g. `products_fr_be`.
@@ -30,6 +35,8 @@ export interface SearchQuery extends Partial<SearchFilters> {
   page?: number;
   /** Page size from 1 to 100; server default: 20. */
   hitsPerPage?: number;
+  /** On a products entry of the lexical route only; server default: `relevance`. */
+  sort?: SearchSort;
 }
 
 export interface SearchRequest {

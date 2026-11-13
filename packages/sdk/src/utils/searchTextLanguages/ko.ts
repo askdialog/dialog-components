@@ -53,4 +53,10 @@ export const ko: TextsFactory = (n) => ({
   removeFilter: (text) => `필터 삭제: ${text}`,
   filtersLabel: "필터",
   appliedFiltersLabel: "적용된 필터",
+  sortLabel: "정렬",
+  sortOptions: {
+    relevance: "관련도순",
+    price_asc: "낮은 가격순",
+    price_desc: "높은 가격순",
+  },
 });

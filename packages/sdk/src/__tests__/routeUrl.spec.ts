@@ -91,3 +91,23 @@ describe("createSearchURL", () => {
     expect(parse(url)).toEqual(routeState);
   });
 });
+
+describe("the sort in the URL", () => {
+  it("reads a known sort, relevance and anything else as none", () => {
+    expect(parse("/search?sort=price_desc").sort).toBe("price_desc");
+    for (const sort of ["relevance", "newest", ""]) {
+      expect(parse(`/search?sort=${sort}`).sort).toBeUndefined();
+    }
+  });
+
+  it("writes a price sort and leaves relevance out", () => {
+    const write = (sort: "relevance" | "price_asc") =>
+      createSearchURL({
+        routeState: { query: "robe", page: 0, sort },
+        location: at("/search?sort=price_desc"),
+      });
+
+    expect(write("price_asc")).toBe("/search?sort=price_asc&q=robe");
+    expect(write("relevance")).toBe("/search?q=robe");
+  });
+});
