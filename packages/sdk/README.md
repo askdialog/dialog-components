@@ -696,7 +696,7 @@ client.registerSubmitCheckoutEvent({
 
 #### Impressions
 
-`createImpressionTracker` measures views of any list of elements with the Dialog rule: an item counts once it is at least 50 % visible for 1 continuous second, once per item until `reset()`. Counted item ids go out in batches: after 1.5 s without a new impression, at 100 items, on `flush()`, `reset()`, `disconnect()` and on the `pagehide` event. A page restored from the back/forward cache counts its items again. Import it from `@askdialog/dialog-sdk/impressions` to load it alone, with no dependency.
+`createImpressionTracker` measures views of any list of elements with the Dialog rule: an item counts once it is at least 50 % visible for 1 continuous second, once per item until `reset()`. The rule is the same for every Dialog view and takes no option; `idleFlushMs` and `maxItemsPerBatch` only tune the sending. Counted item ids go out in batches: after 1.5 s without a new impression, at 100 items, on `flush()`, `reset()`, `disconnect()` and on the `pagehide` event. A page restored from the back/forward cache counts its items again. Import it from `@askdialog/dialog-sdk/impressions` to load it alone, with no dependency.
 
 ```typescript
 import { createImpressionTracker } from '@askdialog/dialog-sdk/impressions';

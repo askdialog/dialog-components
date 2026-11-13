@@ -10,8 +10,6 @@ const DEFAULT_MAX_ITEMS_PER_EVENT = 100;
 export interface SearchImpressionTrackerOptions {
   /** Receive each batch, typically through `dialog.trackViewSearchResults`. */
   emit: (params: ViewSearchResultsParams) => void;
-  visibilityThreshold?: number;
-  dwellMs?: number;
   idleFlushMs?: number;
   maxItemsPerEvent?: number;
 }
@@ -30,15 +28,15 @@ export interface SearchImpressionTracker {
 /** Search result views under the Dialog impression rule, one per product and per response. */
 export function createSearchImpressionTracker({
   emit,
+  idleFlushMs,
   maxItemsPerEvent = DEFAULT_MAX_ITEMS_PER_EVENT,
-  ...rule
 }: SearchImpressionTrackerOptions): SearchImpressionTracker {
   let envelope: SearchAnalyticsEnvelope | undefined;
   // Impressions count products: one result per product id in the current response.
   const items = new Map<string, SearchResultItem>();
 
   const impressions = createImpressionTracker({
-    ...rule,
+    idleFlushMs,
     maxItemsPerBatch: maxItemsPerEvent,
     onImpressions(productIds) {
       if (envelope === undefined) {

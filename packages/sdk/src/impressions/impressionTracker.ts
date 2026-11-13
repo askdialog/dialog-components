@@ -2,18 +2,14 @@
 // continuous second, counted once per item and per context (`reset()`).
 // Batches go out on idle, at the batch limit, on `flush()`, `reset()` and pagehide.
 // Browser APIs only, no import: storefront bundles load this file alone.
-const DEFAULT_VISIBILITY_THRESHOLD = 0.5;
-const DEFAULT_DWELL_MS = 1000;
+const VISIBILITY_THRESHOLD = 0.5;
+const DWELL_MS = 1000;
 const DEFAULT_IDLE_FLUSH_MS = 1500;
 const DEFAULT_MAX_ITEMS_PER_BATCH = 100;
 
 export interface ImpressionTrackerOptions {
   /** Receive each batch of item ids, in the order they qualified. */
   onImpressions: (itemIds: string[]) => void;
-  /** Share of the element that must be visible, 0.5 by default: keep the Dialog rule. */
-  visibilityThreshold?: number;
-  /** Continuous visible time in ms, 1000 by default: keep the Dialog rule. */
-  dwellMs?: number;
   /** Quiet time in ms before a pending batch goes out. */
   idleFlushMs?: number;
   /** A batch goes out as soon as it holds this many items. */
@@ -35,8 +31,6 @@ export interface ImpressionTracker {
 
 export function createImpressionTracker({
   onImpressions,
-  visibilityThreshold = DEFAULT_VISIBILITY_THRESHOLD,
-  dwellMs = DEFAULT_DWELL_MS,
   idleFlushMs = DEFAULT_IDLE_FLUSH_MS,
   maxItemsPerBatch = DEFAULT_MAX_ITEMS_PER_BATCH,
 }: ImpressionTrackerOptions): ImpressionTracker {
@@ -86,7 +80,7 @@ export function createImpressionTracker({
         if (itemId === undefined) {
           continue;
         }
-        if (entry.intersectionRatio < visibilityThreshold) {
+        if (entry.intersectionRatio < VISIBILITY_THRESHOLD) {
           cancelDwell(entry.target);
           continue;
         }
@@ -96,12 +90,12 @@ export function createImpressionTracker({
             setTimeout(() => {
               dwellTimers.delete(entry.target);
               record(itemId);
-            }, dwellMs),
+            }, DWELL_MS),
           );
         }
       }
     },
-    { threshold: visibilityThreshold },
+    { threshold: VISIBILITY_THRESHOLD },
   );
 
   const stopObserving = (): void => {
