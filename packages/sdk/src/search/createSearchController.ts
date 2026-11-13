@@ -159,6 +159,7 @@ export function createSearchController(
         return;
       }
       cancel();
+      runner.stop();
       hitTracking.close();
       const searchState: SearchState = {
         ...snapshot.searchState,
@@ -186,6 +187,7 @@ export function createSearchController(
     dispose() {
       disposed = true;
       cancel();
+      runner.stop();
       router.stop();
       listeners.clear();
       hitTracking.dispose();
