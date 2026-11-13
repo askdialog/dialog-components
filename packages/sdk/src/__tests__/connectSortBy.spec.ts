@@ -83,6 +83,12 @@ describe("connectSortBy", () => {
     });
   });
 
+  it("reads the controller's texts overrides", () => {
+    controller = create({ texts: { sortLabel: "Classer" } });
+
+    expect(connectSortBy(controller).getRenderState().label).toBe("Classer");
+  });
+
   it("sends the sort from page 1, the query and filters kept, without asking the counts again", async () => {
     controller = create();
     const sortBy = connectSortBy(controller);

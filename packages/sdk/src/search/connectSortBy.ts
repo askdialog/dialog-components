@@ -1,5 +1,4 @@
 import { SEARCH_SORTS, SearchSort } from "../types/search";
-import { getSearchTexts } from "../utils/searchTexts";
 import { Connector, createConnector } from "./connector";
 import { productsEntry } from "./searchState";
 import { SearchController } from "./types";
@@ -29,24 +28,16 @@ export function connectSortBy(controller: SearchController): SortByConnector {
   const entry = productsEntry(controller);
   const connector = createConnector(controller, {
     read: ({ searchState, context }) =>
-      [
-        entry.read(searchState).sort ?? "relevance",
-        context.language,
-        context.country,
-      ] as const,
-    render: ([current, language, country]) => {
-      const texts = getSearchTexts(`${language}-${country}`);
-
-      return {
-        items: SEARCH_SORTS.map((value) => ({
-          value,
-          label: texts.sortOptions[value],
-          isRefined: value === current,
-        })),
-        currentRefinement: current,
-        label: texts.sortLabel,
-      };
-    },
+      [entry.read(searchState).sort ?? "relevance", context.texts] as const,
+    render: ([current, texts]) => ({
+      items: SEARCH_SORTS.map((value) => ({
+        value,
+        label: texts.sortOptions[value],
+        isRefined: value === current,
+      })),
+      currentRefinement: current,
+      label: texts.sortLabel,
+    }),
   });
   const { getRenderState, subscribe, dispose } = connector;
 
