@@ -12,6 +12,11 @@ const MIN_FOLDED = 2;
 export interface RefinementListItem {
   readonly value: string;
   readonly isRefined: boolean;
+  /**
+   * Products the value would give, with the controller's `facets` option, once
+   * the last search's counts hold the attribute; 0 only on a checked value.
+   */
+  readonly count?: number;
 }
 
 export interface RefinementListRenderState {
@@ -20,7 +25,9 @@ export interface RefinementListRenderState {
   readonly label: string;
   /**
    * The search config's values in its order; none until the config loads.
-   * Folded, the first `limit` values and every checked one further down.
+   * When the last search's counts hold the attribute, only the values with a
+   * result, and the checked ones. Folded, the first `limit` of them and every
+   * checked one further down.
    */
   readonly items: readonly RefinementListItem[];
   /** The visitor unfolded the values. */
@@ -93,6 +100,21 @@ export const foldedValues = (
   return values.length - shown.length < MIN_FOLDED ? values : shown;
 };
 
+/**
+ * The values offered: the search config's, and, when the counts hold the
+ * attribute, those with a result or checked, each with its count.
+ */
+export const offeredValues = (
+  values: readonly string[],
+  checked: readonly string[],
+  counts: Readonly<Record<string, number>> | undefined,
+): readonly { value: string; count?: number }[] =>
+  counts === undefined
+    ? values.map((value) => ({ value }))
+    : values
+        .map((value) => ({ value, count: counts[value] ?? 0 }))
+        .filter(({ value, count }) => count > 0 || checked.includes(value));
+
 /** The search config's values of one attribute, checked or not, folded past `limit`, and the actions that toggle a value or the fold. */
 export function connectRefinementList(
   controller: SearchController,
@@ -106,20 +128,30 @@ export function connectRefinementList(
         context.filterableAttributes.find(({ key }) => key === attribute),
         entry.read(searchState).refinementList?.[attribute],
         results.filters,
+        results.facets?.[attribute],
         isShowingMore,
       ] as const,
-    render: ([config, picked, blocks, showingMore]) => {
+    render: ([config, picked, blocks, counts, showingMore]) => {
       const checked = checkedValues(picked, detectedValues(blocks, attribute));
-      const values = config?.values ?? NO_VALUES;
+      const offered = offeredValues(
+        config?.values ?? NO_VALUES,
+        checked,
+        counts,
+      );
+      const values = offered.map(({ value }) => value);
       const folded = foldedValues(values, checked, limit);
       const foldedCount = values.length - folded.length;
+      const shown = showingMore
+        ? offered
+        : offered.filter(({ value }) => folded.includes(value));
 
       return {
         attribute,
         label: config?.label ?? attribute,
-        items: (showingMore ? values : folded).map((value) => ({
+        items: shown.map(({ value, count }) => ({
           value,
           isRefined: checked.includes(value),
+          ...(count === undefined ? {} : { count }),
         })),
         isShowingMore: showingMore,
         canToggleShowMore: foldedCount > 0,

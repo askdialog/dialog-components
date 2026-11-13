@@ -1,4 +1,4 @@
-/* eslint max-lines: ["error", 320] */
+/* eslint max-lines: ["error", 360] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import { SearchController, SearchControllerOptions } from "../search/types";
