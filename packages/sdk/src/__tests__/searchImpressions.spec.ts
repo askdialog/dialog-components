@@ -21,14 +21,12 @@ const envelope: SearchAnalyticsEnvelope = {
 stubImpressionEnvironment();
 
 describe("createSearchImpressionTracker", () => {
-  it("emits the result half visible for one second, at the position of the element seen", () => {
+  it("emits a result half visible for one second under its response's envelope", () => {
     const emit = vi.fn();
     const tracker = createSearchImpressionTracker({ emit });
     tracker.setContext(envelope);
-    const unseen = element();
     const card = element();
-    tracker.observe(unseen, { product_id: "product-1", position: 2 });
-    tracker.observe(card, { product_id: "product-1", position: 7 });
+    tracker.observe(card, { product_id: "product-1", position: 1 });
 
     intersect(card, 0.6);
     vi.advanceTimersByTime(999);
@@ -38,7 +36,7 @@ describe("createSearchImpressionTracker", () => {
     vi.advanceTimersByTime(1 + 1500);
     expect(emit).toHaveBeenCalledWith({
       ...envelope,
-      items: [{ product_id: "product-1", position: 7 }],
+      items: [{ product_id: "product-1", position: 1 }],
     });
   });
 

@@ -7,15 +7,9 @@ const DEFAULT_DWELL_MS = 1000;
 const DEFAULT_IDLE_FLUSH_MS = 1500;
 const DEFAULT_MAX_ITEMS_PER_BATCH = 100;
 
-export interface Impression {
-  itemId: string;
-  /** The element that met the visibility rule; absent for `record()`. */
-  element?: Element;
-}
-
 export interface ImpressionTrackerOptions {
-  /** Receive each batch, in the order the items qualified. */
-  onImpressions: (impressions: Impression[]) => void;
+  /** Receive each batch of item ids, in the order they qualified. */
+  onImpressions: (itemIds: string[]) => void;
   /** Share of the element that must be visible, 0.5 by default: keep the Dialog rule. */
   visibilityThreshold?: number;
   /** Continuous visible time in ms, 1000 by default: keep the Dialog rule. */
@@ -46,7 +40,7 @@ export function createImpressionTracker({
   idleFlushMs = DEFAULT_IDLE_FLUSH_MS,
   maxItemsPerBatch = DEFAULT_MAX_ITEMS_PER_BATCH,
 }: ImpressionTrackerOptions): ImpressionTracker {
-  let pending: Impression[] = [];
+  let pending: string[] = [];
   const seen = new Set<string>();
   const observedItems = new Map<Element, string>();
   const dwellTimers = new Map<Element, ReturnType<typeof setTimeout>>();
@@ -62,12 +56,12 @@ export function createImpressionTracker({
     onImpressions(batch);
   };
 
-  const count = (itemId: string, element?: Element): void => {
+  const record = (itemId: string): void => {
     if (seen.has(itemId)) {
       return;
     }
     seen.add(itemId);
-    pending.push(element === undefined ? { itemId } : { itemId, element });
+    pending.push(itemId);
     if (pending.length >= maxItemsPerBatch) {
       flush();
 
@@ -101,7 +95,7 @@ export function createImpressionTracker({
             entry.target,
             setTimeout(() => {
               dwellTimers.delete(entry.target);
-              count(itemId, entry.target);
+              record(itemId);
             }, dwellMs),
           );
         }
@@ -154,9 +148,7 @@ export function createImpressionTracker({
       }
       observer.observe(element);
     },
-    record(itemId) {
-      count(itemId);
-    },
+    record,
     flush,
     reset() {
       flush();

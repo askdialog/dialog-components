@@ -696,13 +696,13 @@ client.registerSubmitCheckoutEvent({
 
 #### Impressions
 
-`createImpressionTracker` measures views of any list of elements with the Dialog rule: an item counts once it is at least 50 % visible for 1 continuous second, once per item until `reset()`. Counted items go out in batches of `{ itemId, element }`, `element` being the one that met the rule (absent for `record()`): after 1.5 s without a new impression, at 100 items, on `flush()`, `reset()`, `disconnect()` and on the `pagehide` event. A page restored from the back/forward cache counts its items again. Import it from `@askdialog/dialog-sdk/impressions` to load it alone, with no dependency.
+`createImpressionTracker` measures views of any list of elements with the Dialog rule: an item counts once it is at least 50 % visible for 1 continuous second, once per item until `reset()`. Counted item ids go out in batches: after 1.5 s without a new impression, at 100 items, on `flush()`, `reset()`, `disconnect()` and on the `pagehide` event. A page restored from the back/forward cache counts its items again. Import it from `@askdialog/dialog-sdk/impressions` to load it alone, with no dependency.
 
 ```typescript
 import { createImpressionTracker } from '@askdialog/dialog-sdk/impressions';
 
 const impressions = createImpressionTracker({
-    onImpressions: (impressions) => send(impressions.map(({ itemId }) => itemId)), // in the order they qualified
+    onImpressions: (itemIds) => send(itemIds), // {string[]} - in the order they qualified
 });
 impressions.observe(element, 'item-id'); // once per rendered element
 impressions.record('item-id'); // count an item now, e.g. on click
