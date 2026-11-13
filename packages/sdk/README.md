@@ -696,6 +696,24 @@ client.registerSubmitCheckoutEvent({
 });
 ```
 
+#### Impressions
+
+`createImpressionTracker` measures views of any list of elements with the Dialog rule: an item counts once it is at least 50 % visible for 1 continuous second, once per item until `reset()`. The rule is the same for every Dialog view and takes no option; `idleFlushMs` and `maxItemsPerBatch` only tune the sending. Counted item ids go out in batches: after 1.5 s without a new impression, at 100 items, on `flush()`, `reset()`, `disconnect()` and on the `pagehide` event. A page restored from the back/forward cache counts its items again. Import it from `@askdialog/dialog-sdk/impressions` to load it alone, with no dependency.
+
+```typescript
+import { createImpressionTracker } from '@askdialog/dialog-sdk/impressions';
+
+const impressions = createImpressionTracker({
+    onImpressions: (itemIds) => send(itemIds), // {string[]} - in the order they qualified
+});
+impressions.observe(element, 'item-id'); // once per rendered element
+impressions.record('item-id'); // count an item now, e.g. on click
+impressions.reset(); // a new context: unwatches every element and counts every item again; observe the elements of the new context
+impressions.disconnect(); // sends the pending batch and stops
+```
+
+The search controller tracks its result views with it.
+
 #### Listen for Assistant Events
 
 The SDK provides real-time event listening for user interactions with the Dialog assistant.
