@@ -53,4 +53,10 @@ export const ja: TextsFactory = (n) => ({
   removeFilter: (text) => `フィルターを削除：${text}`,
   filtersLabel: "フィルター",
   appliedFiltersLabel: "適用中のフィルター",
+  sortLabel: "並び替え",
+  sortOptions: {
+    relevance: "関連度順",
+    price_asc: "価格の安い順",
+    price_desc: "価格の高い順",
+  },
 });

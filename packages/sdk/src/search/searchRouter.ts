@@ -49,17 +49,18 @@ const declaredEntries = <T>(
 
 /** The route with only the refinements the attributes declare with their type. */
 const declaredOnly = (
-  { query, page, refinementList, range }: SearchRouteState,
+  { query, page, refinementList, range, sort }: SearchRouteState,
   attributes: readonly FilterableAttribute[] | undefined,
 ): SearchRouteState => {
   if (attributes === undefined) {
-    return { query, page, refinementList, range };
+    return { query, page, refinementList, range, sort };
   }
   const typeOf = attributeTypes(attributes);
 
   return {
     query,
     page,
+    sort,
     refinementList: declaredEntries(refinementList, (attribute) =>
       isFacetType(typeOf.get(attribute)),
     ),

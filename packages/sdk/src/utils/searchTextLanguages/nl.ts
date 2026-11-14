@@ -56,4 +56,10 @@ export const nl: TextsFactory = (n) => ({
   removeFilter: (text) => `Filter verwijderen: ${text}`,
   filtersLabel: "Filters",
   appliedFiltersLabel: "Toegepaste filters",
+  sortLabel: "Sorteren op",
+  sortOptions: {
+    relevance: "Relevantie",
+    price_asc: "Prijs: laag naar hoog",
+    price_desc: "Prijs: hoog naar laag",
+  },
 });
