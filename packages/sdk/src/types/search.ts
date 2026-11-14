@@ -212,3 +212,45 @@ export type SearchSections = {
 export interface SearchResponse {
   results: SearchResult[];
 }
+
+/**
+ * The products search `POST /public/search/lexical/facets` counts: the lexical
+ * route's `products_*` entry, without its page, and the attributes to count.
+ */
+export interface SearchFacetsRequest extends Partial<SearchFilters> {
+  /** `products_<lang>_<country>`; another index answers 400. */
+  indexName: string;
+  query: string;
+  /** Attribute keys to count, and `price` for `facets_stats`; 1 to 100. */
+  facets: string[];
+  /** Values counted per attribute, 1 to 100; server default: 100. */
+  maxValuesPerFacet?: number;
+}
+
+/** Lowest and highest value among the results. */
+export interface SearchFacetStats {
+  min: number;
+  max: number;
+}
+
+/**
+ * Algolia-shaped counts: products per value, most frequent first, a value group
+ * once under its label. An attribute's counts set its own filters aside.
+ */
+export interface SearchFacetsResponse {
+  /** A requested attribute the search page does not show answers no entry. */
+  facets: Record<string, Record<string, number>>;
+  /** The results' price bounds; absent when `price` was not asked or no result has a price. */
+  facets_stats?: { price: SearchFacetStats };
+  nbHits: number;
+}
+
+/** A products search's counts, as a search controller keeps them. */
+export interface SearchFacetCounts {
+  /** Products per value of each counted attribute; an attribute not counted has no entry. */
+  readonly facets: Readonly<
+    Partial<Record<string, Readonly<Partial<Record<string, number>>>>>
+  >;
+  /** The results' bounds, `price` only; absent when not answered. */
+  readonly facetsStats?: Readonly<Record<string, SearchFacetStats>>;
+}

@@ -106,6 +106,10 @@ export type { SearchBusinessRanking } from "../types/dialogConfig";
 export type {
   SearchArticleHit,
   SearchCollectionHit,
+  SearchFacetCounts,
+  SearchFacetsRequest,
+  SearchFacetsResponse,
+  SearchFacetStats,
   SearchHighlightResult,
   SearchHitByIndex,
   SearchIndex,
@@ -131,6 +135,8 @@ export type {
 export {
   SearchStatus,
   type SearchControllerAnalytics,
+  type SearchFacetsFunction,
+  type SearchFacetsOptions,
   type SearchFunction,
   type SearchSection,
 } from "../types/searchController";

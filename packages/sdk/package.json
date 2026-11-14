@@ -15,12 +15,20 @@
       "import": "./dist/search/index.js",
       "require": "./dist/search/index.js",
       "types": "./dist/search/index.d.ts"
+    },
+    "./impressions": {
+      "import": "./dist/impressions/index.js",
+      "require": "./dist/impressions/index.js",
+      "types": "./dist/impressions/index.d.ts"
     }
   },
   "typesVersions": {
     "*": {
       "search": [
         "dist/search/index.d.ts"
+      ],
+      "impressions": [
+        "dist/impressions/index.d.ts"
       ]
     }
   },
