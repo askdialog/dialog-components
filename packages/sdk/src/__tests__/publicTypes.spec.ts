@@ -7,8 +7,16 @@ import {
   DialogCallbacks,
   DialogConstructor,
   DialogSearchError,
+  RangeRenderState,
+  RefinementListItem,
   SearchArticleHit,
   SearchCollectionHit,
+  SearchControllerOptions,
+  SearchFacetsFunction,
+  SearchFacetsRequest,
+  SearchFacetsResponse,
+  SearchFacetStats,
+  searchLexicalFacets,
   SearchOptions,
   SearchPageHit,
   SearchProductHit,
@@ -138,5 +146,33 @@ describe("public API types", () => {
     expectTypeOf(error.status).toEqualTypeOf<number>();
     expectTypeOf(error.code).toEqualTypeOf<string | undefined>();
     expect(error.name).toBe("DialogSearchError");
+  });
+
+  it("describes the opt-in facet counts", () => {
+    expectTypeOf<SearchControllerOptions["facets"]>().toEqualTypeOf<
+      boolean | undefined
+    >();
+    expectTypeOf<SearchControllerOptions["facetsTransport"]>().toEqualTypeOf<
+      SearchFacetsFunction | undefined
+    >();
+    expectTypeOf(searchLexicalFacets).parameters.toEqualTypeOf<
+      [string, SearchFacetsRequest, SearchOptions?]
+    >();
+    expectTypeOf(searchLexicalFacets).returns.toEqualTypeOf<
+      Promise<SearchFacetsResponse>
+    >();
+    expectTypeOf<RefinementListItem["count"]>().toEqualTypeOf<
+      number | undefined
+    >();
+    expectTypeOf<RangeRenderState["bounds"]>().toEqualTypeOf<
+      SearchFacetStats | undefined
+    >();
+    expectTypeOf<SearchFacetStats>().toEqualTypeOf<{
+      min: number;
+      max: number;
+    }>();
+    expectTypeOf<SearchResults["facetsStats"]>().toEqualTypeOf<
+      Readonly<Record<string, SearchFacetStats>> | undefined
+    >();
   });
 });

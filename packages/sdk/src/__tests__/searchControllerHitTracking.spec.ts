@@ -117,7 +117,7 @@ afterEach(() => {
 });
 
 describe("search controller hit tracking", () => {
-  it("emits a view batch for hits half visible for 500 ms, once per query", async () => {
+  it("emits a view batch for hits half visible for one second, once per query", async () => {
     const controller = create();
     await search(controller);
     const first = {} as Element;
@@ -125,10 +125,10 @@ describe("search controller hit tracking", () => {
     controller.observeHit(first, 0);
     controller.observeHit(second, 1);
 
-    showFor(first, 500);
-    showFor(second, 499);
+    showFor(first, 1000);
+    showFor(second, 999);
     observerCallback([{ target: second, intersectionRatio: 0 }]);
-    showFor(first, 500);
+    showFor(first, 1000);
     vi.advanceTimersByTime(1500);
 
     expect(trackViewSearchResults).toHaveBeenCalledTimes(1);
@@ -193,7 +193,7 @@ describe("search controller hit tracking", () => {
     await search(controller);
     const element = {} as Element;
     controller.observeHit(element, 0);
-    showFor(element, 500);
+    showFor(element, 1000);
 
     controller.close();
 

@@ -1,3 +1,4 @@
+import { SearchFacetStats } from "../types/search";
 import { RangeBounds, rangeSides } from "../utils/searchFilters";
 import { withKey } from "../utils/searchStateFilters";
 import { Connector, createConnector } from "./connector";
@@ -12,6 +13,12 @@ export interface RangeRenderState {
   readonly max: string;
   /** Both fields are numbers and the floor is above the ceiling. */
   readonly minAboveMax: boolean;
+  /**
+   * The lowest and highest value among the results, e.g. as the fields'
+   * placeholders: `price` only, with the controller's `facets` option, once
+   * the last search's counts answer them; their own range is set aside.
+   */
+  readonly bounds?: SearchFacetStats;
 }
 
 export interface RangeConnector extends Connector<RangeRenderState> {
@@ -62,7 +69,7 @@ export function connectRange(
   let typed: TypedFields | undefined;
 
   const connector = createConnector(controller, {
-    read: ({ searchState }) => {
+    read: ({ searchState, results }) => {
       const bounds = boundsOf(searchState);
       if (typed !== undefined) {
         typed.searchState ??= searchState;
@@ -74,13 +81,19 @@ export function connectRange(
         }
       }
 
-      return [bounds, typed] as const;
+      return [bounds, typed, results.facetsStats?.[attribute]] as const;
     },
-    render: ([bounds, fields]) => {
+    render: ([bounds, fields, stats]) => {
       const [min, max] =
         fields === undefined ? fieldsOf(bounds) : [fields.min, fields.max];
 
-      return { attribute, min, max, minAboveMax: isMinAboveMax(min, max) };
+      return {
+        attribute,
+        min,
+        max,
+        minAboveMax: isMinAboveMax(min, max),
+        ...(stats === undefined ? {} : { bounds: stats }),
+      };
     },
   });
   const { getRenderState, subscribe, dispose } = connector;

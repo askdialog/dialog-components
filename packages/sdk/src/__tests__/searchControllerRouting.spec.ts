@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 320] */
+/* eslint max-lines: ["error", 345] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSearchController } from "../search/createSearchController";
 import {
@@ -156,6 +156,21 @@ describe("search controller routing", () => {
       "f.color": ["Rouge", "Bleu"],
       price: ["10:50"],
     });
+  });
+
+  it("searches the URL's sort and pushes a sort change, back on page 1", async () => {
+    visit("/search?q=chemise&page=3&sort=price_asc");
+    const controller = create();
+    controller.search();
+    await vi.runAllTimersAsync();
+
+    expect(lastQuery()).toMatchObject({ page: 2, sort: "price_asc" });
+
+    setEntry(controller, { sort: "price_desc" });
+    await vi.runAllTimersAsync();
+
+    expect(pushState).toHaveBeenCalledTimes(1);
+    expect(params()).toEqual({ q: ["chemise"], sort: ["price_desc"] });
   });
 
   it("pushes a page change, 1-indexed", async () => {

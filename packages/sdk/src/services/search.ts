@@ -1,4 +1,6 @@
 import {
+  SearchFacetsRequest,
+  SearchFacetsResponse,
   SearchIndex,
   SearchOptions,
   SearchRequest,
@@ -7,6 +9,7 @@ import {
 import { postSearchApi } from "./searchApi";
 
 const SEARCH_PATH = "/public/search/lexical";
+const FACETS_PATH = "/public/search/lexical/facets";
 
 /** Build an index name from an ISO 639-1 language and the shopper's ISO 3166-1 alpha-2 country. */
 export const searchIndexName = (
@@ -31,5 +34,15 @@ export const searchLexical = (
   options?: SearchOptions,
 ): Promise<SearchResponse> =>
   postSearchApi<SearchResponse>(apiKey, SEARCH_PATH, request, {
+    signal: options?.signal,
+  });
+
+/** Count the products search per value; records no search analytics. The caller controls cancellation through `options.signal`. */
+export const searchLexicalFacets = (
+  apiKey: string,
+  request: SearchFacetsRequest,
+  options?: SearchOptions,
+): Promise<SearchFacetsResponse> =>
+  postSearchApi<SearchFacetsResponse>(apiKey, FACETS_PATH, request, {
     signal: options?.signal,
   });

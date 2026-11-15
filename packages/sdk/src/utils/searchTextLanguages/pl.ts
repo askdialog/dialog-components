@@ -70,4 +70,10 @@ export const pl: TextsFactory = (n, plural) => ({
   removeFilter: (text) => `Usuń filtr: ${text}`,
   filtersLabel: "Filtry",
   appliedFiltersLabel: "Zastosowane filtry",
+  sortLabel: "Sortuj według",
+  sortOptions: {
+    relevance: "Trafność",
+    price_asc: "Cena: od najniższej",
+    price_desc: "Cena: od najwyższej",
+  },
 });

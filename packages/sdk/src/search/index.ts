@@ -40,6 +40,12 @@ export {
   type InfiniteHitsRenderState,
 } from "./connectInfiniteHits";
 export {
+  connectSortBy,
+  type SortByConnector,
+  type SortByItem,
+  type SortByRenderState,
+} from "./connectSortBy";
+export {
   connectStats,
   type StatsConnector,
   type StatsRenderState,
@@ -106,6 +112,10 @@ export type { SearchBusinessRanking } from "../types/dialogConfig";
 export type {
   SearchArticleHit,
   SearchCollectionHit,
+  SearchFacetCounts,
+  SearchFacetsRequest,
+  SearchFacetsResponse,
+  SearchFacetStats,
   SearchHighlightResult,
   SearchHitByIndex,
   SearchIndex,
@@ -114,7 +124,9 @@ export type {
   SearchQuerySuggestionHit,
   SearchResult,
   SearchSections,
+  SearchSort,
 } from "../types/search";
+export { SEARCH_SORTS } from "../types/search";
 export type {
   SearchFacetFilter,
   SearchFilters,
@@ -131,6 +143,8 @@ export type {
 export {
   SearchStatus,
   type SearchControllerAnalytics,
+  type SearchFacetsFunction,
+  type SearchFacetsOptions,
   type SearchFunction,
   type SearchSection,
 } from "../types/searchController";
