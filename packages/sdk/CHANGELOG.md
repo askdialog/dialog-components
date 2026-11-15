@@ -1,5 +1,23 @@
 # @askdialog/dialog-sdk
 
+## 3.7.0
+
+### Minor Changes
+
+- ccedbab: Facet counts, opt-in per controller (DEC-4129). `createSearchController` takes `facets` (default `false`; off, the requests and the behaviour are unchanged). On, in `lexical` mode, each products search sends a second request, at the same time as the hits', to `POST /public/search/lexical/facets` with the same query and filters, counting the attributes `connectDynamicWidgets` lists and `price`. The hits request is the same with the option on or off and renders without waiting for the counts; counts are asked once per query, filters and counted attributes, so a search changing any of them aborts both requests on their way while a page change sends the hits alone; a failed counts request leaves the hits and the uncounted values. The `ai` mode sends no counts. `facetsTransport` replaces the counts transport, otherwise bound to `apiKey` (`searchLexicalFacets`).
+
+  `results.facets` and `results.facetsStats` hold the last counts answered. `connectRefinementList` items carry `count` when they hold the attribute: a value with no result is no longer offered, a checked one stays with its count or 0, and the fold applies to the offered values; without counts every config value is offered without `count`, as before. `connectRange` exposes `bounds` (`{ min, max }`) on `price`. A draft shows its parent's counts and sends nothing.
+
+  New exports: `searchLexicalFacets` and the `SearchFacetCounts`, `SearchFacetsFunction`, `SearchFacetsOptions`, `SearchFacetsRequest`, `SearchFacetsResponse` and `SearchFacetStats` types. Requires dialog-ecom's facets route (DEC-4127) on the server it calls.
+
+- ccedbab: The shopper's sort (DEC-4185). A products entry of the search state takes `sort`: `relevance` (default, also when absent), `price_asc` or `price_desc`, by the product's lowest price in the market, the price its card shows. In `lexical` mode the products request carries `sort` when it is not relevance, so a controller that never sets one sends the same body as before; the `ai` mode never sends it, and the facet counts request neither carries it nor is sent again on a sort change. A sort change searches from page 1 with the query and filters kept, and a draft carries it until committed.
+
+  `connectSortBy(controller)` lists the three sorts with their labels in the shopper's language, the current one, the control's label (`sortLabel`) and `refine(sort)`. `SearchTexts` gain `sortLabel` and `sortOptions` in every language. With `routing`, the default URL format writes `sort=price_asc|price_desc`, leaves relevance out, and reads an unknown value as relevance; `SearchRouteState` gains `sort`.
+
+  New exports: `connectSortBy`, `SEARCH_SORTS` and the `SearchSort`, `SortByConnector`, `SortByItem` and `SortByRenderState` types. Requires dialog-ecom's `sort` on `POST /public/search/lexical` (DEC-4184) on the server it calls: before it, a price sort answers 400.
+
+- ccedbab: Impression tracker. `createImpressionTracker({ onImpressions })` reports each observed item once it is at least 50 % visible for 1 continuous second, once per item and per context (`reset()`), in batches of item ids sent on idle, at 100 items, on `flush()`, `reset()`, `disconnect()` and on pagehide; `record(itemId)` counts an item without waiting for visibility. The rule takes no option: only the sending is tunable (`idleFlushMs`, `maxItemsPerBatch`). It is exported by the SDK root and by `@askdialog/dialog-sdk/impressions`, which loads nothing else. New exports: `createImpressionTracker` and the `ImpressionTracker` and `ImpressionTrackerOptions` types. The search tracks its result views with it: a result now counts after 1 s visible instead of 500 ms, and `createSearchImpressionTracker` no longer accepts the `visibilityThreshold` and `dwellMs` options; the `view_search_results` events are otherwise unchanged.
+
 ## 3.6.0
 
 ### Minor Changes
