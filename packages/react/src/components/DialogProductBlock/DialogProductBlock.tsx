@@ -56,6 +56,11 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
     () => (isFetchingSuggestions ? "" : suggestionData?.description),
     [suggestionData, isFetchingSuggestions],
   );
+  // The first questions in the order received: the route draws them at random.
+  const blockQuestions = useMemo(
+    () => suggestionData?.questions?.slice(0, BLOCK_QUESTIONS_LIMIT),
+    [suggestionData],
+  );
   const inputPlaceholder = useMemo(
     () => (isFetchingSuggestions ? "" : suggestionData?.inputPlaceholder),
     [suggestionData, isFetchingSuggestions],
@@ -104,7 +109,7 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
         <DialogBlockHeader title={assistantName} description={description} />
         <DialogBlockSuggestionsContainer
           client={client}
-          questions={suggestionData?.questions?.slice(0, BLOCK_QUESTIONS_LIMIT)}
+          questions={blockQuestions}
           isLoading={isFetchingSuggestions}
           productId={productId}
           productTitle={productTitle}
