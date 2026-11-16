@@ -93,12 +93,14 @@ const packed = (dir) => {
   return { peer: manifest.peerDependencies?.[SDK_PEER], subpaths: [...subpaths].sort() };
 };
 
-// The exports of the oldest SDK a range accepts (`^3.8.0`, `~3.8.0`, `>=3.8.0`):
-// from npm, else from this tree's SDK, the one a release publishes next.
-const sdkExports = new Map();
-const npmExports = (version) => {
+// The exports of the oldest SDK a range accepts (`^3.8.0`, `~3.8.0`, `>=3.8.0`),
+// read from npm. A floor npm lacks is accepted only when it is above npm's
+// `latest`, i.e. the next release, checked against this tree's SDK, and not
+// above a released SDK version this tree carries. Any other missing floor
+// (a typo, a skipped version) fails.
+const npmView = (spec, field) => {
   try {
-    const out = execFileSync('npm', ['view', `${SDK_PEER}@${version}`, 'exports', '--json'], {
+    const out = execFileSync('npm', ['view', spec, field, '--json'], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -110,19 +112,39 @@ const npmExports = (version) => {
     throw error;
   }
 };
+const compare = (a, b) => {
+  const [x, y] = [a, b].map((v) => v.split(/[.-]/).slice(0, 3).map(Number));
+  return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
+};
+const isRelease = (version) => /^\d+\.\d+\.\d+$/.test(version);
+let latestSdk;
+const sdkExports = new Map();
+const resolveFloor = (floor) => {
+  const published = npmView(`${SDK_PEER}@${floor}`, 'exports');
+  if (published !== undefined) {
+    return { exports: published, source: 'npm' };
+  }
+  latestSdk ??= npmView(SDK_PEER, 'version');
+  if (latestSdk !== undefined && compare(floor, latestSdk) <= 0) {
+    return { error: `SDK ${floor} is not on npm (latest ${latestSdk})` };
+  }
+  // The tree carries a released version after `changeset version`; on
+  // staging it is stale and on a beta it is a snapshot.
+  if (isRelease(sdkVersion) && compare(sdkVersion, latestSdk ?? '0.0.0') > 0 && compare(floor, sdkVersion) > 0) {
+    return { error: `SDK ${floor} is above the SDK being released (${sdkVersion})` };
+  }
+  return {
+    exports: readJson(join(repoRoot, 'packages/sdk/package.json')).exports,
+    source: 'unreleased, this tree',
+  };
+};
 const floorExports = (range) => {
   const floor = String(range).match(/^\s*(?:\^|~|>=)?\s*(\d+\.\d+\.\d+)\s*$/)?.[1];
   if (floor === undefined) {
     return { error: `cannot read a lower bound from "${range}"` };
   }
   if (!sdkExports.has(floor)) {
-    const published = npmExports(floor);
-    sdkExports.set(
-      floor,
-      published === undefined
-        ? { exports: readJson(join(repoRoot, 'packages/sdk/package.json')).exports, source: 'this tree' }
-        : { exports: published, source: 'npm' },
-    );
+    sdkExports.set(floor, resolveFloor(floor));
   }
   return { floor, ...sdkExports.get(floor) };
 };
