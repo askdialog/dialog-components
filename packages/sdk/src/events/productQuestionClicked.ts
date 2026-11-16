@@ -1,5 +1,3 @@
-import { trackDialogEvent } from "./dialogLayer";
-
 export const PRODUCT_QUESTION_CLICKED = "dialog_product_question_clicked";
 
 /** The shopper activated a product question. */
@@ -16,9 +14,3 @@ export interface ProductQuestionClickedProperties {
   /** The `recommendationId` of the response that picked the question, null when none. */
   recommendation_id: string | null;
 }
-
-export const trackProductQuestionClicked = (
-  properties: ProductQuestionClickedProperties,
-): void => {
-  trackDialogEvent(PRODUCT_QUESTION_CLICKED, properties);
-};

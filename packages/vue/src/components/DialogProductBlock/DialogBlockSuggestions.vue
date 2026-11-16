@@ -19,8 +19,11 @@
 <script setup lang="ts">
 import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
 import {
-  trackProductQuestionClicked,
-  trackProductQuestionViewed,
+  PRODUCT_QUESTION_CLICKED,
+  PRODUCT_QUESTION_VIEWED,
+  trackDialogEvent,
+  type ProductQuestionClickedProperties,
+  type ProductQuestionViewedProperties,
 } from "@askdialog/dialog-sdk/events";
 import {
   createImpressionTracker,
@@ -53,7 +56,7 @@ const observeQuestions = () => {
     onImpressions: (positions) => {
       for (const key of positions) {
         const position = Number(key);
-        trackProductQuestionViewed({
+        trackDialogEvent(PRODUCT_QUESTION_VIEWED, {
           product_question_id: questions[position - 1]?.id ?? null,
           product_id: productId,
           locale: client.locale,
@@ -61,7 +64,7 @@ const observeQuestions = () => {
           entry_point: "pdp_block",
           surface: "sdk_block",
           recommendation_id: recommendationId ?? null,
-        });
+        } satisfies ProductQuestionViewedProperties);
       }
     },
   });
@@ -90,7 +93,7 @@ const handleClick = (
   question: Suggestion["questions"][number],
   index: number,
 ) => {
-  trackProductQuestionClicked({
+  trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
     product_question_id: question.id ?? null,
     product_id: props.productId,
     locale: props.client.locale,
@@ -98,7 +101,7 @@ const handleClick = (
     entry_point: "pdp_block",
     surface: "sdk_block",
     recommendation_id: props.recommendationId ?? null,
-  });
+  } satisfies ProductQuestionClickedProperties);
   props.client.sendProductMessage({
     productId: props.productId,
     productTitle: props.productTitle,

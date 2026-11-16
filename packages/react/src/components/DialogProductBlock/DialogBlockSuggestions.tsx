@@ -1,8 +1,11 @@
 import { type FC, useEffect, useRef } from "react";
 import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
 import {
-  trackProductQuestionClicked,
-  trackProductQuestionViewed,
+  PRODUCT_QUESTION_CLICKED,
+  PRODUCT_QUESTION_VIEWED,
+  trackDialogEvent,
+  type ProductQuestionClickedProperties,
+  type ProductQuestionViewedProperties,
 } from "@askdialog/dialog-sdk/events";
 import { createImpressionTracker } from "@askdialog/dialog-sdk/impressions";
 import { AiStarsIcon } from "../../icons/AiStarsIcon";
@@ -33,7 +36,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
       onImpressions: (positions) => {
         for (const key of positions) {
           const position = Number(key);
-          trackProductQuestionViewed({
+          trackDialogEvent(PRODUCT_QUESTION_VIEWED, {
             product_question_id: questions[position - 1]?.id ?? null,
             product_id: productId,
             locale: client.locale,
@@ -41,7 +44,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
             entry_point: "pdp_block",
             surface: "sdk_block",
             recommendation_id: recommendationId ?? null,
-          });
+          } satisfies ProductQuestionViewedProperties);
         }
       },
     });
@@ -58,7 +61,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
     question: Suggestion["questions"][number],
     index: number,
   ): void => {
-    trackProductQuestionClicked({
+    trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
       product_question_id: question.id ?? null,
       product_id: productId,
       locale: client.locale,
@@ -66,7 +69,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
       entry_point: "pdp_block",
       surface: "sdk_block",
       recommendation_id: recommendationId ?? null,
-    });
+    } satisfies ProductQuestionClickedProperties);
     client.sendProductMessage({
       productId,
       productTitle,

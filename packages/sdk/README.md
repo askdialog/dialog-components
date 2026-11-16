@@ -716,12 +716,16 @@ The search controller tracks its result views with it.
 
 #### Dialog events
 
-`@askdialog/dialog-sdk/events` declares each of Dialog's own storefront events once, and loads nothing else. Each event has its name constant, its properties type and a `track…` function that pushes `{ ...properties, event }` onto `window.dialogLayer`, which the Dialog widget sends on. Nothing is checked in the browser: pass the values as you have them, null when there is none.
+`@askdialog/dialog-sdk/events` declares each of Dialog's own storefront events once, with its name constant and its properties type, and loads nothing else. `trackDialogEvent(event, properties)` is the one call for every event: it pushes `{ ...properties, event }` onto `window.dialogLayer`, which the Dialog widget sends on. Nothing is checked in the browser: pass the values as you have them, null when there is none.
 
 ```ts
-import { trackProductQuestionClicked } from '@askdialog/dialog-sdk/events';
+import {
+    PRODUCT_QUESTION_CLICKED,
+    trackDialogEvent,
+    type ProductQuestionClickedProperties,
+} from '@askdialog/dialog-sdk/events';
 
-trackProductQuestionClicked({
+trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
     product_question_id: question.id ?? null, // {string | null}
     product_id: '9403924119882',              // the store's product id, the GA4 item_id
     locale: 'en-US',
@@ -729,13 +733,13 @@ trackProductQuestionClicked({
     entry_point: 'pdp_block',
     surface: 'sdk_block',
     recommendation_id: suggestion.recommendationId ?? null,
-});
+} satisfies ProductQuestionClickedProperties);
 ```
 
-| Event | Function | Sent when |
-|---|---|---|
-| `dialog_product_question_viewed` | `trackProductQuestionViewed` | a product question is at least 50 % visible for 1 continuous second, once per page display |
-| `dialog_product_question_clicked` | `trackProductQuestionClicked` | the shopper activates a product question |
+| Event | Name constant | Properties type | Sent when |
+|---|---|---|---|
+| `dialog_product_question_viewed` | `PRODUCT_QUESTION_VIEWED` | `ProductQuestionViewedProperties` | a product question is at least 50 % visible for 1 continuous second, once per page display |
+| `dialog_product_question_clicked` | `PRODUCT_QUESTION_CLICKED` | `ProductQuestionClickedProperties` | the shopper activates a product question |
 
 #### Listen for Assistant Events
 

@@ -1,5 +1,3 @@
-import { trackDialogEvent } from "./dialogLayer";
-
 export const PRODUCT_QUESTION_VIEWED = "dialog_product_question_viewed";
 
 /** A product question at least 50 % visible for 1 continuous second, once per page display. */
@@ -16,9 +14,3 @@ export interface ProductQuestionViewedProperties {
   /** The `recommendationId` of the response that picked the question, null when none. */
   recommendation_id: string | null;
 }
-
-export const trackProductQuestionViewed = (
-  properties: ProductQuestionViewedProperties,
-): void => {
-  trackDialogEvent(PRODUCT_QUESTION_VIEWED, properties);
-};
