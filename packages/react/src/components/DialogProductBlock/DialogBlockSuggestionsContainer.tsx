@@ -7,6 +7,7 @@ import "./DialogBlockSuggestionsContainer.css";
 interface DialogBlockSuggestionsContainerProps {
   client: Dialog;
   questions: Suggestion["questions"] | undefined;
+  recommendationId: Suggestion["recommendationId"];
   isLoading: boolean;
   productId: string;
   productTitle: string;
@@ -18,6 +19,7 @@ export const DialogBlockSuggestionsContainer: FC<
 > = ({
   client,
   questions,
+  recommendationId,
   isLoading,
   productId,
   productTitle,
@@ -31,6 +33,7 @@ export const DialogBlockSuggestionsContainer: FC<
         <DialogBlockSuggestions
           client={client}
           questions={questions}
+          recommendationId={recommendationId}
           productId={productId}
           productTitle={productTitle}
           selectedVariantId={selectedVariantId}

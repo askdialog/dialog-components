@@ -1,9 +1,10 @@
 <template>
   <button
-    v-for="question in props.questions"
+    v-for="(question, index) in props.questions"
     :key="question.question"
+    :ref="(button) => setButton(button, index)"
     class="dialog-block-suggestions-item"
-    @click="handleClick(question.question)"
+    @click="handleClick(question, index)"
   >
     <AiStarsIcon
       class="dialog-block-suggestions-item-icon"
@@ -17,22 +18,93 @@
 
 <script setup lang="ts">
 import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
+import {
+  PRODUCT_QUESTION_CLICKED,
+  PRODUCT_QUESTION_VIEWED,
+  trackDialogEvent,
+} from "@askdialog/dialog-sdk/events";
+import {
+  createImpressionTracker,
+  type ImpressionTracker,
+} from "@askdialog/dialog-sdk/impressions";
+import { onBeforeUnmount, onMounted, watch } from "vue";
 import AiStarsIcon from "../../icons/AiStarsIcon.vue";
 
 const props = defineProps<{
   client: Dialog;
   questions: Suggestion["questions"];
+  recommendationId?: Suggestion["recommendationId"];
   productId: string;
   productTitle: string;
   selectedVariantId?: string;
 }>();
 
-const handleClick = (question: string) => {
+const buttons: (Element | null)[] = [];
+const setButton = (button: unknown, index: number) => {
+  buttons[index] = button instanceof Element ? button : null;
+};
+
+let tracker: ImpressionTracker | undefined;
+
+const observeQuestions = () => {
+  tracker?.disconnect();
+  const { client, productId, questions, recommendationId } = props;
+  // Keyed by position: a question may have no id.
+  tracker = createImpressionTracker({
+    onImpressions: (positions) => {
+      for (const key of positions) {
+        const position = Number(key);
+        trackDialogEvent(PRODUCT_QUESTION_VIEWED, {
+          product_question_id: questions[position - 1]?.id ?? null,
+          product_id: productId,
+          locale: client.locale,
+          position,
+          entry_point: "pdp_block",
+          surface: "sdk_block",
+          recommendation_id: recommendationId ?? null,
+        });
+      }
+    },
+  });
+  buttons.slice(0, questions.length).forEach((button, index) => {
+    if (button) {
+      tracker?.observe(button, String(index + 1));
+    }
+  });
+};
+
+onMounted(observeQuestions);
+watch(
+  () =>
+    [
+      props.client,
+      props.productId,
+      props.recommendationId,
+      props.questions,
+    ] as const,
+  observeQuestions,
+  { flush: "post" },
+);
+onBeforeUnmount(() => tracker?.disconnect());
+
+const handleClick = (
+  question: Suggestion["questions"][number],
+  index: number,
+) => {
+  trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
+    product_question_id: question.id ?? null,
+    product_id: props.productId,
+    locale: props.client.locale,
+    position: index + 1,
+    entry_point: "pdp_block",
+    surface: "sdk_block",
+    recommendation_id: props.recommendationId ?? null,
+  });
   props.client.sendProductMessage({
     productId: props.productId,
     productTitle: props.productTitle,
     selectedVariantId: props.selectedVariantId,
-    question: question,
+    question: question.question,
     fromQuestionSuggestion: true,
   });
 };

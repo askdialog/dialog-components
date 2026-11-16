@@ -7,6 +7,7 @@
       v-else
       :client="props.client"
       :questions="props.questions"
+      :recommendation-id="props.recommendationId"
       :product-id="props.productId"
       :product-title="props.productTitle"
       :selected-variant-id="props.selectedVariantId"
@@ -22,6 +23,7 @@ import DialogBlockSuggestionsSkeleton from "./DialogBlockSuggestionsSkeleton.vue
 const props = defineProps<{
   client: Dialog;
   questions: Suggestion["questions"] | undefined;
+  recommendationId?: Suggestion["recommendationId"];
   isLoading: boolean;
   productId: string;
   productTitle: string;

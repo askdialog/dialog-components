@@ -714,6 +714,32 @@ impressions.disconnect(); // sends the pending batch and stops
 
 The search controller tracks its result views with it.
 
+#### Dialog events
+
+`@askdialog/dialog-sdk/events` declares each of Dialog's own storefront events once, with its name constant and its properties type, and loads nothing else. `trackDialogEvent(event, properties)` is the one call for every event: it pushes `{ ...properties, event }` onto `window.dialogLayer`, which the Dialog widget sends on. Nothing is checked in the browser: pass the values as you have them, null when there is none.
+
+```ts
+import {
+    PRODUCT_QUESTION_CLICKED,
+    trackDialogEvent,
+} from '@askdialog/dialog-sdk/events';
+
+trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
+    product_question_id: question.id ?? null, // {string | null}
+    product_id: '9403924119882',              // the store's product id, the GA4 item_id
+    locale: 'en-US',
+    position: 1,                              // 1-based, in the surface
+    entry_point: 'pdp_block',
+    surface: 'sdk_block',
+    recommendation_id: suggestion.recommendationId ?? null,
+});
+```
+
+| Event | Name constant | Properties type | Sent when |
+|---|---|---|---|
+| `dialog_product_question_viewed` | `PRODUCT_QUESTION_VIEWED` | `ProductQuestionViewedProperties` | a product question is at least 50 % visible for 1 continuous second, once per page display |
+| `dialog_product_question_clicked` | `PRODUCT_QUESTION_CLICKED` | `ProductQuestionClickedProperties` | the shopper activates a product question |
+
 #### Listen for Assistant Events
 
 The SDK provides real-time event listening for user interactions with the Dialog assistant.
