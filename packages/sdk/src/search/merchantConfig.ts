@@ -188,8 +188,8 @@ export const createMerchantContext = (
         known = true;
         onLoaded(loaded);
       };
-      // One hop, as in 3.7.0: a caller awaiting the same load resumes with
-      // this context applied. A failed load keeps the initial one.
+      // One hop: a caller awaiting the same load after this call resumes
+      // with this context applied. A failed load keeps the initial one.
       void loadMerchantConfig(apiKey, language).then(
         (loaded) => settle(fromLoaded(loaded)),
         () => settle(initial),
