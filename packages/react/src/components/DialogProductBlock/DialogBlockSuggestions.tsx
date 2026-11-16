@@ -4,8 +4,6 @@ import {
   PRODUCT_QUESTION_CLICKED,
   PRODUCT_QUESTION_VIEWED,
   trackDialogEvent,
-  type ProductQuestionClickedProperties,
-  type ProductQuestionViewedProperties,
 } from "@askdialog/dialog-sdk/events";
 import { createImpressionTracker } from "@askdialog/dialog-sdk/impressions";
 import { AiStarsIcon } from "../../icons/AiStarsIcon";
@@ -44,7 +42,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
             entry_point: "pdp_block",
             surface: "sdk_block",
             recommendation_id: recommendationId ?? null,
-          } satisfies ProductQuestionViewedProperties);
+          });
         }
       },
     });
@@ -69,7 +67,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
       entry_point: "pdp_block",
       surface: "sdk_block",
       recommendation_id: recommendationId ?? null,
-    } satisfies ProductQuestionClickedProperties);
+    });
     client.sendProductMessage({
       productId,
       productTitle,

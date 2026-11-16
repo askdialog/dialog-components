@@ -722,7 +722,6 @@ The search controller tracks its result views with it.
 import {
     PRODUCT_QUESTION_CLICKED,
     trackDialogEvent,
-    type ProductQuestionClickedProperties,
 } from '@askdialog/dialog-sdk/events';
 
 trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
@@ -733,7 +732,7 @@ trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
     entry_point: 'pdp_block',
     surface: 'sdk_block',
     recommendation_id: suggestion.recommendationId ?? null,
-} satisfies ProductQuestionClickedProperties);
+});
 ```
 
 | Event | Name constant | Properties type | Sent when |

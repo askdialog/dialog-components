@@ -22,8 +22,6 @@ import {
   PRODUCT_QUESTION_CLICKED,
   PRODUCT_QUESTION_VIEWED,
   trackDialogEvent,
-  type ProductQuestionClickedProperties,
-  type ProductQuestionViewedProperties,
 } from "@askdialog/dialog-sdk/events";
 import {
   createImpressionTracker,
@@ -64,7 +62,7 @@ const observeQuestions = () => {
           entry_point: "pdp_block",
           surface: "sdk_block",
           recommendation_id: recommendationId ?? null,
-        } satisfies ProductQuestionViewedProperties);
+        });
       }
     },
   });
@@ -101,7 +99,7 @@ const handleClick = (
     entry_point: "pdp_block",
     surface: "sdk_block",
     recommendation_id: props.recommendationId ?? null,
-  } satisfies ProductQuestionClickedProperties);
+  });
   props.client.sendProductMessage({
     productId: props.productId,
     productTitle: props.productTitle,
