@@ -188,6 +188,15 @@ describe("search controller context", () => {
     ]);
   });
 
+  it("holds the loaded config when a caller awaiting the same load resumes", async () => {
+    const controller = create();
+    controller.search();
+    // As a block that awaits the config, then reads the context once.
+    await loadMerchantConfig(`pk_test_${apiKey}`, "fr");
+
+    expect(context(controller).filterableAttributes).toEqual(LOADED);
+  });
+
   it("shares one load between controllers with the same API key and language", async () => {
     const first = create();
     const second = create();

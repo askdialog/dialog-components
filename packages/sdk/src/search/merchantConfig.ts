@@ -184,16 +184,16 @@ export const createMerchantContext = (
         return;
       }
       loading = true;
-      // A load that throws keeps the initial context: the counts fail open.
-      void new Promise<MerchantConfig>((resolve) => {
-        resolve(loadMerchantConfig(apiKey, language));
-      })
-        .then(fromLoaded)
-        .catch(() => initial)
-        .then((loaded) => {
-          known = true;
-          onLoaded(loaded);
-        });
+      const settle = (loaded: LoadedContext): void => {
+        known = true;
+        onLoaded(loaded);
+      };
+      // One hop: a caller awaiting the same load after this call resumes
+      // with this context applied. A failed load keeps the initial one.
+      void loadMerchantConfig(apiKey, language).then(
+        (loaded) => settle(fromLoaded(loaded)),
+        () => settle(initial),
+      );
     },
     known: () => known,
   };
