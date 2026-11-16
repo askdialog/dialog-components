@@ -62,6 +62,7 @@ export function createSearchController(
     ...searchModeSetup(controllerOptions),
     requestConfig: { indexName, language, country, hitsPerPage },
     filterableAttributes: () => snapshot.context.filterableAttributes,
+    countsReady: merchant.known,
     onResults: (next) => {
       const results = next(snapshot.results);
       if (
@@ -74,8 +75,8 @@ export function createSearchController(
     },
   });
 
-  // The merchant config loads at the first open or search; the refinements
-  // the last request dropped as unknown are sent once it is there.
+  // The merchant config loads at the first open or search; once it settles, the
+  // refinements the last request dropped as unknown and its counts are sent.
   const loadConfig = (): void => {
     merchant.load((loaded) => {
       if (!disposed) {
