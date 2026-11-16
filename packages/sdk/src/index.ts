@@ -1,6 +1,6 @@
 export * from "./Dialog";
 export * from "./DialogSearchError";
-export * from "./dialogLayer";
+export * from "./events";
 export * from "./EventsHandler";
 export * from "./impressions";
 export * from "./search";

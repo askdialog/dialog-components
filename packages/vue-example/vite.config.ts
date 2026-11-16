@@ -25,6 +25,10 @@ export default defineConfig({
               replacement: resolve(__dirname, "../vue/src/main.ts"),
             },
             {
+              find: "@askdialog/dialog-sdk/events",
+              replacement: resolve(__dirname, "../sdk/src/events/index.ts"),
+            },
+            {
               find: "@askdialog/dialog-sdk/impressions",
               replacement: resolve(
                 __dirname,

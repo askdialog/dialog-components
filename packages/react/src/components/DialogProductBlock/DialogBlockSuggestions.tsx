@@ -1,13 +1,11 @@
-import { type FC, useEffect, useMemo, useRef } from "react";
-import { trackDialogEvent } from "@askdialog/dialog-sdk";
+import { type FC, useEffect, useRef } from "react";
 import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
+import {
+  trackProductQuestionClicked,
+  trackProductQuestionViewed,
+} from "@askdialog/dialog-sdk/events";
 import { createImpressionTracker } from "@askdialog/dialog-sdk/impressions";
 import { AiStarsIcon } from "../../icons/AiStarsIcon";
-import {
-  PRODUCT_QUESTION_CLICKED,
-  PRODUCT_QUESTION_VIEWED,
-  productQuestionEventProperties,
-} from "./productQuestionEvents";
 import "./DialogBlockSuggestions.css";
 
 interface DialogBlockSuggestionsProps {
@@ -28,49 +26,47 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
   selectedVariantId,
 }) => {
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
-  const eventContext = useMemo(
-    () => ({ productId, locale: client.locale, recommendationId }),
-    [client, productId, recommendationId],
-  );
 
-  // A question without an id (legacy reader) is not measured.
   useEffect(() => {
-    const viewed = new Map<string, number>();
+    // Keyed by position: a question may have no id.
     const tracker = createImpressionTracker({
-      onImpressions: (ids) => {
-        for (const id of ids) {
-          trackDialogEvent(
-            PRODUCT_QUESTION_VIEWED,
-            productQuestionEventProperties(
-              eventContext,
-              id,
-              viewed.get(id) ?? 0,
-            ),
-          );
+      onImpressions: (positions) => {
+        for (const key of positions) {
+          const position = Number(key);
+          trackProductQuestionViewed({
+            product_question_id: questions[position - 1]?.id ?? null,
+            product_id: productId,
+            locale: client.locale,
+            position,
+            entry_point: "pdp_block",
+            surface: "sdk_block",
+            recommendation_id: recommendationId ?? null,
+          });
         }
       },
     });
-    questions.forEach(({ id }, index) => {
-      const button = buttons.current[index];
-      if (id && button) {
-        viewed.set(id, index);
-        tracker.observe(button, id);
+    buttons.current.slice(0, questions.length).forEach((button, index) => {
+      if (button) {
+        tracker.observe(button, String(index + 1));
       }
     });
 
     return () => tracker.disconnect();
-  }, [eventContext, questions]);
+  }, [client, productId, questions, recommendationId]);
 
   const handleClick = (
     question: Suggestion["questions"][number],
     index: number,
   ): void => {
-    if (question.id) {
-      trackDialogEvent(
-        PRODUCT_QUESTION_CLICKED,
-        productQuestionEventProperties(eventContext, question.id, index),
-      );
-    }
+    trackProductQuestionClicked({
+      product_question_id: question.id ?? null,
+      product_id: productId,
+      locale: client.locale,
+      position: index + 1,
+      entry_point: "pdp_block",
+      surface: "sdk_block",
+      recommendation_id: recommendationId ?? null,
+    });
     client.sendProductMessage({
       productId,
       productTitle,

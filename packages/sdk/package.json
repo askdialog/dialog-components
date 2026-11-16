@@ -20,6 +20,11 @@
       "import": "./dist/impressions/index.js",
       "require": "./dist/impressions/index.js",
       "types": "./dist/impressions/index.d.ts"
+    },
+    "./events": {
+      "import": "./dist/events/index.js",
+      "require": "./dist/events/index.js",
+      "types": "./dist/events/index.d.ts"
     }
   },
   "typesVersions": {
@@ -29,6 +34,9 @@
       ],
       "impressions": [
         "dist/impressions/index.d.ts"
+      ],
+      "events": [
+        "dist/events/index.d.ts"
       ]
     }
   },

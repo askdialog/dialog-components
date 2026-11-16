@@ -17,19 +17,17 @@
 </template>
 
 <script setup lang="ts">
-import { trackDialogEvent } from "@askdialog/dialog-sdk";
 import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
+import {
+  trackProductQuestionClicked,
+  trackProductQuestionViewed,
+} from "@askdialog/dialog-sdk/events";
 import {
   createImpressionTracker,
   type ImpressionTracker,
 } from "@askdialog/dialog-sdk/impressions";
 import { onBeforeUnmount, onMounted, watch } from "vue";
 import AiStarsIcon from "../../icons/AiStarsIcon.vue";
-import {
-  PRODUCT_QUESTION_CLICKED,
-  PRODUCT_QUESTION_VIEWED,
-  productQuestionEventProperties,
-} from "./productQuestionEvents";
 
 const props = defineProps<{
   client: Dialog;
@@ -47,32 +45,29 @@ const setButton = (button: unknown, index: number) => {
 
 let tracker: ImpressionTracker | undefined;
 
-const eventContext = () => ({
-  productId: props.productId,
-  locale: props.client.locale,
-  recommendationId: props.recommendationId,
-});
-
-// A question without an id (legacy reader) is not measured.
 const observeQuestions = () => {
   tracker?.disconnect();
-  const viewed = new Map<string, number>();
-  const context = eventContext();
+  const { client, productId, questions, recommendationId } = props;
+  // Keyed by position: a question may have no id.
   tracker = createImpressionTracker({
-    onImpressions: (ids) => {
-      for (const id of ids) {
-        trackDialogEvent(
-          PRODUCT_QUESTION_VIEWED,
-          productQuestionEventProperties(context, id, viewed.get(id) ?? 0),
-        );
+    onImpressions: (positions) => {
+      for (const key of positions) {
+        const position = Number(key);
+        trackProductQuestionViewed({
+          product_question_id: questions[position - 1]?.id ?? null,
+          product_id: productId,
+          locale: client.locale,
+          position,
+          entry_point: "pdp_block",
+          surface: "sdk_block",
+          recommendation_id: recommendationId ?? null,
+        });
       }
     },
   });
-  props.questions.forEach(({ id }, index) => {
-    const button = buttons[index];
-    if (id && button) {
-      viewed.set(id, index);
-      tracker?.observe(button, id);
+  buttons.slice(0, questions.length).forEach((button, index) => {
+    if (button) {
+      tracker?.observe(button, String(index + 1));
     }
   });
 };
@@ -95,12 +90,15 @@ const handleClick = (
   question: Suggestion["questions"][number],
   index: number,
 ) => {
-  if (question.id) {
-    trackDialogEvent(
-      PRODUCT_QUESTION_CLICKED,
-      productQuestionEventProperties(eventContext(), question.id, index),
-    );
-  }
+  trackProductQuestionClicked({
+    product_question_id: question.id ?? null,
+    product_id: props.productId,
+    locale: props.client.locale,
+    position: index + 1,
+    entry_point: "pdp_block",
+    surface: "sdk_block",
+    recommendation_id: props.recommendationId ?? null,
+  });
   props.client.sendProductMessage({
     productId: props.productId,
     productTitle: props.productTitle,

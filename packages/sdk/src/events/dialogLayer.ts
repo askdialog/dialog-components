@@ -16,9 +16,6 @@ const getDialogLayer = (): unknown[] => {
 };
 
 /** Push one Dialog event onto `window.dialogLayer`, for the widget to send. */
-export const trackDialogEvent = (
-  event: string,
-  properties: Record<string, unknown> = {},
-): void => {
+export const trackDialogEvent = (event: string, properties: object): void => {
   getDialogLayer().push({ ...properties, event });
 };
