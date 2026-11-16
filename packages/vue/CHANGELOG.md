@@ -1,5 +1,11 @@
 # @askdialog/dialog-vue
 
+## 4.4.0
+
+### Minor Changes
+
+- c02e66d: Product question views and clicks (DAT-2305). New subpath `@askdialog/dialog-sdk/events`, also exported by the SDK root, which declares each Dialog event once and loads nothing else: its name constant and its properties type, `PRODUCT_QUESTION_VIEWED` / `ProductQuestionViewedProperties` and `PRODUCT_QUESTION_CLICKED` / `ProductQuestionClickedProperties`. `trackDialogEvent(event, properties)` is the one call for every event: it pushes `{ ...properties, event }` onto `window.dialogLayer`, which the Dialog widget sends on; nothing is checked in the browser. `Suggestion["questions"]` items carry the question's `id` (null while the organization is on the legacy reader) and `Suggestion` carries the response's `recommendationId`. The React and Vue product blocks show the first 2 questions in the order the route returns them (the route draws them at random), push `dialog_product_question_viewed` (at least 50 % visible for 1 continuous second, once per position and per page display, measured with `@askdialog/dialog-sdk/impressions`) and `dialog_product_question_clicked`, with `product_question_id` (null without an id), `product_id` (the block's `productId`, the store's product id, the GA4 `item_id`), `locale`, `position` (1-based), `entry_point: 'pdp_block'`, `surface: 'sdk_block'` and `recommendation_id` (null when the response has none). A click still opens the assistant with the question.
+
 ## 4.3.1
 
 ### Patch Changes
