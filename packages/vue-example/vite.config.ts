@@ -26,7 +26,10 @@ export default defineConfig({
             },
             {
               find: "@askdialog/dialog-sdk/impressions",
-              replacement: resolve(__dirname, "../sdk/src/impressions/index.ts"),
+              replacement: resolve(
+                __dirname,
+                "../sdk/src/impressions/index.ts",
+              ),
             },
             {
               find: "@askdialog/dialog-sdk",
