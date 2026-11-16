@@ -1,9 +1,10 @@
 <template>
   <button
-    v-for="question in props.questions"
+    v-for="(question, index) in props.questions"
     :key="question.question"
+    :ref="(button) => setButton(button, index)"
     class="dialog-block-suggestions-item"
-    @click="handleClick(question.question)"
+    @click="handleClick(question, index)"
   >
     <AiStarsIcon
       class="dialog-block-suggestions-item-icon"
@@ -16,8 +17,19 @@
 </template>
 
 <script setup lang="ts">
+import { trackDialogEvent } from "@askdialog/dialog-sdk";
 import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
+import {
+  createImpressionTracker,
+  type ImpressionTracker,
+} from "@askdialog/dialog-sdk/impressions";
+import { onBeforeUnmount, onMounted, watch } from "vue";
 import AiStarsIcon from "../../icons/AiStarsIcon.vue";
+import {
+  PRODUCT_QUESTION_CLICKED,
+  PRODUCT_QUESTION_VIEWED,
+  productQuestionEventProperties,
+} from "./productQuestionEvents";
 
 const props = defineProps<{
   client: Dialog;
@@ -27,12 +39,70 @@ const props = defineProps<{
   selectedVariantId?: string;
 }>();
 
-const handleClick = (question: string) => {
+const buttons: (Element | null)[] = [];
+const setButton = (button: unknown, index: number) => {
+  buttons[index] = button instanceof Element ? button : null;
+};
+
+let tracker: ImpressionTracker | undefined;
+
+// A question without an id (legacy reader) is not measured.
+const observeQuestions = () => {
+  tracker?.disconnect();
+  const viewed = new Map<string, number>();
+  const { client, productId } = props;
+  tracker = createImpressionTracker({
+    onImpressions: (ids) => {
+      for (const id of ids) {
+        trackDialogEvent(
+          PRODUCT_QUESTION_VIEWED,
+          productQuestionEventProperties(
+            id,
+            productId,
+            client.locale,
+            viewed.get(id) ?? 0,
+          ),
+        );
+      }
+    },
+  });
+  props.questions.forEach(({ id }, index) => {
+    const button = buttons[index];
+    if (id && button) {
+      viewed.set(id, index);
+      tracker?.observe(button, id);
+    }
+  });
+};
+
+onMounted(observeQuestions);
+watch(
+  () => [props.client, props.productId, props.questions] as const,
+  observeQuestions,
+  { flush: "post" },
+);
+onBeforeUnmount(() => tracker?.disconnect());
+
+const handleClick = (
+  question: Suggestion["questions"][number],
+  index: number,
+) => {
+  if (question.id) {
+    trackDialogEvent(
+      PRODUCT_QUESTION_CLICKED,
+      productQuestionEventProperties(
+        question.id,
+        props.productId,
+        props.client.locale,
+        index,
+      ),
+    );
+  }
   props.client.sendProductMessage({
     productId: props.productId,
     productTitle: props.productTitle,
     selectedVariantId: props.selectedVariantId,
-    question: question,
+    question: question.question,
     fromQuestionSuggestion: true,
   });
 };
