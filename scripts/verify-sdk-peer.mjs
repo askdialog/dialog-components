@@ -17,7 +17,8 @@
  * It also checks the peer's lower bound: every SDK subpath the packed build
  * imports (`@askdialog/dialog-sdk/events`, …) must be exported by the oldest
  * SDK the range accepts, read from npm, or from the local SDK when the floor
- * is the version about to be published. react@3.5.0 shipped importing
+ * is the version about to be published, or this tree's SDK for the exact
+ * snapshot peer of a beta (see sdk-peer-floor.mjs). react@3.5.0 shipped importing
  * `/events` (SDK 3.8.0) under a `^3.4.0` peer.
  *
  * No external dependencies — uses node built-ins, the `tar` CLI and `npm view`.
@@ -27,6 +28,7 @@ import { mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createFloorResolver, missingSubpaths } from './sdk-peer-floor.mjs';
 
 const SDK_PEER = '@askdialog/dialog-sdk';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -93,11 +95,6 @@ const packed = (dir) => {
   return { peer: manifest.peerDependencies?.[SDK_PEER], subpaths: [...subpaths].sort() };
 };
 
-// The exports of the oldest SDK a range accepts (`^3.8.0`, `~3.8.0`, `>=3.8.0`),
-// read from npm. A floor npm lacks is accepted only when it is above npm's
-// `latest`, i.e. the next release, checked against this tree's SDK, and not
-// above a released SDK version this tree carries. Any other missing floor
-// (a typo, a skipped version) fails.
 const npmView = (spec, field) => {
   try {
     const out = execFileSync('npm', ['view', spec, field, '--json'], {
@@ -112,42 +109,11 @@ const npmView = (spec, field) => {
     throw error;
   }
 };
-const compare = (a, b) => {
-  const [x, y] = [a, b].map((v) => v.split(/[.-]/).slice(0, 3).map(Number));
-  return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
-};
-const isRelease = (version) => /^\d+\.\d+\.\d+$/.test(version);
-let latestSdk;
-const sdkExports = new Map();
-const resolveFloor = (floor) => {
-  const published = npmView(`${SDK_PEER}@${floor}`, 'exports');
-  if (published !== undefined) {
-    return { exports: published, source: 'npm' };
-  }
-  latestSdk ??= npmView(SDK_PEER, 'version');
-  if (latestSdk !== undefined && compare(floor, latestSdk) <= 0) {
-    return { error: `SDK ${floor} is not on npm (latest ${latestSdk})` };
-  }
-  // The tree carries a released version after `changeset version`; on
-  // staging it is stale and on a beta it is a snapshot.
-  if (isRelease(sdkVersion) && compare(sdkVersion, latestSdk ?? '0.0.0') > 0 && compare(floor, sdkVersion) > 0) {
-    return { error: `SDK ${floor} is above the SDK being released (${sdkVersion})` };
-  }
-  return {
-    exports: readJson(join(repoRoot, 'packages/sdk/package.json')).exports,
-    source: 'unreleased, this tree',
-  };
-};
-const floorExports = (range) => {
-  const floor = String(range).match(/^\s*(?:\^|~|>=)?\s*(\d+\.\d+\.\d+)\s*$/)?.[1];
-  if (floor === undefined) {
-    return { error: `cannot read a lower bound from "${range}"` };
-  }
-  if (!sdkExports.has(floor)) {
-    sdkExports.set(floor, resolveFloor(floor));
-  }
-  return { floor, ...sdkExports.get(floor) };
-};
+const floorExports = createFloorResolver({
+  sdkVersion,
+  localExports: () => readJson(join(repoRoot, 'packages/sdk/package.json')).exports,
+  npmView,
+});
 
 const failures = [];
 for (const { dir, name: pkgName } of consumers) {
@@ -165,7 +131,7 @@ for (const { dir, name: pkgName } of consumers) {
   }
   if (subpaths.length > 0) {
     const { floor, exports, source, error } = floorExports(peer);
-    const missing = error === undefined ? subpaths.filter((subpath) => !(subpath in exports)) : [];
+    const missing = error === undefined ? missingSubpaths(subpaths, exports) : [];
     const ok = error === undefined && missing.length === 0;
     console.log(
       `${ok ? '✓' : '✗'} ${pkgName}: imports ${subpaths.join(', ')}; oldest accepted SDK ` +

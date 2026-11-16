@@ -28,7 +28,8 @@
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm build && changeset publish",
     "changeset:status": "changeset status",
-    "verify:peers": "node scripts/verify-sdk-peer.mjs"
+    "verify:peers": "node scripts/verify-sdk-peer.mjs",
+    "test:scripts": "node --test \"scripts/__tests__/*.test.mjs\""
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
