@@ -34,6 +34,7 @@ import {
 const props = defineProps<{
   client: Dialog;
   questions: Suggestion["questions"];
+  recommendationId?: Suggestion["recommendationId"];
   productId: string;
   productTitle: string;
   selectedVariantId?: string;
@@ -46,22 +47,23 @@ const setButton = (button: unknown, index: number) => {
 
 let tracker: ImpressionTracker | undefined;
 
+const eventContext = () => ({
+  productId: props.productId,
+  locale: props.client.locale,
+  recommendationId: props.recommendationId,
+});
+
 // A question without an id (legacy reader) is not measured.
 const observeQuestions = () => {
   tracker?.disconnect();
   const viewed = new Map<string, number>();
-  const { client, productId } = props;
+  const context = eventContext();
   tracker = createImpressionTracker({
     onImpressions: (ids) => {
       for (const id of ids) {
         trackDialogEvent(
           PRODUCT_QUESTION_VIEWED,
-          productQuestionEventProperties(
-            id,
-            productId,
-            client.locale,
-            viewed.get(id) ?? 0,
-          ),
+          productQuestionEventProperties(context, id, viewed.get(id) ?? 0),
         );
       }
     },
@@ -77,7 +79,13 @@ const observeQuestions = () => {
 
 onMounted(observeQuestions);
 watch(
-  () => [props.client, props.productId, props.questions] as const,
+  () =>
+    [
+      props.client,
+      props.productId,
+      props.recommendationId,
+      props.questions,
+    ] as const,
   observeQuestions,
   { flush: "post" },
 );
@@ -90,12 +98,7 @@ const handleClick = (
   if (question.id) {
     trackDialogEvent(
       PRODUCT_QUESTION_CLICKED,
-      productQuestionEventProperties(
-        question.id,
-        props.productId,
-        props.client.locale,
-        index,
-      ),
+      productQuestionEventProperties(eventContext(), question.id, index),
     );
   }
   props.client.sendProductMessage({

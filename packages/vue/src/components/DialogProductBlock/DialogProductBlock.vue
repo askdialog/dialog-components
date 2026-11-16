@@ -5,6 +5,7 @@
       <DialogBlockSuggestionsContainer
         :client="props.client"
         :questions="blockQuestions"
+        :recommendation-id="suggestionData?.recommendationId"
         :is-loading="isFetchingSuggestions"
         :product-id="props.productId"
         :product-title="props.productTitle"

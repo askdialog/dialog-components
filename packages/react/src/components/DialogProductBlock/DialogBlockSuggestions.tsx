@@ -1,4 +1,4 @@
-import { type FC, useEffect, useRef } from "react";
+import { type FC, useEffect, useMemo, useRef } from "react";
 import { trackDialogEvent } from "@askdialog/dialog-sdk";
 import type { Dialog, Suggestion } from "@askdialog/dialog-sdk";
 import { createImpressionTracker } from "@askdialog/dialog-sdk/impressions";
@@ -13,6 +13,7 @@ import "./DialogBlockSuggestions.css";
 interface DialogBlockSuggestionsProps {
   client: Dialog;
   questions: Suggestion["questions"];
+  recommendationId: Suggestion["recommendationId"];
   productId: string;
   productTitle: string;
   selectedVariantId?: string;
@@ -21,11 +22,16 @@ interface DialogBlockSuggestionsProps {
 export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
   client,
   questions,
+  recommendationId,
   productId,
   productTitle,
   selectedVariantId,
 }) => {
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  const eventContext = useMemo(
+    () => ({ productId, locale: client.locale, recommendationId }),
+    [client, productId, recommendationId],
+  );
 
   // A question without an id (legacy reader) is not measured.
   useEffect(() => {
@@ -36,9 +42,8 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
           trackDialogEvent(
             PRODUCT_QUESTION_VIEWED,
             productQuestionEventProperties(
+              eventContext,
               id,
-              productId,
-              client.locale,
               viewed.get(id) ?? 0,
             ),
           );
@@ -54,7 +59,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
     });
 
     return () => tracker.disconnect();
-  }, [client, productId, questions]);
+  }, [eventContext, questions]);
 
   const handleClick = (
     question: Suggestion["questions"][number],
@@ -63,12 +68,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
     if (question.id) {
       trackDialogEvent(
         PRODUCT_QUESTION_CLICKED,
-        productQuestionEventProperties(
-          question.id,
-          productId,
-          client.locale,
-          index,
-        ),
+        productQuestionEventProperties(eventContext, question.id, index),
       );
     }
     client.sendProductMessage({

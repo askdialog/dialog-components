@@ -110,6 +110,7 @@ export const DialogProductBlock: FC<DialogProductBlockProps> = ({
         <DialogBlockSuggestionsContainer
           client={client}
           questions={blockQuestions}
+          recommendationId={suggestionData?.recommendationId}
           isLoading={isFetchingSuggestions}
           productId={productId}
           productTitle={productTitle}
