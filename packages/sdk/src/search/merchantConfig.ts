@@ -3,6 +3,7 @@ import { loadSearchConfig } from "../services/searchConfig";
 import { SearchBusinessRanking } from "../types/dialogConfig";
 import { getSearchTexts } from "../utils/searchTexts";
 import {
+  sessionMerchantConfig,
   storedMerchantConfig,
   storeMerchantConfig,
 } from "./merchantConfigStorage";
@@ -135,22 +136,25 @@ type MerchantContextOptions = Pick<
 
 /**
  * The initial context, from the passed config as it is, else the session's
- * copy, and `load`, which loads the config at its first call unless passed in.
- * A loaded or stored config's price takes the label of the controller's texts.
+ * copy; `load` loads the config at its first call unless passed in, a failed
+ * load keeps the initial context; `known` tells whether the attributes are
+ * final. A loaded or stored config's price takes the label of the texts.
  */
-export const createMerchantContext = ({
-  mode = "lexical",
-  apiKey,
-  config,
-  texts,
-  language,
-  country,
-  currency,
-  storefrontRoot = "/",
-}: MerchantContextOptions): {
+export const createMerchantContext = (
+  options: MerchantContextOptions,
+): {
   context: SearchContext;
   load: (onLoaded: (loaded: LoadedContext) => void) => void;
+  known: () => boolean;
 } => {
+  const {
+    mode = "lexical",
+    apiKey,
+    config,
+    texts,
+    language,
+    country,
+  } = options;
   let loading = config !== undefined;
   const searchTexts = getSearchTexts(
     `${language}-${country.toUpperCase()}`,
@@ -158,29 +162,39 @@ export const createMerchantContext = ({
   );
   const fromLoaded = (loaded: MerchantConfig): ReturnType<typeof fromConfig> =>
     fromConfig(withPrice(loaded, searchTexts.filterFields.price));
-  const stored =
-    config !== undefined || apiKey === undefined
-      ? undefined
-      : storedMerchantConfig(apiKey, language);
+  const session = sessionMerchantConfig(apiKey, language, config);
+  let { known } = session;
+  const initial =
+    session.stored === undefined
+      ? fromConfig(config ?? {})
+      : fromLoaded(session.stored);
 
   return {
     context: {
       mode,
       language,
       country,
-      currency,
-      ...(stored === undefined ? fromConfig(config ?? {}) : fromLoaded(stored)),
+      currency: options.currency,
+      ...initial,
       texts: searchTexts,
-      storefrontRoot,
+      storefrontRoot: options.storefrontRoot ?? "/",
     },
     load(onLoaded) {
       if (loading || apiKey === undefined) {
         return;
       }
       loading = true;
-      void loadMerchantConfig(apiKey, language).then((loaded) => {
-        onLoaded(fromLoaded(loaded));
-      });
+      // A load that throws keeps the initial context: the counts fail open.
+      void new Promise<MerchantConfig>((resolve) => {
+        resolve(loadMerchantConfig(apiKey, language));
+      })
+        .then(fromLoaded)
+        .catch(() => initial)
+        .then((loaded) => {
+          known = true;
+          onLoaded(loaded);
+        });
     },
+    known: () => known,
   };
 };

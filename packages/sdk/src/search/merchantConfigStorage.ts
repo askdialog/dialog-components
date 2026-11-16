@@ -59,3 +59,21 @@ export const storeMerchantConfig = (
     // Disabled or full: the next page waits for its own load.
   }
 };
+
+/**
+ * The session's copy of a config the controller would load, and whether its
+ * filterable attributes are final: a passed config's are, a controller with no
+ * API key loads none, a copy without a search config waits for the load.
+ */
+export const sessionMerchantConfig = (
+  apiKey: string | undefined,
+  language: string,
+  passed: MerchantConfig | undefined,
+): { stored?: MerchantConfig; known: boolean } => {
+  if (passed !== undefined || apiKey === undefined) {
+    return { known: true };
+  }
+  const stored = storedMerchantConfig(apiKey, language);
+
+  return { stored, known: stored?.searchConfig !== undefined };
+};

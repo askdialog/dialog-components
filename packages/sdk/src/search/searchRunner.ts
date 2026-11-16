@@ -5,7 +5,7 @@ import {
   readSearchResults,
   requestedSections,
 } from "../utils/searchRequests";
-import { productsQuery } from "../utils/searchFilters";
+import { ProductsQuery, productsQuery } from "../utils/searchFilters";
 import { countedAttributes, createFacetCounts } from "./facetCounts";
 import { SearchModeSetup } from "./searchMode";
 import { ReadIndexState } from "./searchState";
@@ -15,6 +15,11 @@ interface SearchRunnerOptions extends SearchModeSetup {
   requestConfig: Parameters<typeof buildSearchRequest>[2];
   /** Read when each request is built. */
   filterableAttributes: () => readonly FilterableAttribute[];
+  /**
+   * Whether the attributes to count are known; until then a search sends its
+   * hits alone, and `refresh` sends its counts.
+   */
+  countsReady: () => boolean;
   /** Called with each results change; never after `cancel` for that request. */
   onResults: (update: (results: SearchResults) => SearchResults) => void;
 }
@@ -52,6 +57,7 @@ export const createSearchRunner = ({
   requestConfig,
   sections,
   filterableAttributes,
+  countsReady,
   facetsTransport,
   minQueryLength,
   sortable,
@@ -62,7 +68,10 @@ export const createSearchRunner = ({
   cancel: () => void;
   /** Abort both requests and forget the counts. */
   stop: () => void;
-  /** Send the last request again when it carries refinements, read against a new search config. */
+  /**
+   * Once the search config settles: send the last request again when it
+   * carries refinements, else its counts unless held or on their way.
+   */
   refresh: () => void;
   /** The last request when it failed, else undefined. */
   failed: () => ReadIndexState | undefined;
@@ -94,6 +103,13 @@ export const createSearchRunner = ({
       },
       filterableAttributes(),
     );
+
+  // Before the attributes to count are known, `refresh` sends them.
+  const requestCounts = (products: ProductsQuery): void => {
+    if (countsReady()) {
+      facetCounts?.request(products);
+    }
+  };
 
   const cancel = (): void => {
     requestId += 1;
@@ -131,7 +147,7 @@ export const createSearchRunner = ({
       return; // A subscriber cancelled it while notified.
     }
     // Sent first, so that both leave together and the hits never wait for it.
-    facetCounts?.request(products);
+    requestCounts(products);
     try {
       const response = await transport(request, { signal: controller.signal });
       if (id !== requestId) {
@@ -169,7 +185,7 @@ export const createSearchRunner = ({
     if (last?.refinementList !== undefined || last?.range !== undefined) {
       void run(last);
     } else if (last !== undefined) {
-      facetCounts?.request(queryOf(last));
+      requestCounts(queryOf(last));
     }
   };
 
