@@ -203,6 +203,40 @@ describe("useDialogSearch", () => {
     expect(latest.state.results.products?.query).toBe("shoe");
   });
 
+  it("forwards AI mode, initial state, currency, texts and config to the SDK", async () => {
+    const client = fakeClient();
+    const aiFetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(answer("shoe")),
+      }),
+    );
+    vi.stubGlobal("fetch", aiFetch);
+    await render({
+      client: client.dialog,
+      language: "fr",
+      country: "BE",
+      mode: "ai",
+      currency: "EUR",
+      config: {},
+      texts: { productsLabel: "Matches" },
+      initialSearchState: { [INDEX]: { query: "shoe" } },
+    });
+    act(() => latest.controller.search());
+    await settle();
+    expect(client.search).not.toHaveBeenCalled();
+    expect(aiFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/public/search/ai"),
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(latest.state.context).toMatchObject({
+      mode: "ai",
+      currency: "EUR",
+      texts: { productsLabel: "Matches" },
+    });
+    expect(latest.state.results.products?.query).toBe("shoe");
+  });
+
   it("sends no search once unmounted, pending or asked after", async () => {
     const client = fakeClient();
     await render({

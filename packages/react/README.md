@@ -386,3 +386,45 @@ This package includes TypeScript type definitions. The types are automatically a
 
 This package requires React 19 or higher as a peer dependency.
 
+
+## Search connector hooks
+
+Requires `@askdialog/dialog-sdk@^3.8.0`. `useDialogSearch` accepts the SDK controller options, including `mode`, `currency`, `texts`, `config`, `initialSearchState`, `routing`, `facets`, `facetsTransport`, `transport` and `sections`. The client supplies the API key and analytics callbacks. Options are fixed at creation. Lexical search uses `client.search`; AI mode uses the SDK AI transport with the client's public API key. A supplied `transport` overrides either mode.
+
+For example, use `{ client, language: 'en', country: 'US', routing: true, facets: true }` for a lexical results page; call `controller.search()` on mount to run the restored URL state. Use `{ client, language: 'en', country: 'US', mode: 'ai', currency: 'USD' }` for natural-language search. AI requests start at two trimmed characters, omit additional sections and do not request facet counts. Render AI hits from their raw records with `useInfiniteHits`; the existing `DialogSearchResults` and `DialogSearchProductCard` require lexical `_display` hits.
+
+| Hook/composable | SDK connector | Extra argument |
+| --- | --- | --- |
+| `useSearchBox` | `connectSearchBox` | |
+| `useHits` | `connectHits` | |
+| `useInfiniteHits` | `connectInfiniteHits` | |
+| `usePagination` | `connectPagination` | |
+| `useStats` | `connectStats` | |
+| `useSections` | `connectSections` | |
+| `useQuerySuggestions` | `connectQuerySuggestions` | Request the `query_suggestions` section on the controller |
+| `useSortBy` | `connectSortBy` | Lexical mode only |
+| `useRefinementList` | `connectRefinementList` | `{ attribute, limit? }` |
+| `useRange` | `connectRange` | `{ attribute }` |
+| `useCurrentRefinements` | `connectCurrentRefinements` | |
+| `useClearRefinements` | `connectClearRefinements` | |
+| `useDynamicWidgets` | `connectDynamicWidgets` | |
+| `useAiOverview` | `connectAiOverview` | `{ apiKey }` or `{ transport }`, AI controller only |
+
+All wrappers take the controller first and return `[state, connector]`; actions are the SDK connector's actions. A `controller.createDraft()` is also a controller: pass it to filter hooks in a mounted sheet, `commit()` to apply once, or `discard()` to cancel, then unmount the sheet. These hooks provide state and lifecycle management; they do not add filter or AI components to the existing floating panel.
+
+```tsx
+import { useDialogSearch, useRefinementList, useSearchBox } from '@askdialog/dialog-react'
+
+function SearchPage({ client }: { client: import('@askdialog/dialog-sdk').Dialog }) {
+  const { controller } = useDialogSearch({ client, language: 'en', country: 'US' })
+  const [box, searchBox] = useSearchBox(controller)
+  const [colors, refinement] = useRefinementList(controller, { attribute: 'color', limit: 5 })
+  return <>
+    <input value={box.query} onChange={event => searchBox.refine(event.target.value)} />
+    {colors.items.map(item => <button key={item.value} aria-pressed={item.isRefined}
+      onClick={() => refinement.refine(item.value)}>{item.value}</button>)}
+  </>
+}
+```
+
+The exported generic `useConnector(connect, controller)` returns the same tuple. Keep a custom `connect` factory stable with `useCallback`; changing it or the controller replaces the connector. Built-in parameterized hooks accept inline option objects and recreate only when their values change. Connectors are disposed on unmount and recreated during StrictMode effect replay.

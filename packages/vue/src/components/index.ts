@@ -20,3 +20,6 @@ export {
   type DialogSearchState,
   type UseDialogSearchOptions,
 } from "./DialogSearch/useDialogSearch";
+
+export { useConnector } from "./DialogSearch/useConnector";
+export * from "./DialogSearch/searchHooks";
