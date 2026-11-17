@@ -10,6 +10,7 @@
   line-height: 1.35;
 }
 .dialog-search-controls legend {
+  background: var(--dso-panel, #fff);
   font-weight: 600;
 }
 .dialog-search-controls ul {
