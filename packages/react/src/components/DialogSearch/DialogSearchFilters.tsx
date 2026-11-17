@@ -11,6 +11,10 @@ import {
 } from "./searchHooks";
 import "./DialogSearchControls.css";
 
+const isInvalidNumber = (value: string) =>
+  value.trim() !== "" &&
+  !Number.isFinite(Number(value.trim().replace(",", ".")));
+
 interface FilterProps {
   controller: SearchController;
   theme?: Theme;
@@ -64,8 +68,15 @@ export const DialogSearchRange = ({
   attribute = "price",
   theme,
   label,
-}: FilterProps & { attribute?: string; label?: string }) => {
+  invalidLabel = "Enter a valid number.",
+}: FilterProps & {
+  attribute?: string;
+  label?: string;
+  invalidLabel?: string;
+}) => {
   const [state, connector] = useRange(controller, { attribute });
+  const invalidMin = isInvalidNumber(state.min);
+  const invalidMax = isInvalidNumber(state.max);
   const texts = controller.getSnapshot().context.texts;
   return (
     <fieldset
@@ -80,12 +91,10 @@ export const DialogSearchRange = ({
         <label>
           {texts.priceMin}
           <input
-            type="number"
-            step="any"
             inputMode="decimal"
             value={state.min}
             placeholder={state.bounds?.min.toString()}
-            aria-invalid={state.minAboveMax}
+            aria-invalid={state.minAboveMax || invalidMin}
             onChange={(event) =>
               connector.refine(event.target.value, state.max)
             }
@@ -94,19 +103,21 @@ export const DialogSearchRange = ({
         <label>
           {texts.priceMax}
           <input
-            type="number"
-            step="any"
             inputMode="decimal"
             value={state.max}
             placeholder={state.bounds?.max.toString()}
-            aria-invalid={state.minAboveMax}
+            aria-invalid={state.minAboveMax || invalidMax}
             onChange={(event) =>
               connector.refine(state.min, event.target.value)
             }
           />
         </label>
       </div>
-      {state.minAboveMax && <p role="alert">{texts.priceMinAboveMax}</p>}
+      {(invalidMin || invalidMax || state.minAboveMax) && (
+        <p role="alert">
+          {invalidMin || invalidMax ? invalidLabel : texts.priceMinAboveMax}
+        </p>
+      )}
     </fieldset>
   );
 };

@@ -10,11 +10,15 @@ const props = defineProps<{
   controller: SearchController;
   attribute?: string;
   label?: string;
+  invalidLabel?: string;
   theme?: Theme;
 }>();
 const [state, connector] = useRange(props.controller, {
   attribute: props.attribute ?? "price",
 });
+const isInvalidNumber = (value: string) =>
+  value.trim() !== "" &&
+  !Number.isFinite(Number(value.trim().replace(",", ".")));
 const texts = props.controller.getSnapshot().context.texts;
 </script>
 <template>
@@ -34,12 +38,10 @@ const texts = props.controller.getSnapshot().context.texts;
       <label
         >{{ texts.priceMin
         }}<input
-          type="number"
-          step="any"
           inputmode="decimal"
           :value="state.min"
           :placeholder="state.bounds?.min.toString()"
-          :aria-invalid="state.minAboveMax"
+          :aria-invalid="state.minAboveMax || isInvalidNumber(state.min)"
           @input="
             connector.refine(
               ($event.target as HTMLInputElement).value,
@@ -50,12 +52,10 @@ const texts = props.controller.getSnapshot().context.texts;
       <label
         >{{ texts.priceMax
         }}<input
-          type="number"
-          step="any"
           inputmode="decimal"
           :value="state.max"
           :placeholder="state.bounds?.max.toString()"
-          :aria-invalid="state.minAboveMax"
+          :aria-invalid="state.minAboveMax || isInvalidNumber(state.max)"
           @input="
             connector.refine(
               state.min,
@@ -64,6 +64,19 @@ const texts = props.controller.getSnapshot().context.texts;
           "
       /></label>
     </div>
-    <p v-if="state.minAboveMax" role="alert">{{ texts.priceMinAboveMax }}</p>
+    <p
+      v-if="
+        isInvalidNumber(state.min) ||
+        isInvalidNumber(state.max) ||
+        state.minAboveMax
+      "
+      role="alert"
+    >
+      {{
+        isInvalidNumber(state.min) || isInvalidNumber(state.max)
+          ? (invalidLabel ?? "Enter a valid number.")
+          : texts.priceMinAboveMax
+      }}
+    </p>
   </fieldset>
 </template>
