@@ -21,7 +21,7 @@ import {
 
 import { useConnector } from "./useConnector";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useLayoutEffect, useMemo } from "react";
 
 export const useSearchBox = (controller: SearchController) => {
   return useConnector(connectSearchBox, controller);
@@ -94,15 +94,22 @@ export const useAiOverview = (
   controller: SearchController,
   { apiKey, transport }: AiOverviewParams,
 ) => {
-  const transportRef = useRef(transport);
-  transportRef.current = transport;
-  const forward = useCallback<AiOverviewTransport>((request, options) => {
-    const current = transportRef.current;
-    if (current === undefined) {
-      throw new Error("The AI overview transport is no longer available.");
-    }
-    return current(request, options);
-  }, []);
+  const hasCustomTransport = transport !== undefined;
+  // A new transport identity updates future requests, not the held overview.
+  const binding = useMemo(() => ({ transport }), [apiKey, hasCustomTransport]);
+  useLayoutEffect(() => {
+    binding.transport = transport;
+  }, [binding, transport]);
+  const forward = useCallback<AiOverviewTransport>(
+    (request, options) => {
+      const current = binding.transport;
+      if (current === undefined) {
+        throw new Error("The AI overview transport is no longer available.");
+      }
+      return current(request, options);
+    },
+    [binding],
+  );
   const customTransport = transport === undefined ? undefined : forward;
   const connect = useCallback(
     (target: SearchController) =>
