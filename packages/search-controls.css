@@ -17,7 +17,7 @@
   margin: 0;
   padding: 0;
 }
-.dialog-search-controls li + li {
+.dialog-search-controls ul:not(.dialog-search-infinite-list) > li + li {
   margin-top: 8px;
 }
 .dialog-search-controls label {
@@ -61,7 +61,8 @@
   flex: 1 1 120px;
 }
 .dialog-search-controls [role="alert"] {
-  color: #b3261e;
+  color: var(--dso-text, #171717);
+  font-weight: 600;
 }
 .dialog-search-infinite-list {
   display: grid;

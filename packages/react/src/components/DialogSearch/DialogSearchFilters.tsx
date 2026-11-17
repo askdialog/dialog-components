@@ -9,7 +9,7 @@ import {
   useCurrentRefinements,
   useClearRefinements,
 } from "./searchHooks";
-import "./DialogSearchControls.css";
+import "../../../../search-controls.css";
 
 interface FilterProps {
   controller: SearchController;
@@ -72,11 +72,16 @@ export const DialogSearchRange = ({
       className="dialog-search-controls"
       style={resolveSearchPanelVariables(theme)}
     >
-      <legend>{label ?? texts.filterFields.price}</legend>
+      <legend>
+        {label ??
+          (attribute === "price" ? texts.filterFields.price : attribute)}
+      </legend>
       <div className="dialog-search-range-fields">
         <label>
           {texts.priceMin}
           <input
+            type="number"
+            step="any"
             inputMode="decimal"
             value={state.min}
             placeholder={state.bounds?.min.toString()}
@@ -89,6 +94,8 @@ export const DialogSearchRange = ({
         <label>
           {texts.priceMax}
           <input
+            type="number"
+            step="any"
             inputMode="decimal"
             value={state.max}
             placeholder={state.bounds?.max.toString()}
@@ -110,6 +117,7 @@ export const DialogSearchCurrentRefinements = ({
 }: FilterProps) => {
   const [state, connector] = useCurrentRefinements(controller);
   const [clear, clearConnector] = useClearRefinements(controller);
+  if (state.items.length === 0 && !clear.canRefine) return null;
   const texts = controller.getSnapshot().context.texts;
   return (
     <section

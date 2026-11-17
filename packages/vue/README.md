@@ -409,7 +409,7 @@ Import the package stylesheet as for the existing search components. Each compon
 | `DialogSearchRefinementList` | `attribute`, optional `limit` | Checkboxes, result counts when enabled, show more/less. |
 | `DialogSearchRange` | optional `attribute` (default `price`), `label` | Inclusive min/max inputs; reversed bounds show an error and send no search. |
 | `DialogSearchCurrentRefinements` | | Applied chips, removal of removable filters, Clear all. |
-| `DialogSearchInfiniteHits` | React `renderHit(entry, index)` / Vue `#hit="{ entry, index }"` | Accumulated lexical or raw AI hits, Show more, loading, empty and retry. |
+| `DialogSearchInfiniteHits` | `#hit="{ entry, index }"` slot | Accumulated lexical or raw AI hits, Show more, loading, empty and retry. |
 | `DialogSearchAiOverview` | `apiKey` or `transport`, optional `label` | AI controller only: text, follow-up suggestions, loading and retry. |
 
 The controls can live directly on a results page, or receive a `SearchDraft` in your own filter sheet. Create one draft when opening the sheet; pass it to the filter components, use Clear all to reset pending refinements, `draft.commit()` to apply in one search, or `draft.discard()` to cancel. Unmount the sheet after either action. The host owns the sheet's open state, focus and Apply/Cancel labels.
@@ -427,3 +427,5 @@ The React AI overview hook forwards future requests to the latest custom `transp
 ```
 
 Import these components from `@askdialog/dialog-vue`. `aiController` comes from `useDialogSearch({ ...options, mode: 'ai' })`.
+
+New controls use the controller’s `language` and `texts` directly, without a separate locale override. Pass `label` for a translated AI overview landmark and `errorLabel` on infinite hits / AI overview for a translated failure message; their error defaults are English. Live range refinements apply on each keystroke, as the SDK connector does. Use a draft when edits should wait for Apply.

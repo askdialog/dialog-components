@@ -7,8 +7,12 @@ import {
   type Theme,
 } from "@askdialog/dialog-sdk";
 import { useInfiniteHits, useSearchBox } from "./searchHooks";
-import "./DialogSearchControls.css";
-const props = defineProps<{ controller: SearchController; theme?: Theme }>();
+import "../../../../search-controls.css";
+const props = defineProps<{
+  controller: SearchController;
+  theme?: Theme;
+  errorLabel?: string;
+}>();
 const [state, connector] = useInfiniteHits(props.controller);
 const [box] = useSearchBox(props.controller);
 const { texts, language } = props.controller.getSnapshot().context;
@@ -68,13 +72,15 @@ const { texts, language } = props.controller.getSnapshot().context;
       {{ texts.searching(box.query) }}
     </p>
     <p v-if="box.status === 'empty'" role="status">{{ texts.noResults }}</p>
-    <button
-      v-if="box.status === 'error'"
-      type="button"
-      @click="state.failedMore ? connector.retryMore() : controller.retry()"
-    >
-      {{ texts.retry }}
-    </button>
+    <div v-if="box.status === 'error'">
+      <p role="alert">{{ errorLabel ?? "Search could not be loaded." }}</p>
+      <button
+        type="button"
+        @click="state.failedMore ? connector.retryMore() : controller.retry()"
+      >
+        {{ texts.retry }}
+      </button>
+    </div>
     <button
       v-else-if="!state.isLastPage"
       type="button"

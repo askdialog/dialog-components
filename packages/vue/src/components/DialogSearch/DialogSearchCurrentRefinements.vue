@@ -4,7 +4,7 @@ import {
   type SearchController,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import "./DialogSearchControls.css";
+import "../../../../search-controls.css";
 import { useCurrentRefinements, useClearRefinements } from "./searchHooks";
 const props = defineProps<{ controller: SearchController; theme?: Theme }>();
 const [state, connector] = useCurrentRefinements(props.controller);
@@ -13,6 +13,7 @@ const texts = props.controller.getSnapshot().context.texts;
 </script>
 <template>
   <section
+    v-if="state.items.length > 0 || clear.canRefine"
     class="dialog-search-controls"
     :style="resolveSearchPanelVariables(theme)"
     :aria-label="texts.appliedFiltersLabel"

@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import {
   resolveSearchPanelVariables,
+  searchIndexName,
   type SearchController,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import "./DialogSearchControls.css";
+import "../../../../search-controls.css";
 import { useAiOverview, useSearchBox } from "./searchHooks";
 import type { AiOverviewParams } from "@askdialog/dialog-sdk";
 const props = defineProps<
   AiOverviewParams & {
     controller: SearchController;
     label?: string;
+    errorLabel?: string;
     theme?: Theme;
   }
 >();
@@ -20,6 +22,16 @@ const [state, connector] = useAiOverview(props.controller, {
 });
 const [box] = useSearchBox(props.controller);
 const texts = props.controller.getSnapshot().context.texts;
+const retry = () => {
+  const { searchState, context } = props.controller.getSnapshot();
+  const index = searchIndexName("products", context.language, context.country);
+  if ((searchState[index].page ?? 0) === 0) props.controller.search();
+  else
+    props.controller.setSearchState({
+      ...searchState,
+      [index]: { ...searchState[index], page: 0 },
+    });
+};
 </script>
 <template>
   <section
@@ -32,14 +44,15 @@ const texts = props.controller.getSnapshot().context.texts;
     <p v-if="state.status === 'loading'" role="status">
       {{ texts.searching(box.query) }}
     </p>
-    <button
-      v-else-if="state.status === 'error'"
-      type="button"
-      @click="controller.search()"
-    >
-      {{ texts.retry }}</button
-    ><template v-else
-      ><p>{{ state.text }}</p>
+    <div v-else-if="state.status === 'error'">
+      <p role="alert">{{ errorLabel ?? "AI overview could not be loaded." }}</p>
+      <button type="button" @click="retry()">
+        {{ texts.retry }}
+      </button>
+    </div>
+    <template v-else
+      ><p v-if="box.status === 'empty'" role="status">{{ texts.noResults }}</p>
+      <p>{{ state.text }}</p>
       <ul>
         <li v-for="(item, index) in state.suggestions" :key="index">
           <button type="button" @click="connector.applySuggestion(item)">

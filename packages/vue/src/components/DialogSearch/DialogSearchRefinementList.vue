@@ -4,7 +4,7 @@ import {
   type SearchController,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import "./DialogSearchControls.css";
+import "../../../../search-controls.css";
 import { useRefinementList } from "./searchHooks";
 const props = defineProps<{
   controller: SearchController;

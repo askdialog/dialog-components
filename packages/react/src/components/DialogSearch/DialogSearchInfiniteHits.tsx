@@ -8,15 +8,17 @@ import {
 } from "@askdialog/dialog-sdk";
 import type { ReactNode } from "react";
 import { useInfiniteHits, useSearchBox } from "./searchHooks";
-import "./DialogSearchControls.css";
+import "../../../../search-controls.css";
 
 export const DialogSearchInfiniteHits = ({
   controller,
   theme,
   renderHit,
+  errorLabel = "Search could not be loaded.",
 }: {
   controller: SearchController;
   theme?: Theme;
+  errorLabel?: string;
   renderHit?: (entry: InfiniteHit, index: number) => ReactNode;
 }) => {
   const [state, connector] = useInfiniteHits(controller);
@@ -64,14 +66,17 @@ export const DialogSearchInfiniteHits = ({
       )}
       {box.status === "empty" && <p role="status">{texts.noResults}</p>}
       {box.status === "error" ? (
-        <button
-          type="button"
-          onClick={() =>
-            state.failedMore ? connector.retryMore() : controller.retry()
-          }
-        >
-          {texts.retry}
-        </button>
+        <div>
+          <p role="alert">{errorLabel}</p>
+          <button
+            type="button"
+            onClick={() =>
+              state.failedMore ? connector.retryMore() : controller.retry()
+            }
+          >
+            {texts.retry}
+          </button>
+        </div>
       ) : (
         !state.isLastPage && (
           <button

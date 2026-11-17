@@ -4,7 +4,7 @@ import {
   type SearchController,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import "./DialogSearchControls.css";
+import "../../../../search-controls.css";
 import { useRange } from "./searchHooks";
 const props = defineProps<{
   controller: SearchController;
@@ -22,11 +22,20 @@ const texts = props.controller.getSnapshot().context.texts;
     class="dialog-search-controls"
     :style="resolveSearchPanelVariables(theme)"
   >
-    <legend>{{ label ?? texts.filterFields.price }}</legend>
+    <legend>
+      {{
+        label ??
+        (state.attribute === "price"
+          ? texts.filterFields.price
+          : state.attribute)
+      }}
+    </legend>
     <div class="dialog-search-range-fields">
       <label
         >{{ texts.priceMin
         }}<input
+          type="number"
+          step="any"
           inputmode="decimal"
           :value="state.min"
           :placeholder="state.bounds?.min.toString()"
@@ -41,6 +50,8 @@ const texts = props.controller.getSnapshot().context.texts;
       <label
         >{{ texts.priceMax
         }}<input
+          type="number"
+          step="any"
           inputmode="decimal"
           :value="state.max"
           :placeholder="state.bounds?.max.toString()"
