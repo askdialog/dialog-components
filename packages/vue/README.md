@@ -4,6 +4,7 @@ Vue 3 component library for Dialog AI-powered product assistance.
 
 ## Table of contents
 
+- [Search connector hooks](#search-connector-hooks)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Available Components](#available-components)

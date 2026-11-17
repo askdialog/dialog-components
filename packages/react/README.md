@@ -4,6 +4,7 @@ React component library for Dialog AI-powered product assistance.
 
 ## Table of contents
 
+- [Search connector hooks](#search-connector-hooks)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Available Components](#available-components)
@@ -428,3 +429,10 @@ function SearchPage({ client }: { client: import('@askdialog/dialog-sdk').Dialog
 ```
 
 The exported generic `useConnector(connect, controller)` returns the same tuple. Keep a custom `connect` factory stable with `useCallback`; changing it or the controller replaces the connector. Built-in parameterized hooks accept inline option objects and recreate only when their values change. Connectors are disposed on unmount and recreated during StrictMode effect replay.
+
+For `useAiOverview`, keep a custom `transport` at module scope or wrap it in `useCallback`. An inline function changes on every render and recreates the overview connector, which starts another request. The same rule applies to a custom factory passed to `useConnector`. The `{ apiKey }` form needs no memoization.
+
+```tsx
+const overviewTransport = useCallback((request, options) => searchAiOverview(apiKey, request, options), [apiKey])
+const [overview, overviewActions] = useAiOverview(controller, { transport: overviewTransport })
+```
