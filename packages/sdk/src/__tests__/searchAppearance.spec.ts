@@ -20,6 +20,10 @@ describe("readSearchConfig", () => {
           radii: { card: 0, input: 1.5, button: "8px" },
           card: { imageRatio: "constructor", showVendor: true },
           filters: { style: "grid" },
+          badges: {
+            discount: { background: "#e11d48", text: "white", radius: 1000 },
+            sale: { background: "#000" },
+          },
           unknown: { key: "value" },
         },
       }),
@@ -29,8 +33,17 @@ describe("readSearchConfig", () => {
         colors: { accent: "#1a2b3c" },
         radii: { card: 0 },
         card: { showVendor: true },
+        badges: { discount: { background: "#e11d48" } },
       },
     });
+  });
+
+  it("drops a badges group none of whose keys is well-formed", () => {
+    expect(
+      readSearchConfig({
+        appearance: { badges: { discount: { radius: -1 } } },
+      }).appearance,
+    ).toEqual({});
   });
 
   it("reads an absent or malformed appearance as empty", () => {
@@ -64,6 +77,9 @@ describe("resolveSearchAppearanceVariables", () => {
           showAddToCart: false,
         },
         filters: { style: "pills" },
+        badges: {
+          discount: { background: "#e11d48", text: "#fff", radius: 4 },
+        },
       }),
     ).toEqual({
       "--dialog-search-text-color": "#111",
@@ -79,6 +95,9 @@ describe("resolveSearchAppearanceVariables", () => {
       "--dialog-search-card-vendor-display": "block",
       "--dialog-search-card-button-display": "none",
       "--dialog-search-filters-style": "pills",
+      "--dialog-search-discount-badge-background": "#e11d48",
+      "--dialog-search-discount-badge-text": "#fff",
+      "--dialog-search-discount-badge-radius": "4px",
     });
   });
 
@@ -109,6 +128,7 @@ describe("resolveSearchAppearanceVariables", () => {
     const appearance = {
       colors: { accent: "red; display: none" },
       radii: { card: -1 },
+      badges: { discount: { background: "red", text: 12, radius: 1.5 } },
     } as unknown as SearchAppearance;
 
     expect(resolveSearchAppearanceVariables(appearance)).toEqual({});
