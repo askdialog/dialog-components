@@ -6,7 +6,7 @@ import {
   type Theme,
 } from "@askdialog/dialog-sdk";
 import { useAiOverview, useSearchBox } from "./searchHooks";
-import "../../../../search-controls.css";
+import "./DialogSearchControls.css";
 
 export const DialogSearchAiOverview = ({
   controller,

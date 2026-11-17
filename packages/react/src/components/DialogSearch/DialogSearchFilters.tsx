@@ -9,7 +9,7 @@ import {
   useCurrentRefinements,
   useClearRefinements,
 } from "./searchHooks";
-import "../../../../search-controls.css";
+import "./DialogSearchControls.css";
 
 interface FilterProps {
   controller: SearchController;

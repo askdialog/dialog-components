@@ -5,7 +5,7 @@ import {
   type SearchController,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import "../../../../search-controls.css";
+import "./DialogSearchControls.css";
 import { useAiOverview, useSearchBox } from "./searchHooks";
 import type { AiOverviewParams } from "@askdialog/dialog-sdk";
 const props = defineProps<

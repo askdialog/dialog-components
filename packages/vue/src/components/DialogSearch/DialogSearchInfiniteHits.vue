@@ -7,7 +7,7 @@ import {
   type Theme,
 } from "@askdialog/dialog-sdk";
 import { useInfiniteHits, useSearchBox } from "./searchHooks";
-import "../../../../search-controls.css";
+import "./DialogSearchControls.css";
 const props = defineProps<{
   controller: SearchController;
   theme?: Theme;

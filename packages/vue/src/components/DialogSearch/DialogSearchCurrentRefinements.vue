@@ -4,7 +4,7 @@ import {
   type SearchController,
   type Theme,
 } from "@askdialog/dialog-sdk";
-import "../../../../search-controls.css";
+import "./DialogSearchControls.css";
 import { useCurrentRefinements, useClearRefinements } from "./searchHooks";
 const props = defineProps<{ controller: SearchController; theme?: Theme }>();
 const [state, connector] = useCurrentRefinements(props.controller);

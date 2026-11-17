@@ -8,7 +8,7 @@ import {
 } from "@askdialog/dialog-sdk";
 import type { ReactNode } from "react";
 import { useInfiniteHits, useSearchBox } from "./searchHooks";
-import "../../../../search-controls.css";
+import "./DialogSearchControls.css";
 
 export const DialogSearchInfiniteHits = ({
   controller,
