@@ -3,13 +3,13 @@
   "private": false,
   "version": "4.3.0",
   "type": "module",
-  "main": "./dist/dialog-vue.umd.js",
+  "main": "./dist/dialog-vue.umd.cjs",
   "module": "./dist/dialog-vue.js",
   "types": "./dist/main.d.ts",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
-      "require": "./dist/dialog-vue.umd.js",
+      "require": "./dist/dialog-vue.umd.cjs",
       "import": "./dist/dialog-vue.js",
       "default": "./dist/dialog-vue.js"
     },
