@@ -16,11 +16,12 @@ import {
   type SearchController,
   type RefinementListOptions,
   type AiOverviewParams,
+  type AiOverviewTransport,
 } from "@askdialog/dialog-sdk";
 
 import { useConnector } from "./useConnector";
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 export const useSearchBox = (controller: SearchController) => {
   return useConnector(connectSearchBox, controller);
@@ -93,10 +94,20 @@ export const useAiOverview = (
   controller: SearchController,
   { apiKey, transport }: AiOverviewParams,
 ) => {
+  const transportRef = useRef(transport);
+  transportRef.current = transport;
+  const forward = useCallback<AiOverviewTransport>((request, options) => {
+    const current = transportRef.current;
+    if (current === undefined) {
+      throw new Error("The AI overview transport is no longer available.");
+    }
+    return current(request, options);
+  }, []);
+  const customTransport = transport === undefined ? undefined : forward;
   const connect = useCallback(
     (target: SearchController) =>
-      connectAiOverview(target, { apiKey, transport }),
-    [apiKey, transport],
+      connectAiOverview(target, { apiKey, transport: customTransport }),
+    [apiKey, customTransport],
   );
   return useConnector(connect, controller);
 };

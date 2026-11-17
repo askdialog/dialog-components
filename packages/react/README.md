@@ -430,9 +430,4 @@ function SearchPage({ client }: { client: import('@askdialog/dialog-sdk').Dialog
 
 The exported generic `useConnector(connect, controller)` returns the same tuple. Keep a custom `connect` factory stable with `useCallback`; changing it or the controller replaces the connector. Built-in parameterized hooks accept inline option objects and recreate only when their values change. Connectors are disposed on unmount and recreated during StrictMode effect replay.
 
-For `useAiOverview`, keep a custom `transport` at module scope or wrap it in `useCallback`. An inline function changes on every render and recreates the overview connector, which starts another request. The same rule applies to a custom factory passed to `useConnector`. The `{ apiKey }` form needs no memoization.
-
-```tsx
-const overviewTransport = useCallback((request, options) => searchAiOverview(apiKey, request, options), [apiKey])
-const [overview, overviewActions] = useAiOverview(controller, { transport: overviewTransport })
-```
+For `useAiOverview`, inline custom transports are supported: the hook keeps its connector while forwarding future requests to the latest function. Changing the API key or switching between a custom transport and the default transport recreates it. A custom factory passed directly to `useConnector` must still be stable (module scope or `useCallback`).
