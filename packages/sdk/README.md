@@ -730,7 +730,7 @@ trackDialogEvent(PRODUCT_QUESTION_CLICKED, {
     locale: 'en-US',
     position: 1,                              // 1-based, in the surface
     entry_point: 'pdp_block',
-    surface: 'sdk_block',
+    surface: 'product_block',
     recommendation_id: suggestion.recommendationId ?? null,
 });
 ```
