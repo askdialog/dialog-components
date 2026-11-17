@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onScopeDispose, ref } from "vue";
 import {
   resolveSearchPanelVariables,
   type SearchController,
@@ -21,9 +21,16 @@ const isInvalidNumber = (value: string) =>
   value.trim() !== "" &&
   !Number.isFinite(Number(value.trim().replace(",", ".")));
 const fields = ref({ min: state.value.min, max: state.value.max });
-watch([() => state.value.min, () => state.value.max], () => {
-  fields.value = { min: state.value.min, max: state.value.max };
-});
+let searchState = props.controller.getSnapshot().searchState;
+onScopeDispose(
+  props.controller.subscribe(() => {
+    const current = props.controller.getSnapshot().searchState;
+    if (current === searchState) return;
+    searchState = current;
+    const { min, max } = connector.getRenderState();
+    fields.value = { min, max };
+  }),
+);
 const refine = (min: string, max: string) => {
   fields.value = { min, max };
   if (!isInvalidNumber(min) && !isInvalidNumber(max))

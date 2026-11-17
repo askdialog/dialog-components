@@ -78,8 +78,19 @@ export const DialogSearchRange = ({
   const [state, connector] = useRange(controller, { attribute });
   const [fields, setFields] = useState({ min: state.min, max: state.max });
   useEffect(() => {
-    setFields({ min: state.min, max: state.max });
-  }, [state.min, state.max, connector]);
+    let searchState = controller.getSnapshot().searchState;
+    const syncFields = () => {
+      const { min, max } = connector.getRenderState();
+      setFields({ min, max });
+    };
+    syncFields();
+    return controller.subscribe(() => {
+      const current = controller.getSnapshot().searchState;
+      if (current === searchState) return;
+      searchState = current;
+      syncFields();
+    });
+  }, [controller, connector]);
   const refine = (min: string, max: string) => {
     setFields({ min, max });
     if (!isInvalidNumber(min) && !isInvalidNumber(max))
