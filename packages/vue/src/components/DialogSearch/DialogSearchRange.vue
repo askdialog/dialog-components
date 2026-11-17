@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch } from "vue";
 import {
   resolveSearchPanelVariables,
   type SearchController,
@@ -19,6 +20,15 @@ const [state, connector] = useRange(props.controller, {
 const isInvalidNumber = (value: string) =>
   value.trim() !== "" &&
   !Number.isFinite(Number(value.trim().replace(",", ".")));
+const fields = ref({ min: state.value.min, max: state.value.max });
+watch([() => state.value.min, () => state.value.max], () => {
+  fields.value = { min: state.value.min, max: state.value.max };
+});
+const refine = (min: string, max: string) => {
+  fields.value = { min, max };
+  if (!isInvalidNumber(min) && !isInvalidNumber(max))
+    connector.refine(min, max);
+};
 const texts = props.controller.getSnapshot().context.texts;
 </script>
 <template>
@@ -39,41 +49,35 @@ const texts = props.controller.getSnapshot().context.texts;
         >{{ texts.priceMin
         }}<input
           inputmode="decimal"
-          :value="state.min"
+          :value="fields.min"
           :placeholder="state.bounds?.min.toString()"
-          :aria-invalid="state.minAboveMax || isInvalidNumber(state.min)"
+          :aria-invalid="state.minAboveMax || isInvalidNumber(fields.min)"
           @input="
-            connector.refine(
-              ($event.target as HTMLInputElement).value,
-              state.max,
-            )
+            refine(($event.target as HTMLInputElement).value, fields.max)
           "
       /></label>
       <label
         >{{ texts.priceMax
         }}<input
           inputmode="decimal"
-          :value="state.max"
+          :value="fields.max"
           :placeholder="state.bounds?.max.toString()"
-          :aria-invalid="state.minAboveMax || isInvalidNumber(state.max)"
+          :aria-invalid="state.minAboveMax || isInvalidNumber(fields.max)"
           @input="
-            connector.refine(
-              state.min,
-              ($event.target as HTMLInputElement).value,
-            )
+            refine(fields.min, ($event.target as HTMLInputElement).value)
           "
       /></label>
     </div>
     <p
       v-if="
-        isInvalidNumber(state.min) ||
-        isInvalidNumber(state.max) ||
+        isInvalidNumber(fields.min) ||
+        isInvalidNumber(fields.max) ||
         state.minAboveMax
       "
       role="alert"
     >
       {{
-        isInvalidNumber(state.min) || isInvalidNumber(state.max)
+        isInvalidNumber(fields.min) || isInvalidNumber(fields.max)
           ? (invalidLabel ?? "Enter a valid number.")
           : texts.priceMinAboveMax
       }}

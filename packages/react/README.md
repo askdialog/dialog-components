@@ -440,7 +440,7 @@ Import the package stylesheet as for the existing search components. Each compon
 | Component | Additional props | Behavior |
 | --- | --- | --- |
 | `DialogSearchRefinementList` | `attribute`, optional `limit` | Checkboxes, result counts when enabled, show more/less. |
-| `DialogSearchRange` | optional `attribute` (default `price`), `label` | Min/max inputs accept decimal dots and commas. Non-numeric text is marked invalid; `invalidLabel` translates its error. Reversed bounds show an error and send no search. |
+| `DialogSearchRange` | optional `attribute` (default `price`), `label` | Min/max inputs accept decimal dots and commas. Non-numeric text is marked invalid and does not change the applied range; `invalidLabel` translates its error. Reversed bounds show an error and send no search. |
 | `DialogSearchCurrentRefinements` | | Applied chips, removal of removable filters, Clear all. |
 | `DialogSearchInfiniteHits` | `renderHit(entry, index)` | Accumulated lexical or raw AI hits, Show more, loading, empty and retry. |
 | `DialogSearchAiOverview` | `apiKey` or `transport`, optional `label` | AI controller only: text, follow-up suggestions, loading and retry. |

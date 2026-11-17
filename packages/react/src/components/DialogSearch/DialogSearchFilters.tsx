@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   resolveSearchPanelVariables,
   type SearchController,
@@ -75,8 +76,17 @@ export const DialogSearchRange = ({
   invalidLabel?: string;
 }) => {
   const [state, connector] = useRange(controller, { attribute });
-  const invalidMin = isInvalidNumber(state.min);
-  const invalidMax = isInvalidNumber(state.max);
+  const [fields, setFields] = useState({ min: state.min, max: state.max });
+  useEffect(() => {
+    setFields({ min: state.min, max: state.max });
+  }, [state.min, state.max, connector]);
+  const refine = (min: string, max: string) => {
+    setFields({ min, max });
+    if (!isInvalidNumber(min) && !isInvalidNumber(max))
+      connector.refine(min, max);
+  };
+  const invalidMin = isInvalidNumber(fields.min);
+  const invalidMax = isInvalidNumber(fields.max);
   const texts = controller.getSnapshot().context.texts;
   return (
     <fieldset
@@ -92,24 +102,20 @@ export const DialogSearchRange = ({
           {texts.priceMin}
           <input
             inputMode="decimal"
-            value={state.min}
+            value={fields.min}
             placeholder={state.bounds?.min.toString()}
             aria-invalid={state.minAboveMax || invalidMin}
-            onChange={(event) =>
-              connector.refine(event.target.value, state.max)
-            }
+            onChange={(event) => refine(event.target.value, fields.max)}
           />
         </label>
         <label>
           {texts.priceMax}
           <input
             inputMode="decimal"
-            value={state.max}
+            value={fields.max}
             placeholder={state.bounds?.max.toString()}
             aria-invalid={state.minAboveMax || invalidMax}
-            onChange={(event) =>
-              connector.refine(state.min, event.target.value)
-            }
+            onChange={(event) => refine(fields.min, event.target.value)}
           />
         </label>
       </div>
