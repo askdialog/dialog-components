@@ -30,4 +30,14 @@ export interface SearchAppearance {
   readonly filters?: {
     readonly style?: SearchAppearanceFiltersStyle;
   };
+  readonly badges?: {
+    /** The discount badge of a lexical search result. */
+    readonly discount?: {
+      /** Hex colours, as in `colors`. */
+      readonly background?: string;
+      readonly text?: string;
+      /** Whole pixels, 0 to 999. */
+      readonly radius?: number;
+    };
+  };
 }

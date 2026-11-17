@@ -32,7 +32,12 @@ const isOneOf =
   (value) =>
     typeof value === "string" && values.includes(value);
 
-const GROUPS: Record<keyof SearchAppearance, Record<string, IsValid>> = {
+// A key's check, or the shape of the group it holds.
+interface Shape {
+  readonly [key: string]: IsValid | Shape;
+}
+
+const SHAPE: Record<keyof SearchAppearance, Shape> = {
   colors: {
     text: isColor,
     mutedText: isColor,
@@ -48,38 +53,37 @@ const GROUPS: Record<keyof SearchAppearance, Record<string, IsValid>> = {
     showAddToCart: isBoolean,
   },
   filters: { style: isOneOf(FILTERS_STYLES) },
+  badges: {
+    discount: { background: isColor, text: isColor, radius: isRadius },
+  },
 };
 
+// The group's well-formed keys, undefined when none is.
 const readGroup = (
   value: unknown,
-  fields: Record<string, IsValid>,
+  shape: Shape,
 ): Record<string, unknown> | undefined => {
   if (!isRecord(value)) {
     return undefined;
   }
   const group = Object.fromEntries(
-    Object.entries(fields)
-      .filter(([key, isValid]) => isValid(value[key]))
-      .map(([key]) => [key, value[key]]),
+    Object.entries(shape).flatMap(([key, check]) => {
+      if (typeof check !== "function") {
+        const nested = readGroup(value[key], check);
+
+        return nested === undefined ? [] : [[key, nested]];
+      }
+
+      return check(value[key]) ? [[key, value[key]]] : [];
+    }),
   );
 
   return Object.keys(group).length === 0 ? undefined : group;
 };
 
 /** The appearance's well-formed keys; a malformed one is dropped on its own. */
-export const readSearchAppearance = (value: unknown): SearchAppearance => {
-  if (!isRecord(value)) {
-    return {};
-  }
-
-  return Object.fromEntries(
-    Object.entries(GROUPS).flatMap(([name, fields]) => {
-      const group = readGroup(value[name], fields);
-
-      return group === undefined ? [] : [[name, group]];
-    }),
-  ) as SearchAppearance;
-};
+export const readSearchAppearance = (value: unknown): SearchAppearance =>
+  (readGroup(value, SHAPE) ?? {}) as SearchAppearance;
 
 export type SearchAppearanceVariables = Record<
   `--dialog-search-${string}`,

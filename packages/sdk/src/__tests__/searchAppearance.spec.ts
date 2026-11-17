@@ -20,6 +20,10 @@ describe("readSearchConfig", () => {
           radii: { card: 0, input: 1.5, button: "8px" },
           card: { imageRatio: "constructor", showVendor: true },
           filters: { style: "grid" },
+          badges: {
+            discount: { background: "#e11d48", text: "white", radius: 1000 },
+            sale: { background: "#000" },
+          },
           unknown: { key: "value" },
         },
       }),
@@ -29,8 +33,17 @@ describe("readSearchConfig", () => {
         colors: { accent: "#1a2b3c" },
         radii: { card: 0 },
         card: { showVendor: true },
+        badges: { discount: { background: "#e11d48" } },
       },
     });
+  });
+
+  it("drops a badges group none of whose keys is well-formed", () => {
+    expect(
+      readSearchConfig({
+        appearance: { badges: { discount: { radius: -1 } } },
+      }).appearance,
+    ).toEqual({});
   });
 
   it("reads an absent or malformed appearance as empty", () => {
