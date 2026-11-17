@@ -416,7 +416,7 @@ The controls can live directly on a results page, or receive a `SearchDraft` in 
 
 Infinite hits use native links by default. Their default cards do not call the controller's page-local impression/selection methods: after loading another page, those methods refer only to that page, not to the accumulated hits. Use `renderHit` / the `hit` slot for host-specific navigation and attribution. The existing `DialogSearchProductCard` continues to track a single current page; do not pass an accumulated index to it.
 
-Keep a custom AI overview `transport` stable across React renders (module scope or `useCallback`). Vue binds controller and connector options during setup: remount a keyed component when changing its controller or attribute. The optional overview `label` defaults to English `AI overview`; pass your translated accessible label when needed.
+The React AI overview hook forwards future requests to the latest custom `transport` without restarting on callback-only renders. Vue binds controller and connector options during setup: remount a keyed component when changing its controller or attribute. The optional overview `label` defaults to English `AI overview`; pass your translated accessible label when needed.
 
 ```vue
 <DialogSearchRefinementList :controller="controller" attribute="color" :limit="5" :theme="theme" />
