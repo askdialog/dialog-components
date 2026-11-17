@@ -77,6 +77,9 @@ describe("resolveSearchAppearanceVariables", () => {
           showAddToCart: false,
         },
         filters: { style: "pills" },
+        badges: {
+          discount: { background: "#e11d48", text: "#fff", radius: 4 },
+        },
       }),
     ).toEqual({
       "--dialog-search-text-color": "#111",
@@ -92,6 +95,9 @@ describe("resolveSearchAppearanceVariables", () => {
       "--dialog-search-card-vendor-display": "block",
       "--dialog-search-card-button-display": "none",
       "--dialog-search-filters-style": "pills",
+      "--dialog-search-discount-badge-background": "#e11d48",
+      "--dialog-search-discount-badge-text": "#fff",
+      "--dialog-search-discount-badge-radius": "4px",
     });
   });
 
@@ -122,6 +128,7 @@ describe("resolveSearchAppearanceVariables", () => {
     const appearance = {
       colors: { accent: "red; display: none" },
       radii: { card: -1 },
+      badges: { discount: { background: "red", text: 12, radius: 1.5 } },
     } as unknown as SearchAppearance;
 
     expect(resolveSearchAppearanceVariables(appearance)).toEqual({});

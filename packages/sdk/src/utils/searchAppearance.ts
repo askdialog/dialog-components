@@ -128,6 +128,9 @@ const VARIABLES: Record<string, Resolve> = {
   "card-vendor-display": ({ card }) => display(card?.showVendor),
   "card-button-display": ({ card }) => display(card?.showAddToCart),
   "filters-style": ({ filters }) => filters?.style,
+  "discount-badge-background": ({ badges }) => badges?.discount?.background,
+  "discount-badge-text": ({ badges }) => badges?.discount?.text,
+  "discount-badge-radius": ({ badges }) => px(badges?.discount?.radius),
 };
 
 /**
