@@ -107,11 +107,6 @@ export function createImpressionTracker({
     observedItems.clear();
   };
 
-  // Send qualified impressions before leaving the page.
-  const handlePagehide = (): void => {
-    flush();
-  };
-
   // A back/forward-cache restore is a new page display: count every item again, after a fresh dwell.
   const handlePageshow = (event: PageTransitionEvent): void => {
     if (!event.persisted) {
@@ -125,7 +120,8 @@ export function createImpressionTracker({
     }
   };
 
-  window.addEventListener("pagehide", handlePagehide);
+  // Send qualified impressions before leaving the page.
+  window.addEventListener("pagehide", flush);
   window.addEventListener("pageshow", handlePageshow);
 
   return {
@@ -152,7 +148,7 @@ export function createImpressionTracker({
     disconnect() {
       flush();
       stopObserving();
-      window.removeEventListener("pagehide", handlePagehide);
+      window.removeEventListener("pagehide", flush);
       window.removeEventListener("pageshow", handlePageshow);
     },
   };
