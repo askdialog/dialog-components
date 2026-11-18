@@ -1,5 +1,12 @@
 # @askdialog/dialog-vue
 
+## 4.4.1
+
+### Patch Changes
+
+- ed1fb3c: The React and Vue product blocks send their product question events (`dialog_product_question_viewed`, `dialog_product_question_clicked`) with `surface: 'product_block'` instead of `'sdk_block'`: they show the same product block as the other integrations. `entry_point` stays `'pdp_block'`.
+- dae4383: Product block: a question typed in the input is no longer sent as a suggested question (DEC-4215). `DialogInput` sent `fromQuestionSuggestion: true` for every typed question, so the assistant answered it as a cached suggestion: from the page product alone, without the conversation, and counted it as a suggestion click. A typed question is now sent without the flag; a clicked suggestion still sends it.
+
 ## 4.4.0
 
 ### Minor Changes

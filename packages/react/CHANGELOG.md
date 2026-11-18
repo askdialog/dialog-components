@@ -1,5 +1,13 @@
 # @askdialog/dialog-react
 
+## 3.5.1
+
+### Patch Changes
+
+- ed1fb3c: The React and Vue product blocks send their product question events (`dialog_product_question_viewed`, `dialog_product_question_clicked`) with `surface: 'product_block'` instead of `'sdk_block'`: they show the same product block as the other integrations. `entry_point` stays `'pdp_block'`.
+- dae4383: Product block: a question typed in the input is no longer sent as a suggested question (DEC-4215). `DialogInput` sent `fromQuestionSuggestion: true` for every typed question, so the assistant answered it as a cached suggestion: from the page product alone, without the conversation, and counted it as a suggestion click. A typed question is now sent without the flag; a clicked suggestion still sends it.
+- 00a53ee: React's peer `@askdialog/dialog-sdk` is now `^3.8.0`. React 3.5.0 imports `@askdialog/dialog-sdk/events` (added in SDK 3.8.0) and `@askdialog/dialog-sdk/impressions` (3.7.0) at runtime, but accepted SDK 3.4 to 3.7, where those imports fail to resolve. Upgrading to React 3.5.0 or later: install SDK 3.8.0 or later with it. `verify:peers` now also checks that the oldest SDK a package's peer accepts exports every SDK subpath its build imports.
+
 ## 3.5.0
 
 ### Minor Changes
