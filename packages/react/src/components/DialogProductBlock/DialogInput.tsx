@@ -38,7 +38,6 @@ export const DialogInput: FC<DialogInputProps> = ({
       productTitle,
       selectedVariantId,
       question,
-      fromQuestionSuggestion: true,
     });
     setInputValue("");
   };

@@ -5,8 +5,6 @@ import {
   ViewSearchResultsParams,
 } from "../types/searchAnalytics";
 
-const DEFAULT_MAX_ITEMS_PER_EVENT = 100;
-
 export interface SearchImpressionTrackerOptions {
   /** Receive each batch, typically through `dialog.trackViewSearchResults`. */
   emit: (params: ViewSearchResultsParams) => void;
@@ -29,7 +27,7 @@ export interface SearchImpressionTracker {
 export function createSearchImpressionTracker({
   emit,
   idleFlushMs,
-  maxItemsPerEvent = DEFAULT_MAX_ITEMS_PER_EVENT,
+  maxItemsPerEvent,
 }: SearchImpressionTrackerOptions): SearchImpressionTracker {
   let envelope: SearchAnalyticsEnvelope | undefined;
   // Impressions count products: one result per product id in the current response.

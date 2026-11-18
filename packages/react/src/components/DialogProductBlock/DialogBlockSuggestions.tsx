@@ -40,7 +40,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
             locale: client.locale,
             position,
             entry_point: "pdp_block",
-            surface: "sdk_block",
+            surface: "product_block",
             recommendation_id: recommendationId ?? null,
           });
         }
@@ -65,7 +65,7 @@ export const DialogBlockSuggestions: FC<DialogBlockSuggestionsProps> = ({
       locale: client.locale,
       position: index + 1,
       entry_point: "pdp_block",
-      surface: "sdk_block",
+      surface: "product_block",
       recommendation_id: recommendationId ?? null,
     });
     client.sendProductMessage({

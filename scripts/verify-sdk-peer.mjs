@@ -14,13 +14,21 @@
  * `changeset version`, a pending major changeset of the SDK counts: the peers
  * are then expected on the next major.
  *
- * No external dependencies — uses node built-ins + the `tar` CLI.
+ * It also checks the peer's lower bound: every SDK subpath the packed build
+ * imports (`@askdialog/dialog-sdk/events`, …) must be exported by the oldest
+ * SDK the range accepts, read from npm, or from the local SDK when the floor
+ * is the version about to be published, or this tree's SDK for the exact
+ * snapshot peer of a beta (see sdk-peer-floor.mjs). react@3.5.0 shipped importing
+ * `/events` (SDK 3.8.0) under a `^3.4.0` peer.
+ *
+ * No external dependencies — uses node built-ins, the `tar` CLI and `npm view`.
  */
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createFloorResolver, missingSubpaths } from './sdk-peer-floor.mjs';
 
 const SDK_PEER = '@askdialog/dialog-sdk';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -61,19 +69,55 @@ if (consumers.length === 0) {
   process.exit(0);
 }
 
-const packedPeerOf = (dir) => {
+// The packed peer range and the SDK subpaths the packed build imports.
+const packed = (dir) => {
   const dest = mkdtempSync(join(tmpdir(), 'peer-check-'));
   execFileSync('pnpm', ['pack', '--pack-destination', dest], { cwd: dir, stdio: 'pipe' });
   const tgz = readdirSync(dest).find((f) => f.endsWith('.tgz'));
-  const manifest = execFileSync('tar', ['-xzOf', join(dest, tgz), 'package/package.json'], {
-    encoding: 'utf8',
-  });
-  return JSON.parse(manifest).peerDependencies?.[SDK_PEER];
+  execFileSync('tar', ['-xzf', join(dest, tgz), '-C', dest]);
+  const manifest = readJson(join(dest, 'package/package.json'));
+  const subpaths = new Set();
+  const scan = (folder) => {
+    for (const entry of readdirSync(folder, { withFileTypes: true })) {
+      const path = join(folder, entry.name);
+      if (entry.isDirectory()) {
+        scan(path);
+      } else if (/\.(c|m)?js$/.test(entry.name)) {
+        for (const [, subpath] of readFileSync(path, 'utf8').matchAll(
+          /["']@askdialog\/dialog-sdk\/([\w-]+)["']/g,
+        )) {
+          subpaths.add(`./${subpath}`);
+        }
+      }
+    }
+  };
+  scan(join(dest, 'package'));
+  return { peer: manifest.peerDependencies?.[SDK_PEER], subpaths: [...subpaths].sort() };
 };
+
+const npmView = (spec, field) => {
+  try {
+    const out = execFileSync('npm', ['view', spec, field, '--json'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return out.trim() === '' ? undefined : JSON.parse(out);
+  } catch (error) {
+    if (/E404/.test(String(error.stderr))) {
+      return undefined;
+    }
+    throw error;
+  }
+};
+const floorExports = createFloorResolver({
+  sdkVersion,
+  localExports: () => readJson(join(repoRoot, 'packages/sdk/package.json')).exports,
+  npmView,
+});
 
 const failures = [];
 for (const { dir, name: pkgName } of consumers) {
-  const peer = packedPeerOf(dir);
+  const { peer, subpaths } = packed(dir);
   const peerMajor = majorOf(peer);
   const aligned = peerMajor === sdkMajor;
   console.log(
@@ -85,7 +129,25 @@ for (const { dir, name: pkgName } of consumers) {
         `but the SDK is ${sdkRelease} (major ${sdkMajor}).`,
     );
   }
-};
+  if (subpaths.length > 0) {
+    const { floor, exports, source, error } = floorExports(peer);
+    const missing = error === undefined ? missingSubpaths(subpaths, exports) : [];
+    const ok = error === undefined && missing.length === 0;
+    console.log(
+      `${ok ? '✓' : '✗'} ${pkgName}: imports ${subpaths.join(', ')}; oldest accepted SDK ` +
+        `${floor ?? '?'}${source ? ` (${source})` : ''}` +
+        `${missing.length > 0 ? ` lacks ${missing.join(', ')}` : ''}`,
+    );
+    if (error !== undefined) {
+      failures.push(`${pkgName}: ${error}.`);
+    } else if (missing.length > 0) {
+      failures.push(
+        `${pkgName} imports ${missing.join(', ')} but its peer "${SDK_PEER}@${peer}" ` +
+          `accepts SDK ${floor}, which does not export ${missing.length > 1 ? 'them' : 'it'}.`,
+      );
+    }
+  }
+}
 
 if (failures.length > 0) {
   console.error('\nPeer dependency mismatch — refusing to publish stale metadata (OPS-650):');

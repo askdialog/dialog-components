@@ -61,7 +61,6 @@ const handleSubmitQuestion = () => {
     productTitle: props.productTitle,
     selectedVariantId: props.selectedVariantId,
     question: question,
-    fromQuestionSuggestion: true,
   });
   inputValue.value = "";
 };
