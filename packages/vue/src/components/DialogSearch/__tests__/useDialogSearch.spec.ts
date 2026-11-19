@@ -157,6 +157,33 @@ describe("useDialogSearch", () => {
     expect(mount(client).search.theme).toBe(client.theme);
   });
 
+  it("uses the AI transport and forwards controller options", async () => {
+    const client = createClient();
+    const aiFetch = vi.fn(() => Promise.resolve(jsonResponse(answer)));
+    vi.stubGlobal("fetch", aiFetch);
+    const { search, unmount } = mount(client, {
+      mode: "ai",
+      currency: "EUR",
+      config: {},
+      texts: { productsLabel: "Matches" },
+      initialSearchState: { [INDEX]: { query: "shoe" } },
+    });
+    search.controller.search();
+    await vi.runAllTimersAsync();
+    expect(client.search).not.toHaveBeenCalled();
+    expect(aiFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/public/search/ai"),
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(search.state.value.context).toMatchObject({
+      mode: "ai",
+      currency: "EUR",
+      texts: { productsLabel: "Matches" },
+    });
+    expect(search.state.value.results.status).toBe(SearchStatus.EMPTY);
+    unmount();
+  });
+
   it("disposes the controller on unmount", async () => {
     const client = createClient();
     const { search, unmount } = mount(client);
