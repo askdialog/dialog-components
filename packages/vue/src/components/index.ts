@@ -20,3 +20,11 @@ export {
   type DialogSearchState,
   type UseDialogSearchOptions,
 } from "./DialogSearch/useDialogSearch";
+
+export { useConnector } from "./DialogSearch/useConnector";
+export * from "./DialogSearch/searchHooks";
+export { default as DialogSearchRefinementList } from "./DialogSearch/DialogSearchRefinementList.vue";
+export { default as DialogSearchRange } from "./DialogSearch/DialogSearchRange.vue";
+export { default as DialogSearchCurrentRefinements } from "./DialogSearch/DialogSearchCurrentRefinements.vue";
+export { default as DialogSearchAiOverview } from "./DialogSearch/DialogSearchAiOverview.vue";
+export { default as DialogSearchInfiniteHits } from "./DialogSearch/DialogSearchInfiniteHits.vue";

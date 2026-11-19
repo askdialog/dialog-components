@@ -4,6 +4,8 @@ Vue 3 component library for Dialog AI-powered product assistance.
 
 ## Table of contents
 
+- [Search filter and AI components](#search-filter-and-ai-components)
+- [Search connector hooks](#search-connector-hooks)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Available Components](#available-components)
@@ -355,3 +357,75 @@ This package includes TypeScript type definitions. The types are automatically a
 
 This package requires Vue 3 or higher as a peer dependency.
 
+
+## Search connector hooks
+
+Requires `@askdialog/dialog-sdk@^3.8.0`. `useDialogSearch` accepts the SDK controller options, including `mode`, `currency`, `texts`, `config`, `initialSearchState`, `routing`, `facets`, `facetsTransport`, `transport` and `sections`. The client supplies the API key and analytics callbacks. Options are fixed at creation. Lexical search uses `client.search`; AI mode uses the SDK AI transport with the client's public API key. A supplied `transport` overrides either mode.
+
+For example, use `{ client, language: 'en', country: 'US', routing: true, facets: true }` for a lexical results page; call `controller.search()` on mount to run the restored URL state. Use `{ client, language: 'en', country: 'US', mode: 'ai', currency: 'USD' }` for natural-language search. AI requests start at two trimmed characters, omit additional sections and do not request facet counts. Render AI hits from their raw records with `useInfiniteHits`; the existing `DialogSearchResults` and `DialogSearchProductCard` require lexical `_display` hits.
+
+| Hook/composable | SDK connector | Extra argument |
+| --- | --- | --- |
+| `useSearchBox` | `connectSearchBox` | |
+| `useHits` | `connectHits` | |
+| `useInfiniteHits` | `connectInfiniteHits` | |
+| `usePagination` | `connectPagination` | |
+| `useStats` | `connectStats` | |
+| `useSections` | `connectSections` | |
+| `useQuerySuggestions` | `connectQuerySuggestions` | Request the `query_suggestions` section on the controller |
+| `useSortBy` | `connectSortBy` | Lexical mode only |
+| `useRefinementList` | `connectRefinementList` | `{ attribute, limit? }` |
+| `useRange` | `connectRange` | `{ attribute }` |
+| `useCurrentRefinements` | `connectCurrentRefinements` | |
+| `useClearRefinements` | `connectClearRefinements` | |
+| `useDynamicWidgets` | `connectDynamicWidgets` | |
+| `useAiOverview` | `connectAiOverview` | `{ apiKey }` or `{ transport }`, AI controller only |
+
+All wrappers take the controller first and return `[state, connector]`; actions are the SDK connector's actions. A `controller.createDraft()` is also a controller: pass it to filter hooks in a mounted sheet, `commit()` to apply once, or `discard()` to cancel, then unmount the sheet. These hooks provide state and lifecycle management; they do not add filter or AI components to the existing floating panel.
+
+```vue
+<script setup lang="ts">
+import { useDialogSearch, useRefinementList, useSearchBox } from '@askdialog/dialog-vue'
+import { client } from './dialog'
+const { controller } = useDialogSearch({ client, language: 'en', country: 'US' })
+const [box, searchBox] = useSearchBox(controller)
+const [colors, refinement] = useRefinementList(controller, { attribute: 'color', limit: 5 })
+</script>
+<template>
+  <input :value="box.query" @input="searchBox.refine(($event.target as HTMLInputElement).value)" />
+  <button v-for="item in colors.items" :key="item.value" :aria-pressed="item.isRefined"
+    @click="refinement.refine(item.value)">{{ item.value }}</button>
+</template>
+```
+
+Vue wrapper state is a readonly `ShallowRef`: use `state.value` in script, automatically unwrapped in templates. Call wrappers during setup; their options are read once. For a custom connector, exported `useConnector(connector)` returns its render-state ref and disposes the connector on unmount. Retain the connector itself for its actions.
+
+## Search filter and AI components
+
+Import the package stylesheet as for the existing search components. Each component takes `controller` and optional `theme` (usually `client.theme`); labels use the controller's SDK texts and the existing `--dso-*` theme variables.
+
+| Component | Additional props | Behavior |
+| --- | --- | --- |
+| `DialogSearchRefinementList` | `attribute`, optional `limit` | Checkboxes, result counts when enabled, show more/less. |
+| `DialogSearchRange` | optional `attribute` (default `price`), `label` | Min/max inputs accept decimal dots and commas. Non-numeric text is marked invalid and does not change the applied range; `invalidLabel` translates its error. Reversed bounds show an error and send no search. |
+| `DialogSearchCurrentRefinements` | | Applied chips, removal of removable filters, Clear all. |
+| `DialogSearchInfiniteHits` | `#hit="{ entry, index }"` slot | Accumulated lexical or raw AI hits, Show more, loading, empty and retry. |
+| `DialogSearchAiOverview` | `apiKey` or `transport`, optional `label` | AI controller only: text, follow-up suggestions, loading and retry. |
+
+The controls can live directly on a results page, or receive a `SearchDraft` in your own filter sheet. Create one draft when opening the sheet; pass it to the filter components, use Clear all to reset pending refinements, `draft.commit()` to apply in one search, or `draft.discard()` to cancel. Unmount the sheet after either action. The host owns the sheet's open state, focus and Apply/Cancel labels.
+
+Infinite hits use native links by default. Their default cards do not call the controller's page-local impression/selection methods: after loading another page, those methods refer only to that page, not to the accumulated hits. Use `renderHit` / the `hit` slot for host-specific navigation and attribution. The existing `DialogSearchProductCard` continues to track a single current page; do not pass an accumulated index to it.
+
+The React AI overview hook forwards future requests to the latest custom `transport` without restarting on callback-only renders. Vue binds controller and connector options during setup: remount a keyed component when changing its controller or attribute. The optional overview `label` defaults to English `AI overview`; pass your translated accessible label when needed.
+
+```vue
+<DialogSearchRefinementList :controller="controller" attribute="color" :limit="5" :theme="theme" />
+<DialogSearchRange :controller="controller" :theme="theme" />
+<DialogSearchCurrentRefinements :controller="controller" :theme="theme" />
+<DialogSearchInfiniteHits :controller="controller" :theme="theme" />
+<DialogSearchAiOverview :controller="aiController" :api-key="client.apiKey" :theme="theme" />
+```
+
+Import these components from `@askdialog/dialog-vue`. `aiController` comes from `useDialogSearch({ ...options, mode: 'ai' })`.
+
+New controls use the controller’s `language` and `texts` directly, without a separate locale override. Pass `label` for a translated AI overview landmark and `errorLabel` on infinite hits / AI overview for a translated failure message; their error defaults are English. Live range refinements apply on each keystroke, as the SDK connector does. Use a draft when edits should wait for Apply.

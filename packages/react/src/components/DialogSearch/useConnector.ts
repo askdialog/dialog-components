@@ -9,14 +9,19 @@ export const useConnector = <TConnector extends Connector<unknown>>(
   connect: (controller: SearchController) => TConnector,
   controller: SearchController,
 ): [ReturnType<TConnector["getRenderState"]>, TConnector] => {
-  const ref = useRef<{ controller: SearchController; connector: TConnector }>(
-    undefined,
-  );
+  const ref = useRef<{
+    controller: SearchController;
+    connect: typeof connect;
+    connector: TConnector;
+  }>(undefined);
 
   // Recreated on next access after disposal, as StrictMode replays effects.
   const get = useCallback((): TConnector => {
-    if (ref.current?.controller !== controller) {
-      ref.current = { controller, connector: connect(controller) };
+    if (
+      ref.current?.controller !== controller ||
+      ref.current.connect !== connect
+    ) {
+      ref.current = { controller, connect, connector: connect(controller) };
     }
 
     return ref.current.connector;
