@@ -45,6 +45,7 @@ export const nl: TextsFactory = (n) => ({
   filterExclusion: (field, value) => `${field}: behalve ${value}`,
   filterValueRange: (min, max) => `${min} – ${max}`,
   seeMore: (count) => `Meer tonen (${n(count)})`,
+  seePrevious: (count) => `Vorige tonen (${n(count)})`,
   seeLess: "Minder tonen",
   clearAll: "Alles wissen",
   clearFilters: "Filters wissen",

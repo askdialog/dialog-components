@@ -393,7 +393,7 @@ This package requires React 19 or higher as a peer dependency.
 
 Requires `@askdialog/dialog-sdk@^3.8.0`. `useDialogSearch` accepts the SDK controller options, including `mode`, `currency`, `texts`, `config`, `initialSearchState`, `routing`, `facets`, `facetsTransport`, `transport` and `sections`. The client supplies the API key and analytics callbacks. Options are fixed at creation. Lexical search uses `client.search`; AI mode uses the SDK AI transport with the client's public API key. A supplied `transport` overrides either mode.
 
-For example, use `{ client, language: 'en', country: 'US', routing: true, facets: true }` for a lexical results page; call `controller.search()` on mount to run the restored URL state. Use `{ client, language: 'en', country: 'US', mode: 'ai', currency: 'USD' }` for natural-language search. AI requests start at two trimmed characters, omit additional sections and do not request facet counts. Render AI hits from their raw records with `useInfiniteHits`; the existing `DialogSearchResults` and `DialogSearchProductCard` require lexical `_display` hits.
+For example, use `{ client, language: 'en', country: 'US', routing: true, facets: true }` for a lexical results page; call `controller.search()` on mount to run the restored URL state. Use `{ client, language: 'en', country: 'US', mode: 'ai', currency: 'USD' }` for natural-language search. AI requests start at two trimmed characters, omit additional sections and do not request facet counts. Render AI hits with `useInfiniteHits` or `DialogSearchInfiniteHits`: each entry's `display` is built from the AI record (title, image, price range, and its `url`, else Shopify's `products/<handle>` under `storefrontRoot`; on another platform, render your own link from `entry.hit`). The existing `DialogSearchResults` and `DialogSearchProductCard` require lexical `_display` hits.
 
 | Hook/composable | SDK connector | Extra argument |
 | --- | --- | --- |
@@ -442,7 +442,7 @@ Import the package stylesheet as for the existing search components. Each compon
 | `DialogSearchRefinementList` | `attribute`, optional `limit` | Checkboxes, result counts when enabled, show more/less. |
 | `DialogSearchRange` | optional `attribute` (default `price`), `label` | Min/max inputs accept decimal dots and commas. Non-numeric text is marked invalid and does not change the applied range; `invalidLabel` translates its error. Reversed bounds show an error and send no search. |
 | `DialogSearchCurrentRefinements` | | Applied chips, removal of removable filters, Clear all. |
-| `DialogSearchInfiniteHits` | `renderHit(entry, index)` | Accumulated lexical or raw AI hits, Show more, loading, empty and retry. |
+| `DialogSearchInfiniteHits` | `renderHit(entry, index)` | Accumulated lexical or AI hits, Show more, loading, empty and retry. A list restored on a later page (`routing` with `page`) shows a Show previous button that loads the pages above. |
 | `DialogSearchAiOverview` | `apiKey` or `transport`, optional `label` | AI controller only: text, follow-up suggestions, loading and retry. |
 
 The controls can live directly on a results page, or receive a `SearchDraft` in your own filter sheet. Create one draft when opening the sheet; pass it to the filter components, use Clear all to reset pending refinements, `draft.commit()` to apply in one search, or `draft.discard()` to cancel. Unmount the sheet after either action. The host owns the sheet's open state, focus and Apply/Cancel labels.

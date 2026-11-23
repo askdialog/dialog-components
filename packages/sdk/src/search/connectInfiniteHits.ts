@@ -1,54 +1,43 @@
 import { SearchProductHit } from "../types/search";
 import { SearchStatus } from "../types/searchController";
-import { ProductHitDisplay, productHitDisplay } from "./connectHits";
+import { aiHitDisplay } from "./aiHitDisplay";
+import { productHitDisplay } from "./connectHits";
 import { Connector, createConnector } from "./connector";
+import {
+  ANSWERED,
+  InfiniteHit,
+  InfiniteHitsRenderState,
+  NO_PAGES,
+  ReadState,
+  renderPages,
+} from "./infiniteHitsState";
 import { productsEntry } from "./searchState";
 import { SearchController, SearchResults, SearchSnapshot } from "./types";
 
-export interface InfiniteHit {
-  readonly hit: SearchProductHit;
-  /** Absent on the AI mode, whose hits carry no `_display`: render from `hit`. */
-  readonly display?: ProductHitDisplay;
-}
-
-export interface InfiniteHitsRenderState {
-  /** The hits of every page fetched so far, in page order. */
-  readonly hits: readonly InfiniteHit[];
-  /** The engine's total, kept while the next page loads; absent until a page answers. */
-  readonly nbHits?: number;
-  /** True with no page fetched or once the last one is. */
-  readonly isLastPage: boolean;
-  /** A next page is loading below the fetched ones. */
-  readonly loadingMore: boolean;
-  /** The next page failed; the fetched ones stay. */
-  readonly failedMore: boolean;
-}
+export type { InfiniteHit, InfiniteHitsRenderState } from "./infiniteHitsState";
 
 export interface InfiniteHitsConnector
   extends Connector<InfiniteHitsRenderState> {
   /** Request the next page; ignored while loading, on the last page, after a failure or with a query pending. */
   showMore(): void;
+  /** Request the page above the first fetched one; ignored as `showMore` is, and on the first page. */
+  showPrevious(): void;
   /** Replay the page that failed. */
   retryMore(): void;
 }
 
-type Pages = ReadonlyMap<number, readonly InfiniteHit[]>;
-
-const NO_PAGES: Pages = new Map();
-
-const ANSWERED = new Set<SearchStatus>([
-  SearchStatus.SUCCESS,
-  SearchStatus.EMPTY,
-]);
-
-/** Every page fetched so far, stacked, and the actions that fetch the next one. */
+/** Every page fetched so far, stacked, and the actions that fetch the pages around them. */
 export function connectInfiniteHits(
   controller: SearchController,
 ): InfiniteHitsConnector {
   const entry = productsEntry(controller);
   const raw = controller.getSnapshot().context.mode === "ai";
-  const toHit = (hit: SearchProductHit): InfiniteHit =>
-    raw ? { hit } : { hit, display: productHitDisplay(controller, hit) };
+  const toHit = (hit: SearchProductHit): InfiniteHit => ({
+    hit,
+    display: raw
+      ? aiHitDisplay(controller, hit)
+      : productHitDisplay(controller, hit),
+  });
 
   const queryOf = (snapshot: SearchSnapshot): string =>
     entry.read(snapshot.searchState).query.trim();
@@ -56,8 +45,36 @@ export function connectInfiniteHits(
   let pages = NO_PAGES;
   let nbHits: number | undefined;
   let nbPages = 0;
+  let hitsPerPage = 0;
+  // The page above the fetched ones that showPrevious asked for, and its query.
+  let previous: { readonly page: number; readonly query: string } | undefined;
   // The query of the fetched pages; a different one in the search state is still pending.
   let answeredQuery: string | undefined;
+
+  const reset = (): void => {
+    pages = NO_PAGES;
+    nbHits = undefined;
+    nbPages = 0;
+    previous = undefined;
+  };
+
+  const stack = (
+    products: NonNullable<SearchResults["products"]>,
+    fillingAbove: boolean,
+  ): void => {
+    const keep = products.page !== 0 || fillingAbove;
+    pages = new Map(keep ? pages : NO_PAGES).set(
+      products.page,
+      products.hits.map(toHit),
+    );
+    ({ nbHits, nbPages, hitsPerPage, query: answeredQuery } = products);
+    if (fillingAbove) {
+      previous = undefined;
+    }
+  };
+
+  const isFillingAbove = (snapshot: SearchSnapshot, requested: number) =>
+    previous?.page === requested && previous.query === queryOf(snapshot);
 
   const accumulate = (snapshot: SearchSnapshot): void => {
     if (snapshot.results === results) {
@@ -65,53 +82,43 @@ export function connectInfiniteHits(
     }
     results = snapshot.results;
     const { status, products } = results;
-    // A search at page 0 starts over: the previous pages go from its first frame.
+    const requested = entry.read(snapshot.searchState).page;
+    const fillingAbove = isFillingAbove(snapshot, requested);
+    // A search at page 0 starts over, unless it fills the list from above:
+    // the previous pages go from its first frame.
     const startingOver =
-      status === SearchStatus.LOADING &&
-      entry.read(snapshot.searchState).page === 0;
+      status === SearchStatus.LOADING && requested === 0 && !fillingAbove;
     if (status === SearchStatus.IDLE || startingOver) {
-      pages = NO_PAGES;
-      nbHits = undefined;
-      nbPages = 0;
+      reset();
     } else if (ANSWERED.has(status) && products !== undefined) {
-      pages = new Map(products.page === 0 ? NO_PAGES : pages).set(
-        products.page,
-        products.hits.map(toHit),
-      );
-      nbHits = products.nbHits;
-      nbPages = products.nbPages;
-      answeredQuery = products.query;
+      stack(products, fillingAbove);
     }
   };
 
   const connector = createConnector(controller, {
-    read: (snapshot) => {
+    read: (snapshot): ReadState => {
       accumulate(snapshot);
 
       return [
         pages,
         nbHits,
         nbPages,
+        hitsPerPage,
         snapshot.results.status,
         queryOf(snapshot) !== answeredQuery,
-      ] as const;
+        entry.read(snapshot.searchState).page,
+      ];
     },
-    render: ([fetched, total, pageCount, status, pending]) => {
-      const sorted = [...fetched.entries()].sort(([a], [b]) => a - b);
-      const lastPage = sorted.at(-1)?.[0] ?? -1;
-      // A pending query cancelled the page request; its status stays until the next search starts.
-      const more = fetched.size > 0 && !pending;
-
-      return {
-        hits: sorted.flatMap(([, hits]) => hits),
-        nbHits: total,
-        isLastPage: lastPage + 1 >= pageCount,
-        loadingMore: status === SearchStatus.LOADING && more,
-        failedMore: status === SearchStatus.ERROR && more,
-      };
-    },
+    render: renderPages,
   });
   const { getRenderState, subscribe, dispose, disposed } = connector;
+
+  // Fetch a page next to the fetched ones: not while loading, after a failure or with a query pending.
+  const canFetch = (atEdge: boolean): boolean =>
+    !disposed() &&
+    !atEdge &&
+    ANSWERED.has(controller.getSnapshot().results.status) &&
+    queryOf(controller.getSnapshot()) === answeredQuery;
 
   return {
     getRenderState,
@@ -119,16 +126,17 @@ export function connectInfiniteHits(
     dispose,
 
     showMore() {
-      const { status } = controller.getSnapshot().results;
-      if (
-        disposed() ||
-        !ANSWERED.has(status) ||
-        getRenderState().isLastPage ||
-        queryOf(controller.getSnapshot()) !== answeredQuery
-      ) {
-        return;
+      if (canFetch(getRenderState().isLastPage)) {
+        entry.set({ page: Math.max(...pages.keys()) + 1 });
       }
-      entry.set({ page: Math.max(...pages.keys()) + 1 });
+    },
+
+    showPrevious() {
+      if (canFetch(getRenderState().isFirstPage)) {
+        const page = Math.min(...pages.keys()) - 1;
+        previous = { page, query: queryOf(controller.getSnapshot()) };
+        entry.set({ page });
+      }
     },
 
     retryMore() {

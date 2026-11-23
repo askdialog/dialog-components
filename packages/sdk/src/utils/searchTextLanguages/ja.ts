@@ -42,6 +42,7 @@ export const ja: TextsFactory = (n) => ({
   filterExclusion: (field, value) => `${field}：${value}を除く`,
   filterValueRange: (min, max) => `${min} – ${max}`,
   seeMore: (count) => `もっと見る（${n(count)}）`,
+  seePrevious: (count) => `前を表示（${n(count)}）`,
   seeLess: "表示を減らす",
   clearAll: "すべてクリア",
   clearFilters: "フィルターをクリア",

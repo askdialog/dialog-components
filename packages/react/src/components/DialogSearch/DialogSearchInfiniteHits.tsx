@@ -31,6 +31,15 @@ export const DialogSearchInfiniteHits = ({
       aria-label={texts.productsLabel}
       aria-busy={box.status === "loading"}
     >
+      {!state.isFirstPage && (
+        <button
+          type="button"
+          disabled={state.loadingPrevious}
+          onClick={() => connector.showPrevious()}
+        >
+          {texts.seePrevious(state.nbHitsBefore)}
+        </button>
+      )}
       <ul className="dialog-search-infinite-list">
         {state.hits.map((entry, index) => {
           const { hit, display } = entry;
@@ -84,9 +93,7 @@ export const DialogSearchInfiniteHits = ({
             disabled={state.loadingMore}
             onClick={() => connector.showMore()}
           >
-            {texts.seeMore(
-              Math.max(0, (state.nbHits ?? 0) - state.hits.length),
-            )}
+            {texts.seeMore(state.nbHitsAfter ?? 0)}
           </button>
         )
       )}

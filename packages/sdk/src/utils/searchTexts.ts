@@ -43,6 +43,8 @@ export interface SearchTexts {
   filterValueRange: (min: string, max: string) => string;
   /** The fold of a filter's values while folded, with how many it hides, e.g. "See more (4)". */
   seeMore: (count: number) => string;
+  /** The infinite list's button that loads the page above the fetched ones. */
+  seePrevious: (count: number) => string;
   /** The fold once unfolded. */
   seeLess: string;
   /** Next to the applied filters: removes them all. */

@@ -24,6 +24,14 @@ const { texts, language } = props.controller.getSnapshot().context;
     :aria-label="texts.productsLabel"
     :aria-busy="box.status === 'loading'"
   >
+    <button
+      v-if="!state.isFirstPage"
+      type="button"
+      :disabled="state.loadingPrevious"
+      @click="connector.showPrevious()"
+    >
+      {{ texts.seePrevious(state.nbHitsBefore) }}
+    </button>
     <ul class="dialog-search-infinite-list">
       <li
         v-for="(entry, index) in state.hits"
@@ -87,7 +95,7 @@ const { texts, language } = props.controller.getSnapshot().context;
       :disabled="state.loadingMore"
       @click="connector.showMore()"
     >
-      {{ texts.seeMore(Math.max(0, (state.nbHits ?? 0) - state.hits.length)) }}
+      {{ texts.seeMore(state.nbHitsAfter ?? 0) }}
     </button>
   </section>
 </template>
