@@ -58,7 +58,7 @@ jobs:
         run: pnpm verify:peers
 
       - name: Verify package entries
-        run: pnpm verify:entries
+        run: pnpm verify:entries --allow-unbuilt
 
   changeset-check:
     name: Changeset Verification

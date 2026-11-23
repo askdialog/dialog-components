@@ -5,6 +5,8 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 
 const PACKAGES = ['packages/sdk', 'packages/react', 'packages/vue'];
+// The pull request job builds only the affected packages; before publishing, all must be built.
+const ALLOW_UNBUILT = process.argv.includes('--allow-unbuilt');
 
 const targets = (value) =>
   typeof value === 'string' ? [value] : Object.values(value ?? {}).flatMap(targets);
@@ -13,7 +15,11 @@ const failures = [];
 for (const dir of PACKAGES) {
   const manifest = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
   if (!existsSync(join(dir, 'dist'))) {
-    console.log(`skip ${manifest.name}: not built`);
+    if (ALLOW_UNBUILT) {
+      console.log(`skip ${manifest.name}: not built`);
+    } else {
+      failures.push(`${manifest.name}: not built`);
+    }
     continue;
   }
   const files = [manifest.main, manifest.module, manifest.types, ...targets(manifest.exports)].filter(Boolean);
