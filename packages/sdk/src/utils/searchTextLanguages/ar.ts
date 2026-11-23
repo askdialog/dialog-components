@@ -60,6 +60,7 @@ export const ar: TextsFactory = (n, plural) => ({
   filterExclusion: (field, value) => `${field}: باستثناء ${value}`,
   filterValueRange: (min, max) => `${min} – ${max}`,
   seeMore: (count) => `عرض المزيد (${n(count)})`,
+  seePrevious: (count) => `عرض السابق (${n(count)})`,
   seeLess: "عرض أقل",
   clearAll: "مسح الكل",
   clearFilters: "مسح الفلاتر",

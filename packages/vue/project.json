@@ -3,6 +3,9 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/vue/src",
   "projectType": "library",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals", "searchControlStyles"]
+  },
   "targets": {
     "build": {
       "dependsOn": ["^build"],

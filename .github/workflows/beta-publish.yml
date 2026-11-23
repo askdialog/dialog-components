@@ -63,6 +63,10 @@ jobs:
         if: steps.changesets.outputs.has_changesets == 'true'
         run: pnpm verify:peers
 
+      - name: Verify package entries
+        if: steps.changesets.outputs.has_changesets == 'true'
+        run: pnpm verify:entries
+
       - name: Publish snapshot to npm (beta tag)
         if: steps.changesets.outputs.has_changesets == 'true'
         run: pnpm changeset publish --tag beta --no-git-tag

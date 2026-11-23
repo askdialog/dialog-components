@@ -3,13 +3,13 @@
   "version": "3.5.1",
   "private": false,
   "type": "module",
-  "main": "./dist/dialog-react.umd.js",
+  "main": "./dist/dialog-react.umd.cjs",
   "module": "./dist/dialog-react.js",
   "types": "./dist/main.d.ts",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
-      "require": "./dist/dialog-react.umd.js",
+      "require": "./dist/dialog-react.umd.cjs",
       "import": "./dist/dialog-react.js",
       "default": "./dist/dialog-react.js"
     },
@@ -26,7 +26,7 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@askdialog/dialog-sdk": "^3.8.0",
+    "@askdialog/dialog-sdk": "^3.11.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

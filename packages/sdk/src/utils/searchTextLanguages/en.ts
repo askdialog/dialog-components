@@ -44,6 +44,7 @@ export const en: TextsFactory = (n) => ({
   filterExclusion: (field, value) => `${field}: excluding ${value}`,
   filterValueRange: (min, max) => `${min} – ${max}`,
   seeMore: (count) => `See more (${n(count)})`,
+  seePrevious: (count) => `See previous (${n(count)})`,
   seeLess: "See less",
   clearAll: "Clear all",
   clearFilters: "Clear filters",

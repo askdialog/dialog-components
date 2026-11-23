@@ -10,7 +10,8 @@
       "!{projectRoot}/eslint.config.js",
       "!{projectRoot}/src/test-setup.[jt]s"
     ],
-    "sharedGlobals": []
+    "sharedGlobals": [],
+    "searchControlStyles": ["{workspaceRoot}/packages/search-controls.css"]
   },
   "targetDefaults": {
     "build": {

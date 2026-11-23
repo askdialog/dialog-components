@@ -42,6 +42,7 @@ export const ko: TextsFactory = (n) => ({
   filterExclusion: (field, value) => `${field}: ${value} 제외`,
   filterValueRange: (min, max) => `${min} – ${max}`,
   seeMore: (count) => `더 보기 (${n(count)})`,
+  seePrevious: (count) => `이전 항목 보기 (${n(count)})`,
   seeLess: "접기",
   clearAll: "모두 지우기",
   clearFilters: "필터 지우기",
