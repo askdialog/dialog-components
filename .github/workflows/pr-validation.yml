@@ -57,6 +57,9 @@ jobs:
       - name: Verify SDK peer dependencies
         run: pnpm verify:peers
 
+      - name: Verify package entries
+        run: pnpm verify:entries
+
   changeset-check:
     name: Changeset Verification
     runs-on: ubuntu-latest

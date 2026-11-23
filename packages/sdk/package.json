@@ -3,28 +3,29 @@
   "version": "3.3.0",
   "private": false,
   "description": "Dialog SDK",
-  "main": "dist/index.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/cjs/index.js"
     },
     "./search": {
+      "types": "./dist/search/index.d.ts",
       "import": "./dist/search/index.js",
-      "require": "./dist/search/index.js",
-      "types": "./dist/search/index.d.ts"
+      "require": "./dist/cjs/search/index.js"
     },
     "./impressions": {
+      "types": "./dist/impressions/index.d.ts",
       "import": "./dist/impressions/index.js",
-      "require": "./dist/impressions/index.js",
-      "types": "./dist/impressions/index.d.ts"
+      "require": "./dist/cjs/impressions/index.js"
     },
     "./events": {
+      "types": "./dist/events/index.d.ts",
       "import": "./dist/events/index.js",
-      "require": "./dist/events/index.js",
-      "types": "./dist/events/index.d.ts"
+      "require": "./dist/cjs/events/index.js"
     }
   },
   "typesVersions": {
@@ -44,8 +45,8 @@
     "clean": "rm -rf dist",
     "set-config": "chmod +x scripts/set-config.sh && ./scripts/set-config.sh",
     "build": "pnpm run build:prod",
-    "build:dev": "pnpm run clean && pnpm run set-config development && tsc",
-    "build:prod": "pnpm run clean && pnpm run set-config production && tsc",
+    "build:dev": "pnpm run clean && pnpm run set-config development && tsc && pnpm run build:cjs",
+    "build:prod": "pnpm run clean && pnpm run set-config production && tsc && pnpm run build:cjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
@@ -60,7 +61,8 @@
     "deploy:s3": "aws s3 cp bundle/dialog-sdk.$npm_package_version.min.js s3://dialog-sdk/",
     "deploy:cloudfront": "aws cloudfront create-invalidation --distribution-id E3NRPUUF94K3P6 --no-cli-pager --paths \"/dialog-sdk.$npm_package_version.min.js\"",
     "deploy:cdn": "pnpm run build:prod && pnpm run build:bundle:iife && pnpm run deploy:s3 && pnpm run deploy:cloudfront",
-    "deploy:cdn:publish": "pnpm run build:prod && pnpm run build:bundle:iife && pnpm run deploy:s3 && pnpm run deploy:cloudfront && pnpm publish"
+    "deploy:cdn:publish": "pnpm run build:prod && pnpm run build:bundle:iife && pnpm run deploy:s3 && pnpm run deploy:cloudfront && pnpm publish",
+    "build:cjs": "node scripts/build-cjs.mjs"
   },
   "files": [
     "dist"
