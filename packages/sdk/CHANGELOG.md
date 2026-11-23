@@ -1,5 +1,15 @@
 # @askdialog/dialog-sdk
 
+## 3.10.0
+
+### Minor Changes
+
+- 7ac47f3: `connectRefinementList` orders the values by product count, highest first, when the last search's counts hold the attribute; a tie keeps the search config's order, and the fold shows the values with the most products. Without counts, the values keep the config's order, as before.
+
+### Patch Changes
+
+- 133cb1f: Keep pagination and infinite hits blocked while a new query is debouncing, including when old facet counts arrive or infinite hits connects after typing.
+
 ## 3.9.0
 
 ### Minor Changes
