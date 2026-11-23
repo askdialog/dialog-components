@@ -26,8 +26,8 @@ export interface RefinementListRenderState {
   /**
    * The search config's values in its order; none until the config loads.
    * When the last search's counts hold the attribute, only the values with a
-   * result, and the checked ones. Folded, the first `limit` of them and every
-   * checked one further down.
+   * result and the checked ones, the most products first. Folded, the first
+   * `limit` of them and every checked one further down.
    */
   readonly items: readonly RefinementListItem[];
   /** The visitor unfolded the values. */
@@ -101,8 +101,8 @@ export const foldedValues = (
 };
 
 /**
- * The values offered: the search config's, and, when the counts hold the
- * attribute, those with a result or checked, each with its count.
+ * The values offered: the search config's, and, when the counts hold the attribute,
+ * those with a result or checked, each with its count, the most products first.
  */
 export const offeredValues = (
   values: readonly string[],
@@ -113,7 +113,8 @@ export const offeredValues = (
     ? values.map((value) => ({ value }))
     : values
         .map((value) => ({ value, count: counts[value] ?? 0 }))
-        .filter(({ value, count }) => count > 0 || checked.includes(value));
+        .filter(({ value, count }) => count > 0 || checked.includes(value))
+        .sort((first, second) => second.count - first.count);
 
 /** The search config's values of one attribute, checked or not, folded past `limit`, and the actions that toggle a value or the fold. */
 export function connectRefinementList(

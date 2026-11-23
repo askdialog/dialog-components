@@ -65,26 +65,15 @@ export function connectPagination(
   // Trimmed query the shown results answer; a different one in the search state is still pending.
   const queryOf = (snapshot: SearchSnapshot): string =>
     entry.read(snapshot.searchState).query.trim();
-  let results = controller.getSnapshot().results;
-  // Connected after a search: the results echo the query they answer.
-  let answeredQuery = results.products?.query;
-
   const connector = createConnector(controller, {
     read: (snapshot) => {
-      // A request aborts on each query change, so results arrive for the query in the search state.
-      if (snapshot.results !== results) {
-        results = snapshot.results;
-        if (results.status !== SearchStatus.LOADING) {
-          answeredQuery = queryOf(snapshot);
-        }
-      }
       const { status, products } = snapshot.results;
 
       return [
         status,
         products?.page ?? 0,
         products?.nbPages ?? 0,
-        queryOf(snapshot) !== answeredQuery,
+        queryOf(snapshot) !== products?.query,
       ] as const;
     },
     // Hidden while loading or pending: a page of the shown results would apply to the next query.
