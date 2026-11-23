@@ -110,6 +110,8 @@ export {
 // Types the controller's snapshot and options are built from.
 export type { SearchBusinessRanking } from "../types/dialogConfig";
 export type {
+  SearchAiMoney,
+  SearchAiProductHit,
   SearchArticleHit,
   SearchCollectionHit,
   SearchFacetCounts,

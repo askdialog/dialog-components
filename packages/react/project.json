@@ -4,6 +4,9 @@
   "sourceRoot": "packages/react/src",
   "projectType": "library",
   "tags": ["type:library", "scope:react"],
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*", "sharedGlobals", "searchControlStyles"]
+  },
   "targets": {
     "build": {
       "dependsOn": ["^build"],

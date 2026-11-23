@@ -13,3 +13,14 @@ export {
   type DialogSearchState,
   type UseDialogSearchOptions,
 } from "./DialogSearch/useDialogSearch";
+
+export { useConnector } from "./DialogSearch/useConnector";
+export * from "./DialogSearch/searchHooks";
+
+export {
+  DialogSearchRefinementList,
+  DialogSearchRange,
+  DialogSearchCurrentRefinements,
+} from "./DialogSearch/DialogSearchFilters";
+export { DialogSearchAiOverview } from "./DialogSearch/DialogSearchAiOverview";
+export { DialogSearchInfiniteHits } from "./DialogSearch/DialogSearchInfiniteHits";

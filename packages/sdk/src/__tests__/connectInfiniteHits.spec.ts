@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-/* eslint max-lines: ["error", 320] */
+/* eslint max-lines: ["error", 360] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   connectInfiniteHits,
@@ -301,12 +301,45 @@ describe("connectInfiniteHits", () => {
 describe("connectInfiniteHits, AI mode", () => {
   beforeEach(() => connect("ai"));
 
-  it("gives the raw hits, with no display", async () => {
-    await answer(0);
+  it("builds each display from the AI record: title, image, price range and handle link", async () => {
+    const record = {
+      objectID: "gid://shopify/Product/1",
+      title: "Veste thermique",
+      handle: "veste-thermique",
+      imageUrl: "https://cdn.example.com/veste.png",
+      priceRange: {
+        min: { amount: "219", currencyCode: "EUR" },
+        max: { amount: "249", currencyCode: "EUR" },
+      },
+    } as unknown as SearchProductHit;
+    await answer(0, { hits: [record] });
 
-    expect(infiniteHits.getRenderState().hits).toEqual([
-      { hit: pageOf(0).hits[0] },
-      { hit: pageOf(0).hits[1] },
-    ]);
+    expect(infiniteHits.getRenderState().hits[0]).toMatchObject({
+      hit: record,
+      display: {
+        title: "Veste thermique",
+        href: `${window.location.origin}/products/veste-thermique`,
+        image: { url: "https://cdn.example.com/veste.png", shape: "theme" },
+        price: expect.stringMatching(/^219,00\s€\s–\s249,00\s€$/u),
+      },
+    });
+  });
+
+  it("prefers the record's own url and shows a single price once", async () => {
+    const record = {
+      objectID: "1",
+      title: "Selle",
+      url: "/fr/selle-sr2",
+      priceRange: {
+        min: { amount: 129, currencyCode: "EUR" },
+        max: { amount: 129, currencyCode: "EUR" },
+      },
+    } as unknown as SearchProductHit;
+    await answer(0, { hits: [record] });
+
+    expect(infiniteHits.getRenderState().hits[0]?.display).toMatchObject({
+      href: "/fr/selle-sr2",
+      price: expect.stringMatching(/^129,00\s€$/u),
+    });
   });
 });
