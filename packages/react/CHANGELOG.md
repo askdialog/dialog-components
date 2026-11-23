@@ -1,5 +1,20 @@
 # @askdialog/dialog-react
 
+## 3.6.0
+
+### Minor Changes
+
+- dd3e3ea: `DialogSearchInfiniteHits` shows a "See previous" button when restored on a later page, counts the hits left below the last fetched page, and renders AI hits with their image, price range and link. React's and Vue's peer `@askdialog/dialog-sdk` is now `^3.11.0`, the SDK release that adds them.
+- 17146a5: Expose controller options and typed search connector hooks for custom lexical and AI search UIs. Vue now requires SDK 3.8.0 for the added connectors.
+
+  The Vue SDK peer range changes from ^3.4.0 to ^3.8.0 for all Vue consumers, including those using only existing components. Upgrade @askdialog/dialog-sdk to 3.8.0 or later together with dialog-vue.
+
+- 5b64aa5: Add filter controls, infinite hits and AI overview components for custom search pages and draft filter sheets.
+
+### Patch Changes
+
+- 075beb3: Point CommonJS entry paths at the .umd.cjs bundles emitted by Vite and included in the packages.
+
 ## 3.5.1
 
 ### Patch Changes

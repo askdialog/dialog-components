@@ -1,5 +1,15 @@
 # @askdialog/dialog-sdk
 
+## 3.11.0
+
+### Minor Changes
+
+- dd3e3ea: `connectInfiniteHits` adds `showPrevious()`, `isFirstPage`, `loadingPrevious`, `nbHitsBefore` and `nbHitsAfter`: a list restored on a later page (a URL's `page`) can load the pages above it, and its counts no longer assume it starts on page 0. On the `ai` mode, whose hits carry no `_display`, each hit gets a `display` built from its record (title, image, price range, `url` or `products/<handle>` link). `SearchAiProductHit` types those records. New `seePrevious` search text in every language.
+
+### Patch Changes
+
+- 5cdc785: Ship a CommonJS build for `require`: Node and Jest projects can now load the SDK and its `/search`, `/events` and `/impressions` subpaths, and with them the React package's CommonJS bundle.
+
 ## 3.10.0
 
 ### Minor Changes
