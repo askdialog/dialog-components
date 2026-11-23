@@ -80,7 +80,7 @@ export function connectInfiniteHits(
       );
       nbHits = products.nbHits;
       nbPages = products.nbPages;
-      answeredQuery = queryOf(snapshot);
+      answeredQuery = products.query;
     }
   };
 
