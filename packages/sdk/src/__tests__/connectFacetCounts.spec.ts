@@ -1,3 +1,4 @@
+/* eslint max-lines: ["error", 240] */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { connectRange } from "../search/connectRange";
 import { connectRefinementList } from "../search/connectRefinementList";
@@ -137,6 +138,36 @@ describe("facet counts in the connectors", () => {
     expect(colors.getRenderState().items).toHaveLength(4);
   });
 
+  it("offers the values with the most products first, a tie in the config's order, and folds past them", async () => {
+    controller = create(true);
+    const colors = connectRefinementList(controller, {
+      attribute: "color",
+      limit: 2,
+    });
+    await answer(controller, {
+      facets: { color: { Beige: 1, Bleu: 2, Noir: 9, Rouge: 2, Vert: 5 } },
+      nbHits: 19,
+    });
+
+    expect(colors.getRenderState()).toMatchObject({
+      items: [
+        { value: "Noir", count: 9 },
+        { value: "Vert", count: 5 },
+      ],
+      foldedCount: 3,
+    });
+
+    colors.toggleShowMore();
+
+    expect(colors.getRenderState().items.map(({ value }) => value)).toEqual([
+      "Noir",
+      "Vert",
+      "Bleu",
+      "Rouge",
+      "Beige",
+    ]);
+  });
+
   it.each([
     ["the option is off", false, COUNTS],
     ["the counts fail", true, new Error("502")],
@@ -189,10 +220,10 @@ describe("facet counts in the connectors", () => {
     expect(transport).toHaveBeenCalledOnce();
     expect(facetsTransport).toHaveBeenCalledOnce();
     expect(colors.getRenderState().items).toEqual([
-      { value: "Beige", isRefined: true, count: 0 },
       { value: "Bleu", isRefined: true, count: 3 },
       { value: "Noir", isRefined: false, count: 2 },
       { value: "Rouge", isRefined: false, count: 1 },
+      { value: "Beige", isRefined: true, count: 0 },
       { value: "Vert", isRefined: true, count: 0 },
     ]);
     draft.discard();
