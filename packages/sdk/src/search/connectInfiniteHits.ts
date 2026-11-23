@@ -1,4 +1,4 @@
-import { SearchProductHit } from "../types/search";
+import { SearchAiProductHit, SearchProductHit } from "../types/search";
 import { SearchStatus } from "../types/searchController";
 import { aiHitDisplay } from "./aiHitDisplay";
 import { productHitDisplay } from "./connectHits";
@@ -35,7 +35,8 @@ export function connectInfiniteHits(
   const toHit = (hit: SearchProductHit): InfiniteHit => ({
     hit,
     display: raw
-      ? aiHitDisplay(controller, hit)
+      ? // The AI route's hits are typed as lexical ones.
+        aiHitDisplay(controller, hit as unknown as SearchAiProductHit)
       : productHitDisplay(controller, hit),
   });
 
@@ -46,8 +47,11 @@ export function connectInfiniteHits(
   let nbHits: number | undefined;
   let nbPages = 0;
   let hitsPerPage = 0;
-  // The page above the fetched ones that showPrevious asked for, and its query.
-  let previous: { readonly page: number; readonly query: string } | undefined;
+  // The products result last stacked; a facet-count update repeats it.
+  let stacked: SearchResults["products"];
+  // The page above the fetched ones that showPrevious asked for, and the rest
+  // of the search state it was asked with: any other change starts over.
+  let previous: { readonly page: number; readonly state: string } | undefined;
   // The query of the fetched pages; a different one in the search state is still pending.
   let answeredQuery: string | undefined;
 
@@ -55,6 +59,7 @@ export function connectInfiniteHits(
     pages = NO_PAGES;
     nbHits = undefined;
     nbPages = 0;
+    stacked = undefined;
     previous = undefined;
   };
 
@@ -62,6 +67,10 @@ export function connectInfiniteHits(
     products: NonNullable<SearchResults["products"]>,
     fillingAbove: boolean,
   ): void => {
+    if (products === stacked) {
+      return;
+    }
+    stacked = products;
     const keep = products.page !== 0 || fillingAbove;
     pages = new Map(keep ? pages : NO_PAGES).set(
       products.page,
@@ -73,8 +82,12 @@ export function connectInfiniteHits(
     }
   };
 
+  // The products entry's state but its page.
+  const stateOf = (snapshot: SearchSnapshot): string =>
+    JSON.stringify({ ...entry.read(snapshot.searchState), page: 0 });
+
   const isFillingAbove = (snapshot: SearchSnapshot, requested: number) =>
-    previous?.page === requested && previous.query === queryOf(snapshot);
+    previous?.page === requested && previous.state === stateOf(snapshot);
 
   const accumulate = (snapshot: SearchSnapshot): void => {
     if (snapshot.results === results) {
@@ -134,7 +147,7 @@ export function connectInfiniteHits(
     showPrevious() {
       if (canFetch(getRenderState().isFirstPage)) {
         const page = Math.min(...pages.keys()) - 1;
-        previous = { page, query: queryOf(controller.getSnapshot()) };
+        previous = { page, state: stateOf(controller.getSnapshot()) };
         entry.set({ page });
       }
     },

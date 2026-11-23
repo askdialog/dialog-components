@@ -1,24 +1,13 @@
-import { SearchProductHit } from "../types/search";
+import { SearchAiMoney, SearchAiProductHit } from "../types/search";
 import { formatAmount } from "../utils/searchPrice";
 import { resolveDisplayUrl, safeHref } from "../utils/searchDisplay";
 import { ProductHitDisplay } from "./connectHits";
 import { SearchController } from "./types";
 
-interface AiMoney {
-  readonly amount?: string | number;
-  readonly currencyCode?: string;
-}
-
-/** The fields an AI search hit carries in place of a lexical hit's `_display`. */
-interface AiProductRecord {
-  readonly title?: string;
-  readonly handle?: string;
-  readonly url?: string;
-  readonly imageUrl?: string;
-  readonly priceRange?: { readonly min?: AiMoney; readonly max?: AiMoney };
-}
-
-const formatMoney = (money: AiMoney | undefined, locale: string): string =>
+const formatMoney = (
+  money: SearchAiMoney | undefined,
+  locale: string,
+): string =>
   formatAmount(
     money?.amount === undefined ? undefined : Number(money.amount),
     money?.currencyCode,
@@ -26,13 +15,31 @@ const formatMoney = (money: AiMoney | undefined, locale: string): string =>
   );
 
 const priceRangeText = (
-  { min, max }: NonNullable<AiProductRecord["priceRange"]>,
+  { min, max }: NonNullable<SearchAiProductHit["priceRange"]>,
   locale: string,
 ): string => {
   const low = formatMoney(min, locale);
   const high = formatMoney(max, locale);
 
-  return high === "" || high === low ? low : `${low} – ${high}`;
+  if (low === "" || high === low) {
+    return high;
+  }
+
+  return high === "" ? low : `${low} – ${high}`;
+};
+
+// Its `url`, else Shopify's product path from its handle; an empty one is missing.
+const recordPath = ({
+  url,
+  handle,
+}: SearchAiProductHit): string | undefined => {
+  if (url !== undefined && url !== "") {
+    return url;
+  }
+
+  return handle === undefined || handle === ""
+    ? undefined
+    : `products/${encodeURIComponent(handle)}`;
 };
 
 /**
@@ -42,20 +49,11 @@ const priceRangeText = (
  */
 export const aiHitDisplay = (
   controller: SearchController,
-  hit: SearchProductHit,
+  record: SearchAiProductHit,
 ): ProductHitDisplay => {
-  const record = hit as unknown as AiProductRecord;
   const { language, storefrontRoot } = controller.getSnapshot().context;
   const title = record.title ?? "";
-  const href =
-    record.url === undefined
-      ? record.handle === undefined || record.handle === ""
-        ? undefined
-        : resolveDisplayUrl(
-            `products/${encodeURIComponent(record.handle)}`,
-            storefrontRoot,
-          )
-      : resolveDisplayUrl(record.url, storefrontRoot);
+  const href = resolveDisplayUrl(recordPath(record), storefrontRoot);
   const image = safeHref(record.imageUrl);
 
   return {

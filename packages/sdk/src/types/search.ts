@@ -133,6 +133,25 @@ export interface SearchHit {
  * Prices are numbers in the base currency of the shopper's market (`currency`);
  * a price the market lacks is absent.
  */
+/** An amount and its ISO 4217 currency, as AI search records give prices. */
+export interface SearchAiMoney {
+  amount?: string | number;
+  currencyCode?: string;
+}
+
+/**
+ * A hit of the AI search route: a product record with no `_display`. The
+ * results type its hits as `SearchProductHit`; read them as this type.
+ */
+export interface SearchAiProductHit {
+  objectID: string;
+  title?: string;
+  handle?: string;
+  url?: string;
+  imageUrl?: string;
+  priceRange?: { min?: SearchAiMoney; max?: SearchAiMoney };
+}
+
 export interface SearchProductHit {
   /** Variant id, the last segment of the Shopify GID. */
   objectID: string;
