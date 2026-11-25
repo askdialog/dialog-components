@@ -92,6 +92,11 @@ export interface AddToCartInput extends AddToCartProductDetails {
   price?: string;
   currency?: string;
   variantId?: string;
+  /**
+   * Selling plan (subscription or pre-order) the shopper chose for the line.
+   * Absent for a one-time purchase; pass it to the cart write when present.
+   */
+  sellingPlanId?: string;
 }
 
 export interface ChangeCartQuantityInput {
@@ -130,6 +135,7 @@ export interface TrackEventPayload extends AddToCartProductDetails {
   quantity: number;
   price?: string;
   currency?: string;
+  sellingPlanId?: string;
 }
 
 // A single line of a completed order. Optional, for product-level attribution
