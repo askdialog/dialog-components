@@ -598,12 +598,16 @@ const client = new Dialog({
             productId,
             quantity,
             variantId,
-            currency
+            currency,
+            sellingPlanId
         }: {
             productId: string;
             quantity: number;
             currency?: string;
             variantId?: string;
+            // Selling plan (subscription or pre-order) the shopper chose;
+            // absent for a one-time purchase.
+            sellingPlanId?: string;
         }): Promise<void> => {
             // Call your api to trigger addToCart
             const response = await fetch('....');

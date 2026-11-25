@@ -66,6 +66,25 @@ describe("Dialog.addToCart", () => {
     );
   });
 
+  it("forwards the selling plan to the merchant callback and the event", async () => {
+    const addToCartCallback = vi.fn().mockResolvedValue(undefined);
+    const { dialog, emitExternalEvent } = buildDialog(addToCartCallback);
+    const subscriptionInput: AddToCartInput = {
+      ...enrichedInput,
+      sellingPlanId: "gid://shopify/SellingPlan/7",
+    };
+
+    await dialog.addToCart(subscriptionInput);
+
+    expect(addToCartCallback).toHaveBeenCalledWith(
+      expect.objectContaining({ sellingPlanId: "gid://shopify/SellingPlan/7" }),
+    );
+    expect(emitExternalEvent).toHaveBeenCalledWith(
+      DialogEvents.TRACK_ADD_TO_CART,
+      expect.objectContaining({ sellingPlanId: "gid://shopify/SellingPlan/7" }),
+    );
+  });
+
   it("keeps working with the legacy minimal input", async () => {
     const addToCartCallback = vi.fn().mockResolvedValue(undefined);
     const { dialog, emitExternalEvent } = buildDialog(addToCartCallback);
